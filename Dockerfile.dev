@@ -1,0 +1,19 @@
+# Development Dockerfile for Resumeee Web SPA with HMR
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy dependency manifests
+COPY package.json package-lock.json ./
+
+# Install all dependencies
+RUN npm ci
+
+# Source files are mounted via volume in docker-compose.dev.yml
+COPY . .
+
+# Expose Vite development server port
+EXPOSE 5173
+
+# Start Vite development server bound to all network interfaces
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]

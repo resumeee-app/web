@@ -1,0 +1,23 @@
+# Node dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build and test artifacts
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+
+# Version control & env
+.git/
+.gitignore
+.env
+.env.*
+!.env.example
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
