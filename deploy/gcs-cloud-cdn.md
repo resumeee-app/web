@@ -37,7 +37,7 @@ gcloud storage buckets add-iam-policy-binding gs://resumeee-web-spa \
    - `X-Frame-Options`: `SAMEORIGIN`
    - `Referrer-Policy`: `strict-origin-when-cross-origin`
    - `Permissions-Policy`: `camera=(), microphone=(), geolocation=()`
-   - `Content-Security-Policy`: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self';`
+   - `Content-Security-Policy`: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'self';`
 4. Attach Google-managed SSL Certificate and Global Forwarding Rule for port 443.
 
 ---

@@ -69,7 +69,7 @@ To support client-side routing in React Router without 404/403 errors:
     - `X-Frame-Options`: `SAMEORIGIN`
     - `Referrer-Policy`: `strict-origin-when-cross-origin`
     - `Permissions-Policy`: `camera=(), microphone=(), geolocation=()`
-    - `Content-Security-Policy`: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self';`
+    - `Content-Security-Policy`: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'self';`
 - **Precedence 0 (`/assets/*`)**:
   - Cache Policy: `Managed-CachingOptimized` (`Cache-Control: public, max-age=31536000, immutable`).
   - Response Headers Policy: Attach same security headers policy.

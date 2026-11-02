@@ -6,6 +6,7 @@ import {
 import { RootLayout } from "./components/layout/root-layout";
 import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
+import { ResumePreviewPage } from "./pages/resume-preview-page";
 
 export const routes: RouteObject[] = [
   {
@@ -15,6 +16,10 @@ export const routes: RouteObject[] = [
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "branches/:id/preview",
+        element: <ResumePreviewPage />,
       },
       {
         path: "*",
