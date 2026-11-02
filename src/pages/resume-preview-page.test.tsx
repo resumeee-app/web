@@ -108,6 +108,13 @@ describe("ResumePreviewPage Component", () => {
     },
   };
 
+  const mockVersion2: renderQueries.BranchVersion = {
+    ...mockVersion1,
+    id: "v-2",
+    version_number: 2,
+    status: "completed",
+  };
+
   const mockMasterProfile: renderQueries.MasterProfileSnapshot = {
     master_revision: 2,
     exported_at: "2026-11-01T00:00:00Z",
@@ -194,6 +201,58 @@ describe("ResumePreviewPage Component", () => {
 
     expect(diffTab).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("region", { name: /tailored resume diff viewer/i })).toBeInTheDocument();
+  });
+
+  it("selects specified version and tab from URL query search parameters", () => {
+    render(<ResumePreviewPage />, {
+      wrapper: createTestWrapper(["/branches/b-123/preview?version=2&tab=diff"]),
+    });
+
+    expect(renderQueries.useBranchVersion).toHaveBeenCalledWith("b-123", 2);
+    expect(screen.getByRole("tab", { name: /tailoring diff/i })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+  });
+
+  it("persists user version selection from dropdown when initialVersion was provided", async () => {
+    const user = userEvent.setup();
+    vi.mocked(renderQueries.useBranchVersions).mockReturnValue(
+      mockQueryResult<renderQueries.BranchVersion[]>({
+        data: [mockVersion1, mockVersion2],
+        isLoading: false,
+        isError: false,
+      })
+    );
+
+    render(<ResumePreviewPage />, {
+      wrapper: createTestWrapper(["/branches/b-123/preview?version=1"]),
+    });
+
+    const select = screen.getByRole("combobox", { name: /select resume version/i });
+    expect(select).toHaveValue("1");
+
+    await user.selectOptions(select, "2");
+    expect(select).toHaveValue("2");
+    expect(renderQueries.useBranchVersion).toHaveBeenLastCalledWith("b-123", 2);
+  });
+
+  it("safely falls back without evaluating to NaN when version param is non-numeric", () => {
+    vi.mocked(renderQueries.useBranchVersions).mockReturnValue(
+      mockQueryResult<renderQueries.BranchVersion[]>({
+        data: [mockVersion1, mockVersion2],
+        isLoading: false,
+        isError: false,
+      })
+    );
+
+    render(<ResumePreviewPage />, {
+      wrapper: createTestWrapper(["/branches/b-123/preview?version=invalid"]),
+    });
+
+    // Should fall back to active version (v-1, version_number 1), never NaN
+    expect(renderQueries.useBranchVersion).not.toHaveBeenCalledWith("b-123", NaN);
+    expect(renderQueries.useBranchVersion).toHaveBeenCalledWith("b-123", 1);
   });
 
   it("displays loading state when data is being fetched", () => {

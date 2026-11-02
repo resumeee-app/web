@@ -45,6 +45,13 @@ describe("BranchCard Component", () => {
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute("href", "/branches/branch-default-u1");
 
+    // Inspect action button linking to /branches/:id/preview
+    const inspectLink = screen.getByRole("link", {
+      name: /inspect resume for master profile \(default\)/i,
+    });
+    expect(inspectLink).toBeInTheDocument();
+    expect(inspectLink).toHaveAttribute("href", "/branches/branch-default-u1/preview");
+
     // Title heading
     expect(
       screen.getByRole("heading", {
@@ -65,6 +72,25 @@ describe("BranchCard Component", () => {
     expect(
       screen.queryByRole("button", { name: /delete branch/i })
     ).not.toBeInTheDocument();
+  });
+
+  it("calls onInspect when inspect button is clicked if callback is provided", async () => {
+    const user = userEvent.setup();
+    const onInspect = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <BranchCard branch={defaultBranch} onInspect={onInspect} />
+      </MemoryRouter>
+    );
+
+    const inspectBtn = screen.getByRole("button", {
+      name: /inspect resume for master profile \(default\)/i,
+    });
+    expect(inspectBtn).toBeInTheDocument();
+
+    await user.click(inspectBtn);
+    expect(onInspect).toHaveBeenCalledWith(defaultBranch);
   });
 
   it("renders tailored branch with target company, role, status, and functional delete button", async () => {

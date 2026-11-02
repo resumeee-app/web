@@ -40,6 +40,11 @@ export interface BranchListProps {
    */
   presetsMap?: Record<string, string>;
   /**
+   * Optional callback invoked when a user clicks to inspect a branch resume.
+   * If omitted, links directly to `/branches/:id/preview`.
+   */
+  onInspectBranch?: (branch: Branch) => void;
+  /**
    * Callback invoked when a user clicks to delete a non-default branch.
    */
   onDeleteBranch: (branch: Branch) => void;
@@ -75,6 +80,7 @@ export const BranchList: React.FC<BranchListProps> = ({
   isLoading = false,
   templatesMap = {},
   presetsMap = {},
+  onInspectBranch,
   onDeleteBranch,
   onCreateBranchClick,
 }) => {
@@ -125,6 +131,7 @@ export const BranchList: React.FC<BranchListProps> = ({
             branch={branch}
             templateName={templatesMap[branch.template_set_id]}
             presetName={branch.preset_id ? presetsMap[branch.preset_id] : undefined}
+            onInspect={onInspectBranch}
             onDelete={onDeleteBranch}
           />
         ))}
@@ -226,6 +233,25 @@ export const BranchList: React.FC<BranchListProps> = ({
                         Workbench
                       </Link>
                     </Button>
+                    {onInspectBranch ? (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => onInspectBranch(branch)}
+                        aria-label={`Inspect resume for ${branch.name}`}
+                      >
+                        Inspect
+                      </Button>
+                    ) : (
+                      <Button asChild variant="secondary" size="sm">
+                        <Link
+                          to={`/branches/${branch.id}/preview`}
+                          aria-label={`Inspect resume for ${branch.name}`}
+                        >
+                          Inspect
+                        </Link>
+                      </Button>
+                    )}
                     {!isDefault && (
                       <Button
                         variant="ghost"

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Link } from "react-router-dom";
 import {
   Sparkles,
   RefreshCw,
@@ -7,6 +8,7 @@ import {
   Building2,
   Briefcase,
   AlertTriangle,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "./badge";
@@ -146,34 +148,36 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
 
             {/* Interactive Selectors for Target Preset and Template Set */}
             <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-slate-600 dark:text-slate-300">
-              <div className="flex items-center gap-1.5">
-                <Sliders className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
-                <label
-                  htmlFor="workbench-preset-select"
-                  className="font-medium text-slate-700 dark:text-slate-300"
-                >
-                  Preset:
-                </label>
-                <select
-                  id="workbench-preset-select"
-                  aria-label="Target Preset"
-                  value={branch.preset_id || ""}
-                  onChange={(e) => onUpdatePreset?.(e.target.value)}
-                  disabled={isUpdating || isTailoring}
-                  className="rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2 py-1 text-xs text-slate-800 dark:text-slate-200 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                >
-                  {presets.map((preset) => (
-                    <option key={preset.id} value={preset.id}>
-                      {preset.name}
-                    </option>
-                  ))}
-                  {presets.length === 0 && (
-                    <option value={branch.preset_id || ""}>
-                      {currentPreset?.name || branch.preset_id || "Default Preset"}
-                    </option>
-                  )}
-                </select>
-              </div>
+              {!branch.is_default && (
+                <div className="flex items-center gap-1.5">
+                  <Sliders className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+                  <label
+                    htmlFor="workbench-preset-select"
+                    className="font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    Preset:
+                  </label>
+                  <select
+                    id="workbench-preset-select"
+                    aria-label="Target Preset"
+                    value={branch.preset_id || ""}
+                    onChange={(e) => onUpdatePreset?.(e.target.value)}
+                    disabled={isUpdating || isTailoring}
+                    className="rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2 py-1 text-xs text-slate-800 dark:text-slate-200 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  >
+                    {presets.map((preset) => (
+                      <option key={preset.id} value={preset.id}>
+                        {preset.name}
+                      </option>
+                    ))}
+                    {presets.length === 0 && (
+                      <option value={branch.preset_id || ""}>
+                        {currentPreset?.name || branch.preset_id || "Default Preset"}
+                      </option>
+                    )}
+                  </select>
+                </div>
+              )}
 
               <div className="flex items-center gap-1.5">
                 <Layers className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
@@ -208,19 +212,31 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
 
           {/* Right: Actions */}
           <div className="flex flex-wrap items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={onSyncMaster}
-              disabled={isSyncing || isTailoring}
-              aria-busy={isSyncing}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
-                aria-hidden="true"
-              />
-              <span>{isSyncing ? "Syncing..." : "Sync with Master"}</span>
+            <Button asChild variant="secondary" className="flex items-center gap-2">
+              <Link
+                to={`/branches/${branch.id}/preview`}
+                aria-label={`Inspect resume for ${branch.name}`}
+              >
+                <Eye className="h-4 w-4" aria-hidden="true" />
+                <span>Inspect Resume</span>
+              </Link>
             </Button>
+
+            {!branch.is_default && (
+              <Button
+                variant="outline"
+                onClick={onSyncMaster}
+                disabled={isSyncing || isTailoring}
+                aria-busy={isSyncing}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
+                  aria-hidden="true"
+                />
+                <span>{isSyncing ? "Syncing..." : "Sync with Master"}</span>
+              </Button>
+            )}
 
             <Button
               onClick={onTailorResume}
@@ -228,11 +244,26 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
               aria-busy={isTailoring}
               className="flex items-center gap-2"
             >
-              <Sparkles
-                className={`h-4 w-4 ${isTailoring ? "animate-spin" : ""}`}
-                aria-hidden="true"
-              />
-              <span>{isTailoring ? "Tailoring..." : "Tailor Resume"}</span>
+              {branch.is_default ? (
+                <RefreshCw
+                  className={`h-4 w-4 ${isTailoring ? "animate-spin" : ""}`}
+                  aria-hidden="true"
+                />
+              ) : (
+                <Sparkles
+                  className={`h-4 w-4 ${isTailoring ? "animate-spin" : ""}`}
+                  aria-hidden="true"
+                />
+              )}
+              <span>
+                {branch.is_default
+                  ? isTailoring
+                    ? "Refreshing..."
+                    : "Refresh from Master Profile"
+                  : isTailoring
+                  ? "Tailoring..."
+                  : "Tailor Resume"}
+              </span>
             </Button>
           </div>
         </div>

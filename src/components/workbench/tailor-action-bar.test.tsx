@@ -1,9 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render as rtlRender, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { axe } from "vitest-axe";
 import { TailorActionBar } from "./tailor-action-bar";
 import type { Branch, Preset, TemplateSet } from "@/api/workbench-queries";
+
+function render(ui: React.ReactElement) {
+  return rtlRender(<MemoryRouter>{ui}</MemoryRouter>);
+}
 
 const mockBranch: Branch = {
   id: "branch-123",
@@ -61,6 +66,69 @@ describe("TailorActionBar", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/Stripe/i)).toBeInTheDocument();
     expect(screen.getByText("Master Updates Available")).toBeInTheDocument();
+
+    const inspectLink = screen.getByRole("link", {
+      name: /inspect resume for senior backend engineer/i,
+    });
+    expect(inspectLink).toBeInTheDocument();
+    expect(inspectLink).toHaveAttribute("href", "/branches/branch-123/preview");
+  });
+
+  it("renders default branch with 'Refresh from Master' action and suppresses preset selector", () => {
+    const defaultBranch: Branch = {
+      ...mockBranch,
+      id: "branch-default",
+      name: "Master Profile (Default)",
+      is_default: true,
+      is_stale: false,
+    };
+
+    render(
+      <TailorActionBar
+        branch={defaultBranch}
+        presets={mockPresets}
+        templates={mockTemplates}
+        isTailoring={false}
+        isSyncing={false}
+        onTailorResume={vi.fn()}
+        onSyncMaster={vi.fn()}
+      />
+    );
+
+    // Primary action button must say Refresh from Master Profile
+    expect(
+      screen.getByRole("button", {
+        name: /refresh from master profile/i,
+      })
+    ).toBeInTheDocument();
+
+    // Must NOT have Tailor Resume button
+    expect(
+      screen.queryByRole("button", {
+        name: /tailor resume/i,
+      })
+    ).not.toBeInTheDocument();
+
+    // Must NOT have Sync with Master button on default branch
+    expect(
+      screen.queryByRole("button", {
+        name: /^sync with master$/i,
+      })
+    ).not.toBeInTheDocument();
+
+    // Preset selector is suppressed for default branch
+    expect(
+      screen.queryByRole("combobox", {
+        name: /target preset/i,
+      })
+    ).not.toBeInTheDocument();
+
+    // Template selector remains accessible
+    expect(
+      screen.getByRole("combobox", {
+        name: /resume template/i,
+      })
+    ).toBeInTheDocument();
   });
 
   it("calls onTailorResume when 'Tailor Resume' button is clicked", async () => {

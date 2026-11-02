@@ -131,6 +131,19 @@ describe("BranchesPage Integration & Views", () => {
       screen.getByText(/mirrors canonical master data with zero llm tailoring/i)
     ).toBeInTheDocument();
 
+    // Default branch and custom branch render Inspect actions linking to preview
+    const defaultInspectLink = screen.getByRole("link", {
+      name: /inspect resume for master profile \(default\)/i,
+    });
+    expect(defaultInspectLink).toBeInTheDocument();
+    expect(defaultInspectLink).toHaveAttribute("href", "/branches/branch-default-u1/preview");
+
+    const customInspectLink = screen.getByRole("link", {
+      name: /inspect resume for netflix - senior platform engineer/i,
+    });
+    expect(customInspectLink).toBeInTheDocument();
+    expect(customInspectLink).toHaveAttribute("href", "/branches/branch-tailored-2/preview");
+
     // Default branch does not have delete button
     expect(
       screen.queryByRole("button", {
@@ -178,6 +191,11 @@ describe("BranchesPage Integration & Views", () => {
 
     // In table view, default branch badge and actions are rendered
     expect(screen.getByText("Default Branch")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", {
+        name: /inspect resume for master profile \(default\)/i,
+      })
+    ).toHaveAttribute("href", "/branches/branch-default-u1/preview");
     expect(
       screen.queryByRole("button", {
         name: /delete branch master profile \(default\)/i,

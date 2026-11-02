@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Clock, Layers, Trash2 } from "lucide-react";
+import { Clock, Eye, Layers, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   isDefaultBranch,
@@ -30,6 +30,11 @@ export interface BranchCardProps {
    * Human-readable display name of the bound preset, if resolved.
    */
   presetName?: string;
+  /**
+   * Callback invoked when the user requests to inspect this branch resume.
+   * If omitted, falls back to direct navigation to `/branches/:id/preview`.
+   */
+  onInspect?: (branch: Branch) => void;
   /**
    * Callback invoked when the user requests to delete this branch.
    * Omitted or suppressed for default branch.
@@ -62,6 +67,7 @@ export const BranchCard: React.FC<BranchCardProps> = ({
   branch,
   templateName,
   presetName,
+  onInspect,
   onDelete,
 }) => {
   const isDefault = isDefaultBranch(branch);
@@ -143,15 +149,41 @@ export const BranchCard: React.FC<BranchCardProps> = ({
         </div>
       </div>
 
-      <div className="mt-6 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-4">
-        <Button asChild variant="outline" size="sm">
-          <Link
-            to={`/branches/${branch.id}`}
-            aria-label={`Open workbench for ${branch.name}`}
-          >
-            Open Workbench
-          </Link>
-        </Button>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800 pt-4">
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link
+              to={`/branches/${branch.id}`}
+              aria-label={`Open workbench for ${branch.name}`}
+            >
+              Open Workbench
+            </Link>
+          </Button>
+
+          {onInspect ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onInspect(branch)}
+              aria-label={`Inspect resume for ${branch.name}`}
+              className="flex items-center gap-1.5"
+            >
+              <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Inspect</span>
+            </Button>
+          ) : (
+            <Button asChild variant="secondary" size="sm">
+              <Link
+                to={`/branches/${branch.id}/preview`}
+                aria-label={`Inspect resume for ${branch.name}`}
+                className="flex items-center gap-1.5"
+              >
+                <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Inspect</span>
+              </Link>
+            </Button>
+          )}
+        </div>
 
         {!isDefault && onDelete && (
           <Button

@@ -1,6 +1,6 @@
 import * as React from "react";
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, AlertCircle, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ToastProvider,
@@ -71,6 +71,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
   pollIntervalMs,
 }) => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const branchId = id || "";
 
   // Core Queries
@@ -299,13 +300,13 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     }
   };
 
+  const handleSelectVersion = (ver: BranchVersion) => {
+    setSelectedVersion(ver);
+    navigate(`/branches/${branchId}/preview?version=${ver.version_number}`);
+  };
+
   const handleCompareVersion = (ver: BranchVersion) => {
-    setToast({
-      open: true,
-      title: "Compare Versions",
-      description: `Comparing version v${ver.version_number} against master profile.`,
-      variant: "default",
-    });
+    navigate(`/branches/${branchId}/preview?tab=diff&version=${ver.version_number}`);
   };
 
   // Double-click prevention: button is disabled while mutation is pending or polling in progress
@@ -386,12 +387,39 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         />
 
         {/* Job Description & Custom Context Editor */}
-        <BranchContextEditor
-          targetRequirements={branch.target_requirements}
-          branchInstructions={branch.branch_instructions}
-          isSaving={updateMutation.isPending}
-          onSave={handleSaveContext}
-        />
+        {branch.is_default ? (
+          <section
+            aria-label="Master Profile Direct Projection"
+            className="rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/50 dark:bg-indigo-950/30 p-6 shadow-sm text-sm text-indigo-950 dark:text-indigo-200"
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-indigo-900 dark:text-indigo-100 mb-1">
+                  Master Profile Direct Projection
+                </h2>
+                <p className="text-xs text-indigo-800 dark:text-indigo-300">
+                  This default branch mirrors your authoritative master career profile with 100% fidelity and zero LLM modifications. Changing the template set re-renders the canonical resume immediately.
+                </p>
+              </div>
+              <Button asChild size="sm" className="shrink-0 flex items-center gap-1.5">
+                <Link
+                  to={`/branches/${branch.id}/preview`}
+                  aria-label="Inspect Master Resume"
+                >
+                  <Eye className="h-4 w-4" aria-hidden="true" />
+                  <span>Inspect Master Resume</span>
+                </Link>
+              </Button>
+            </div>
+          </section>
+        ) : (
+          <BranchContextEditor
+            targetRequirements={branch.target_requirements}
+            branchInstructions={branch.branch_instructions}
+            isSaving={updateMutation.isPending}
+            onSave={handleSaveContext}
+          />
+        )}
 
         {/* Active Generation Progress Indicator */}
         {(isTailoring || polledVersion) && (
@@ -402,18 +430,20 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         )}
 
         {/* Gap Analysis Card for Currently Inspected Version */}
-        <GapAnalysisCard
-          gapReport={activeVersion?.gap_report}
-          versionNumber={activeVersion?.version_number}
-          defaultExpanded={true}
-        />
+        {!branch.is_default && (
+          <GapAnalysisCard
+            gapReport={activeVersion?.gap_report}
+            versionNumber={activeVersion?.version_number}
+            defaultExpanded={true}
+          />
+        )}
 
         {/* Version Timeline & History Exploration */}
         <VersionTimeline
           versions={versions}
           activeVersionId={branch.active_version_id}
           selectedVersionId={activeVersion?.id}
-          onSelectVersion={(ver) => setSelectedVersion(ver)}
+          onSelectVersion={handleSelectVersion}
           onSetActiveVersion={handleSetActiveVersion}
           onCompareVersion={handleCompareVersion}
           isSettingActive={setActiveMutation.isPending}

@@ -1,11 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, extractApiErrorMessage } from "./client";
 import type { components } from "./schema";
+import type { Branch } from "./branch-queries";
 
-/**
- * Branch represents a targeted resume variant for a specific role or company.
- */
-export type Branch = components["schemas"]["Branch"];
+export type { Branch } from "./branch-queries";
 
 /**
  * BranchVersion represents a specific immutable snapshot generated for a branch.

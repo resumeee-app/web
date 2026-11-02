@@ -15,7 +15,7 @@
  */
 
 import * as React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ExportToolbar } from "@/components/preview/export-toolbar";
@@ -48,7 +48,15 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
   className = "",
 }) => {
   const { id: routeBranchId } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const branchId = routeBranchId || "";
+
+  const versionParam = searchParams.get("version");
+  const tabParam = searchParams.get("tab");
+  const parsedVersion = versionParam ? parseInt(versionParam, 10) : NaN;
+  const initialVersion =
+    !Number.isNaN(parsedVersion) && parsedVersion > 0 ? parsedVersion : undefined;
+  const initialTab = tabParam === "diff" ? "diff" : "preview";
 
   // Query server state via TanStack Query hooks
   const {
@@ -65,14 +73,31 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
 
   const { data: masterProfile } = useFullProfile();
 
+  // Active view tab state (Rendered Resume vs Tailoring Diff)
+  const [activeTab, setActiveTab] = React.useState<string>(initialTab);
+
   // Active version selection state
   const [selectedVersionNumber, setSelectedVersionNumber] = React.useState<
     number | undefined
-  >(undefined);
+  >(initialVersion);
 
-  // Automatically select the active or latest version upon data arrival
+  // Track initialVersion parameter changes across external navigations
+  const prevInitialVersionRef = React.useRef(initialVersion);
   React.useEffect(() => {
-    if (versions.length > 0 && selectedVersionNumber === undefined) {
+    if (initialVersion !== prevInitialVersionRef.current) {
+      prevInitialVersionRef.current = initialVersion;
+      if (initialVersion !== undefined) {
+        setSelectedVersionNumber(initialVersion);
+      }
+    }
+  }, [initialVersion]);
+
+  // Automatically select the active or latest version upon data arrival if none is selected
+  React.useEffect(() => {
+    if (selectedVersionNumber !== undefined) {
+      return;
+    }
+    if (versions.length > 0) {
       if (branch?.active_version_id) {
         const activeVer = versions.find((v) => v.id === branch.active_version_id);
         if (activeVer) {
@@ -226,7 +251,11 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
       </header>
 
       {/* Main Tabs Container: Rendered Resume vs Tailoring Diff */}
-      <Tabs defaultValue="preview" className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
         <TabsList className="mb-4 no-print" aria-label="Resume preview tabs">
           <TabsTrigger value="preview" className="text-sm font-medium">
             Rendered Resume

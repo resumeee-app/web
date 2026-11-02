@@ -27,6 +27,10 @@ function createTestWrapper(initialPath = "/branches/b-123") {
       <MemoryRouter initialEntries={[initialPath]}>
         <Routes>
           <Route path="/branches/:id" element={children} />
+          <Route
+            path="/branches/:id/preview"
+            element={<div data-testid="preview-page">Preview Page</div>}
+          />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>
@@ -612,7 +616,90 @@ describe("BranchWorkbenchPage", () => {
     await user.click(compareBtn);
 
     await waitFor(() => {
-      expect(screen.getByText("Compare Versions")).toBeInTheDocument();
+      expect(screen.getByTestId("preview-page")).toBeInTheDocument();
+    });
+  });
+
+  it("handles master default branch correctly and navigates to preview upon clicking inspect", async () => {
+    const user = userEvent.setup();
+    const defaultBranch: Branch = {
+      id: "branch-default",
+      user_id: "u-1",
+      name: "Master Profile (Default)",
+      template_set_id: "tpl-default",
+      is_default: true,
+      active_version_id: "v-default-1",
+      updated_at: "2026-11-01T12:00:00Z",
+    };
+
+    const defaultVersions: BranchVersion[] = [
+      {
+        id: "v-default-1",
+        branch_id: "branch-default",
+        version_number: 1,
+        status: "completed",
+        created_at: "2026-11-01T12:00:00Z",
+      },
+    ];
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({ data: defaultBranch, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({
+          data: defaultVersions,
+          error: undefined,
+        }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    const { Wrapper } = createTestWrapper("/branches/branch-default");
+    render(<BranchWorkbenchPage />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", {
+          level: 1,
+          name: "Master Profile (Default)",
+        })
+      ).toBeInTheDocument();
+    });
+
+    // Default branch shows Refresh from Master Profile and Inspect Resume link
+    expect(
+      screen.getByRole("button", {
+        name: /refresh from master profile/i,
+      })
+    ).toBeInTheDocument();
+
+    const inspectHeaderLink = screen.getByRole("link", {
+      name: /inspect resume for master profile \(default\)/i,
+    });
+    expect(inspectHeaderLink).toBeInTheDocument();
+    expect(inspectHeaderLink).toHaveAttribute("href", "/branches/branch-default/preview");
+
+    const inspectProjectionLink = screen.getByRole("link", {
+      name: /inspect master resume/i,
+    });
+    expect(inspectProjectionLink).toBeInTheDocument();
+    expect(inspectProjectionLink).toHaveAttribute("href", "/branches/branch-default/preview");
+
+    // Clicking Inspect in VersionTimeline navigates to preview
+    const timelineInspectBtn = screen.getByRole("button", {
+      name: /inspect v1/i,
+    });
+    await user.click(timelineInspectBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("preview-page")).toBeInTheDocument();
     });
   });
 
