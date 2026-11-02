@@ -1,0 +1,412 @@
+import React, { useState } from "react";
+import { Shield, Copy, Save, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ConstraintControls } from "./constraint-controls";
+import type {
+  Preset,
+  CreatePresetRequest,
+  TemplateSet,
+} from "@/api/preset-queries";
+
+/**
+ * Props for the PresetForm component.
+ */
+export interface PresetFormProps {
+  /** Optional initial preset values for edit or clone mode */
+  initialValues?: Partial<Preset>;
+  /** Available template sets for populating the template selector dropdown */
+  templateSets: TemplateSet[];
+  /** Callback invoked on valid form submission */
+  onSubmit: (values: CreatePresetRequest) => Promise<void> | void;
+  /** Callback for duplicating a preset (offered in read-only mode) */
+  onDuplicate?: (preset: Preset) => void;
+  /** Whether a mutation submission is currently in progress */
+  isSubmitting?: boolean;
+  /** Whether the preset is built-in (triggers read-only mode and disables all form inputs) */
+  isBuiltIn?: boolean;
+}
+
+/**
+ * Validation error dictionary keyed by form field name.
+ */
+export type FormErrors = Partial<
+  Record<"name" | "templateSetId" | "systemInstructions", string>
+>;
+
+/**
+ * PresetForm manages the creation, editing, and read-only inspection of presets:
+ * - Maps strictly to the canonical OpenAPI Preset schema (`name`, `description`, `template_set_id`,
+ *   `system_instructions`, `provider_override`, `model_override`, `include_admin_fields`)
+ * - Integrates the interactive ConstraintControls builder to synthesize length, bullet counts, tone,
+ *   and section priorities into prompt instructions
+ * - Enforces immutability for system presets (`isBuiltIn === true`): disables inputs, displays an alert banner,
+ *   and suppresses the submit action
+ * - Enforces WCAG 2.1 AA accessibility with explicit label associations, ARIA invalid states, and alert error messages
+ */
+export const PresetForm: React.FC<PresetFormProps> = ({
+  initialValues,
+  templateSets,
+  onSubmit,
+  onDuplicate,
+  isSubmitting = false,
+  isBuiltIn = false,
+}) => {
+  const [name, setName] = useState(initialValues?.name || "");
+  const [description, setDescription] = useState(
+    initialValues?.description || ""
+  );
+  const [templateSetId, setTemplateSetId] = useState(
+    initialValues?.template_set_id ||
+      (templateSets.length > 0 && templateSets[0] ? templateSets[0].id : "")
+  );
+  const [systemInstructions, setSystemInstructions] = useState(
+    initialValues?.system_instructions || ""
+  );
+  const [providerOverride, setProviderOverride] = useState(
+    initialValues?.provider_override || ""
+  );
+  const [modelOverride, setModelOverride] = useState(
+    initialValues?.model_override || ""
+  );
+  const [includeAdminFields, setIncludeAdminFields] = useState<boolean>(
+    initialValues?.include_admin_fields || false
+  );
+
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  /**
+   * Resets error state for a single field if an error currently exists.
+   */
+  const clearFieldError = (field: keyof FormErrors) => {
+    if (errors[field]) {
+      setErrors((prev) => {
+        if (!prev[field]) return prev;
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  /**
+   * Validates mandatory fields before dispatching submit.
+   * @returns true if all required fields are valid
+   */
+  const validate = (): boolean => {
+    const newErrors: FormErrors = {};
+    if (!name.trim()) {
+      newErrors.name = "Preset name is required";
+    }
+    if (!templateSetId) {
+      newErrors.templateSetId = "Template set is required";
+    }
+    if (!systemInstructions.trim()) {
+      newErrors.systemInstructions = "System instructions are required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  /**
+   * Handles form submission and triggers onSubmit callback.
+   */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isBuiltIn) return;
+    if (!validate()) return;
+
+    await onSubmit({
+      name: name.trim(),
+      description: description.trim() || undefined,
+      template_set_id: templateSetId,
+      system_instructions: systemInstructions.trim(),
+      provider_override: providerOverride.trim() || undefined,
+      model_override: modelOverride.trim() || undefined,
+      include_admin_fields: includeAdminFields,
+    });
+  };
+
+  /**
+   * Appends synthesized constraints from the ConstraintControls builder into system instructions.
+   */
+  const handleApplyConstraints = (constraints: string) => {
+    if (isBuiltIn) return;
+    setSystemInstructions((prev) => {
+      const trimmed = prev.trim();
+      return trimmed ? `${trimmed}\n\n${constraints}` : constraints;
+    });
+    clearFieldError("systemInstructions");
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Immutability Banner for built-in system presets */}
+      {isBuiltIn && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50/80 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <Shield
+              className="h-5 w-5 text-blue-700 shrink-0 mt-0.5"
+              aria-hidden="true"
+            />
+            <div>
+              <h4 className="text-sm font-semibold text-blue-900">
+                System Preset (Read-Only)
+              </h4>
+              <p className="text-xs text-blue-700 mt-0.5">
+                This built-in preset is protected from direct modification. You
+                can duplicate it to create a customizable copy.
+              </p>
+            </div>
+          </div>
+          {onDuplicate && initialValues && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onDuplicate(initialValues as Preset)}
+              className="shrink-0 gap-1.5 text-xs text-blue-900 border-blue-300 bg-white hover:bg-blue-100"
+            >
+              <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Duplicate as Custom</span>
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Preset Details section */}
+      <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900">
+          Preset Configuration
+        </h2>
+
+        {/* Name input */}
+        <div>
+          <label
+            htmlFor="preset-name"
+            className="block text-sm font-medium text-slate-700"
+          >
+            Preset Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="preset-name"
+            type="text"
+            value={name}
+            disabled={isBuiltIn}
+            onChange={(e) => {
+              setName(e.target.value);
+              clearFieldError("name");
+            }}
+            placeholder="e.g. 1-Page Tech Resume, Staff Architect CV"
+            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+            aria-invalid={Boolean(errors.name)}
+            aria-describedby={errors.name ? "preset-name-error" : undefined}
+          />
+          {errors.name && (
+            <p
+              id="preset-name-error"
+              role="alert"
+              className="mt-1 text-xs text-red-600 flex items-center gap-1"
+            >
+              <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>{errors.name}</span>
+            </p>
+          )}
+        </div>
+
+        {/* Description input */}
+        <div>
+          <label
+            htmlFor="preset-description"
+            className="block text-sm font-medium text-slate-700"
+          >
+            Description
+          </label>
+          <input
+            id="preset-description"
+            type="text"
+            value={description}
+            disabled={isBuiltIn}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Brief purpose or context for this tailoring preset"
+            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+          />
+        </div>
+
+        {/* Template Set selection */}
+        <div>
+          <label
+            htmlFor="preset-template"
+            className="block text-sm font-medium text-slate-700"
+          >
+            Template Set <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="preset-template"
+            value={templateSetId}
+            disabled={isBuiltIn}
+            onChange={(e) => {
+              setTemplateSetId(e.target.value);
+              clearFieldError("templateSetId");
+            }}
+            className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+            aria-invalid={Boolean(errors.templateSetId)}
+            aria-describedby={
+              errors.templateSetId ? "preset-template-error" : undefined
+            }
+          >
+            <option value="">Select a template set...</option>
+            {templateSets.map((tmpl) => (
+              <option key={tmpl.id} value={tmpl.id}>
+                {tmpl.name} {tmpl.is_built_in ? "(Built-in)" : ""}
+              </option>
+            ))}
+          </select>
+          {errors.templateSetId && (
+            <p
+              id="preset-template-error"
+              role="alert"
+              className="mt-1 text-xs text-red-600 flex items-center gap-1"
+            >
+              <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>{errors.templateSetId}</span>
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Constraints builder interactive helper */}
+      <ConstraintControls
+        disabled={isBuiltIn}
+        onApplyInstructions={handleApplyConstraints}
+      />
+
+      {/* System Instructions Prompt */}
+      <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div>
+          <label
+            htmlFor="preset-instructions"
+            className="block text-sm font-medium text-slate-900"
+          >
+            System Instructions (LLM Prompt){" "}
+            <span className="text-red-500">*</span>
+          </label>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Guidance and rules supplied to the LLM when tailoring resumes using
+            this preset.
+          </p>
+        </div>
+
+        <textarea
+          id="preset-instructions"
+          rows={5}
+          value={systemInstructions}
+          disabled={isBuiltIn}
+          onChange={(e) => {
+            setSystemInstructions(e.target.value);
+            clearFieldError("systemInstructions");
+          }}
+          placeholder="e.g. Focus strictly on high-impact accomplishments, quantitative metrics, and concise technical summaries."
+          className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-mono shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+          aria-invalid={Boolean(errors.systemInstructions)}
+          aria-describedby={
+            errors.systemInstructions ? "preset-instructions-error" : undefined
+          }
+        />
+        {errors.systemInstructions && (
+          <p
+            id="preset-instructions-error"
+            role="alert"
+            className="mt-1 text-xs text-red-600 flex items-center gap-1"
+          >
+            <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{errors.systemInstructions}</span>
+          </p>
+        )}
+      </div>
+
+      {/* Advanced Overrides & Admin Fields */}
+      <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900">
+          Model Overrides & Invariant Options
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label
+              htmlFor="preset-provider"
+              className="block text-xs font-medium text-slate-700"
+            >
+              Provider Override (Optional)
+            </label>
+            <input
+              id="preset-provider"
+              type="text"
+              value={providerOverride}
+              disabled={isBuiltIn}
+              onChange={(e) => setProviderOverride(e.target.value)}
+              placeholder="e.g. gemini, anthropic, openai"
+              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="preset-model"
+              className="block text-xs font-medium text-slate-700"
+            >
+              Model Override (Optional)
+            </label>
+            <input
+              id="preset-model"
+              type="text"
+              value={modelOverride}
+              disabled={isBuiltIn}
+              onChange={(e) => setModelOverride(e.target.value)}
+              placeholder="e.g. gemini-3.8-flash, claude-3-7-sonnet"
+              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+            />
+          </div>
+        </div>
+
+        <div className="pt-2 flex items-start gap-2.5">
+          <input
+            id="preset-admin-fields"
+            type="checkbox"
+            checked={includeAdminFields}
+            disabled={isBuiltIn}
+            onChange={(e) => setIncludeAdminFields(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
+          />
+          <label
+            htmlFor="preset-admin-fields"
+            className="text-sm text-slate-700 cursor-pointer"
+          >
+            <span className="font-medium block">
+              Include Administrative & Immigration Fields
+            </span>
+            <span className="text-xs text-slate-500 block">
+              Enables unabridged history, supervisor contacts, hours per week,
+              and citizenship verification data required for audit and visa
+              filings.
+            </span>
+          </label>
+        </div>
+      </div>
+
+      {/* Form Submission Actions */}
+      {!isBuiltIn && (
+        <div className="flex justify-end gap-3 pt-2">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="gap-2 focus-visible:ring-indigo-500"
+          >
+            <Save className="h-4 w-4" aria-hidden="true" />
+            <span>{isSubmitting ? "Saving..." : "Save Preset"}</span>
+          </Button>
+        </div>
+      )}
+    </form>
+  );
+};

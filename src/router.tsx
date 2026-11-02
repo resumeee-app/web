@@ -6,6 +6,8 @@ import {
 import { RootLayout } from "./components/layout/root-layout";
 import { HomePage } from "./pages/home-page";
 import { BranchesPage } from "./pages/branches-page";
+import { PresetsPage } from "./pages/presets-page";
+import { PresetEditorPage } from "./pages/preset-editor-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ResumePreviewPage } from "./pages/resume-preview-page";
 import { TemplatesPage } from "./pages/templates-page";
@@ -35,6 +37,18 @@ export const routes: RouteObject[] = [
       {
         path: "templates/:id",
         element: <TemplateEditorPage />,
+      },
+      {
+        path: "presets",
+        element: <PresetsPage />,
+      },
+      {
+        path: "presets/new",
+        element: <PresetEditorPage />,
+      },
+      {
+        path: "presets/:id",
+        element: <PresetEditorPage />,
       },
       {
         path: "*",
