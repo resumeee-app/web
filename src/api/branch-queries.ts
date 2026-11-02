@@ -1,0 +1,295 @@
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type UseQueryResult,
+  type UseMutationResult,
+} from "@tanstack/react-query";
+import { api } from "./client";
+import type { components } from "./schema";
+
+/**
+ * Resume branch domain entity, extending the OpenAPI schema with client-side convenience flags.
+ */
+export type Branch = components["schemas"]["Branch"] & {
+  is_default?: boolean;
+  status?: string;
+};
+
+/**
+ * System or user-defined preset containing default instructions and template binding.
+ */
+export type Preset = components["schemas"]["Preset"];
+
+/**
+ * Visual presentation template set containing HTML, Markdown, and plaintext formatting templates.
+ */
+export type TemplateSet = components["schemas"]["TemplateSet"];
+
+/**
+ * Input payload for creating a new tailored resume branch.
+ */
+export type CreateBranchInput = {
+  name: string;
+  target_role?: string;
+  target_company?: string;
+  target_requirements?: string;
+  branch_instructions?: string;
+  preset_id?: string;
+  template_set_id: string;
+  provider_override?: string;
+  model_override?: string;
+  pinned_entity_ids?: string[];
+  excluded_entity_ids?: string[];
+};
+
+/**
+ * Lifecycle status indicator for a resume branch.
+ * - `active`: Branch is ready, tailored, or default un-tailored.
+ * - `tailoring`: Asynchronous LLM tailoring job is in progress.
+ * - `error`: Tailoring or synchronization failed.
+ */
+export type BranchStatus = "active" | "tailoring" | "error";
+
+/**
+ * Extracts a human-readable error message from an API response or unknown error object,
+ * falling back to the specified default string.
+ *
+ * @param {unknown} error The error payload returned by OpenAPI client or caught during fetch.
+ * @param {string} fallback Default error message when no specific message is extracted.
+ * @returns {string} The resolved error message.
+ */
+export function extractApiErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const message = (error as { message: unknown }).message;
+    if (typeof message === "string" && message.trim().length > 0) {
+      return message;
+    }
+  }
+  return fallback;
+}
+
+/**
+ * Deterministically checks whether a branch is the protected Default Branch.
+ * Evaluates the runtime `is_default` flag and falls back to deterministic identifier conventions.
+ */
+export function isDefaultBranch(branch: Branch): boolean {
+  if (branch.is_default === true) {
+    return true;
+  }
+  if (branch.id && branch.id.startsWith("branch-default-")) {
+    return true;
+  }
+  if (branch.name && branch.name === "Master Profile (Default)") {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Resolves the visual and operational status indicator for a branch.
+ */
+export function getBranchStatus(branch: Branch): BranchStatus {
+  if (branch.status) {
+    const s = branch.status.toLowerCase();
+    if (s === "tailoring" || s === "processing" || s === "pending") {
+      return "tailoring";
+    }
+    if (s === "error" || s === "failed") {
+      return "error";
+    }
+    if (s === "active" || s === "completed" || s === "completed_with_warnings") {
+      return "active";
+    }
+  }
+  if (branch.is_stale) {
+    return "tailoring";
+  }
+  return "active";
+}
+
+/**
+ * Query key factory for resume branches cache entries.
+ */
+export const branchKeys = {
+  all: ["branches"] as const,
+  lists: () => [...branchKeys.all, "list"] as const,
+  list: (filters: { stale?: boolean }) =>
+    [...branchKeys.lists(), filters] as const,
+  details: () => [...branchKeys.all, "detail"] as const,
+  detail: (id: string) => [...branchKeys.details(), id] as const,
+};
+
+/**
+ * Query key factory for presets cache entries.
+ */
+export const presetKeys = {
+  all: ["presets"] as const,
+  list: () => [...presetKeys.all, "list"] as const,
+};
+
+/**
+ * Query key factory for template sets cache entries.
+ */
+export const templateKeys = {
+  all: ["templates"] as const,
+  list: () => [...templateKeys.all, "list"] as const,
+};
+
+/**
+ * Queries all resume branches for the current user.
+ */
+export function useBranchesQuery(
+  staleOnly?: boolean
+): UseQueryResult<Branch[], Error> {
+  return useQuery({
+    queryKey: branchKeys.list({ stale: staleOnly }),
+    queryFn: async () => {
+      const { data, error } = await api.GET("/branches", {
+        params: { query: { stale: staleOnly } },
+      });
+      if (error) {
+        throw new Error(
+          extractApiErrorMessage(error, "Failed to fetch branches")
+        );
+      }
+      return (data as Branch[]) || [];
+    },
+  });
+}
+
+/**
+ * Queries available presets for branch creation.
+ */
+export function usePresetsQuery(): UseQueryResult<Preset[], Error> {
+  return useQuery({
+    queryKey: presetKeys.list(),
+    queryFn: async () => {
+      const { data, error } = await api.GET("/presets");
+      if (error) {
+        throw new Error(
+          extractApiErrorMessage(error, "Failed to fetch presets")
+        );
+      }
+      return data || [];
+    },
+  });
+}
+
+/**
+ * Queries available template sets for branch creation.
+ */
+export function useTemplatesQuery(): UseQueryResult<TemplateSet[], Error> {
+  return useQuery({
+    queryKey: templateKeys.list(),
+    queryFn: async () => {
+      const { data, error } = await api.GET("/templates");
+      if (error) {
+        throw new Error(
+          extractApiErrorMessage(error, "Failed to fetch template sets")
+        );
+      }
+      return data || [];
+    },
+  });
+}
+
+/**
+ * Mutation hook for creating a new resume branch with optimistic cache updates.
+ */
+export function useCreateBranchMutation(): UseMutationResult<
+  Branch,
+  Error,
+  CreateBranchInput,
+  { previousBranches?: Branch[] }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateBranchInput) => {
+      const { data, error } = await api.POST("/branches", {
+        body: input,
+      });
+      if (error) {
+        throw new Error(
+          extractApiErrorMessage(error, "Failed to create branch")
+        );
+      }
+      return data as Branch;
+    },
+    onMutate: async (newBranchInput: CreateBranchInput) => {
+      const queryKey = branchKeys.list({ stale: undefined });
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousBranches = queryClient.getQueryData<Branch[]>(queryKey);
+
+      const optimisticBranch: Branch = {
+        id: `optimistic-${Date.now()}`,
+        user_id: "current-user",
+        name: newBranchInput.name,
+        target_role: newBranchInput.target_role,
+        target_company: newBranchInput.target_company,
+        target_requirements: newBranchInput.target_requirements,
+        branch_instructions: newBranchInput.branch_instructions,
+        preset_id: newBranchInput.preset_id,
+        template_set_id: newBranchInput.template_set_id,
+        is_default: false,
+        status: "active",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      if (previousBranches) {
+        queryClient.setQueryData<Branch[]>(queryKey, [
+          ...previousBranches,
+          optimisticBranch,
+        ]);
+      }
+
+      return { previousBranches };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousBranches) {
+        queryClient.setQueryData(
+          branchKeys.list({ stale: undefined }),
+          context.previousBranches
+        );
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: branchKeys.lists() });
+    },
+  });
+}
+
+/**
+ * Mutation hook for deleting a non-default resume branch.
+ * Enforces client-side guard against default branch deletion before network request.
+ */
+export function useDeleteBranchMutation(): UseMutationResult<
+  void,
+  Error,
+  Branch,
+  unknown
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (branch: Branch) => {
+      if (isDefaultBranch(branch)) {
+        throw new Error("Cannot delete default branch");
+      }
+      const { error } = await api.DELETE("/branches/{id}", {
+        params: { path: { id: branch.id } },
+      });
+      if (error) {
+        throw new Error(
+          extractApiErrorMessage(error, "Failed to delete branch")
+        );
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: branchKeys.lists() });
+    },
+  });
+}

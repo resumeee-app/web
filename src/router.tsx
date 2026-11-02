@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 import { RootLayout } from "./components/layout/root-layout";
 import { HomePage } from "./pages/home-page";
+import { BranchesPage } from "./pages/branches-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ResumePreviewPage } from "./pages/resume-preview-page";
 
@@ -16,6 +17,10 @@ export const routes: RouteObject[] = [
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "branches",
+        element: <BranchesPage />,
       },
       {
         path: "branches/:id/preview",
