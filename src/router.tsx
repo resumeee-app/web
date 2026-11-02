@@ -13,6 +13,7 @@ import { TemplateEditorPage } from "./pages/template-editor-page";
 import { PresetsPage } from "./pages/presets-page";
 import { PresetEditorPage } from "./pages/preset-editor-page";
 import { NotFoundPage } from "./pages/not-found-page";
+import { ProfilePage } from "./pages/profile-page";
 
 export const routes: RouteObject[] = [
   {
@@ -22,6 +23,10 @@ export const routes: RouteObject[] = [
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "profile",
+        element: <ProfilePage />,
       },
       {
         path: "branches",

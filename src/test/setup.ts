@@ -25,6 +25,30 @@ if (typeof Element !== "undefined") {
   }
 }
 
+// Polyfill Request constructor in jsdom when AbortSignal instance check fails across realms
+if (typeof globalThis.Request !== "undefined") {
+  const OriginalRequest = globalThis.Request;
+  class SafeRequest extends OriginalRequest {
+    constructor(input: RequestInfo | URL, init?: RequestInit) {
+      try {
+        super(input, init);
+      } catch (err) {
+        if (init && init.signal) {
+          const rest = { ...init };
+          delete rest.signal;
+          super(input, rest);
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
+  globalThis.Request = SafeRequest;
+  if (typeof window !== "undefined") {
+    window.Request = SafeRequest;
+  }
+}
+
 // Automatic DOM cleanup after each test
 afterEach(() => {
   cleanup();
