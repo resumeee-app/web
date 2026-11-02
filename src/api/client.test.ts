@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createApiClient, api, API_BASE_URL } from "./client";
+import { createApiClient, api, API_BASE_URL, extractApiErrorMessage } from "./client";
 
 describe("OpenAPI Client Configuration", () => {
   it("initializes with default API base URL", () => {
@@ -33,5 +33,21 @@ describe("OpenAPI Client Configuration", () => {
 
     expect(client1).not.toBe(client2);
     expect(client1).not.toBe(api);
+  });
+
+  describe("extractApiErrorMessage", () => {
+    it("extracts structured error message from OpenAPI response", () => {
+      const errorObj = { error: { message: "Validation failed: invalid preset" } };
+      expect(extractApiErrorMessage(errorObj, "Fallback error")).toBe(
+        "Validation failed: invalid preset"
+      );
+    });
+
+    it("returns fallback message when error structure is missing or empty", () => {
+      expect(extractApiErrorMessage(null, "Default error")).toBe("Default error");
+      expect(extractApiErrorMessage(undefined, "Default error")).toBe("Default error");
+      expect(extractApiErrorMessage({}, "Default error")).toBe("Default error");
+      expect(extractApiErrorMessage({ error: {} }, "Default error")).toBe("Default error");
+    });
   });
 });

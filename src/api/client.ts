@@ -28,3 +28,16 @@ export function createApiClient(options?: Partial<ClientOptions>) {
  * Shared singleton API client instance.
  */
 export const api = createApiClient();
+
+/**
+ * Extracts a user-facing error message from an OpenAPI client error response
+ * or returns a fallback string if no structured error message is present.
+ *
+ * @param error - The raw error response returned by openapi-fetch.
+ * @param fallback - Default fallback error message.
+ * @returns Clean, user-safe error message string.
+ */
+export function extractApiErrorMessage(error: unknown, fallback: string): string {
+  const errorDetails = error as { error?: { message?: string } } | undefined;
+  return errorDetails?.error?.message || fallback;
+}

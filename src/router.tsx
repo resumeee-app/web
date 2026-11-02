@@ -6,12 +6,13 @@ import {
 import { RootLayout } from "./components/layout/root-layout";
 import { HomePage } from "./pages/home-page";
 import { BranchesPage } from "./pages/branches-page";
-import { PresetsPage } from "./pages/presets-page";
-import { PresetEditorPage } from "./pages/preset-editor-page";
-import { NotFoundPage } from "./pages/not-found-page";
+import { BranchWorkbenchPage } from "./pages/branch-workbench-page";
 import { ResumePreviewPage } from "./pages/resume-preview-page";
 import { TemplatesPage } from "./pages/templates-page";
 import { TemplateEditorPage } from "./pages/template-editor-page";
+import { PresetsPage } from "./pages/presets-page";
+import { PresetEditorPage } from "./pages/preset-editor-page";
+import { NotFoundPage } from "./pages/not-found-page";
 
 export const routes: RouteObject[] = [
   {
@@ -25,6 +26,10 @@ export const routes: RouteObject[] = [
       {
         path: "branches",
         element: <BranchesPage />,
+      },
+      {
+        path: "branches/:id",
+        element: <BranchWorkbenchPage />,
       },
       {
         path: "branches/:id/preview",
