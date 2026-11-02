@@ -8,6 +8,8 @@ import { HomePage } from "./pages/home-page";
 import { BranchesPage } from "./pages/branches-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ResumePreviewPage } from "./pages/resume-preview-page";
+import { TemplatesPage } from "./pages/templates-page";
+import { TemplateEditorPage } from "./pages/template-editor-page";
 
 export const routes: RouteObject[] = [
   {
@@ -25,6 +27,14 @@ export const routes: RouteObject[] = [
       {
         path: "branches/:id/preview",
         element: <ResumePreviewPage />,
+      },
+      {
+        path: "templates",
+        element: <TemplatesPage />,
+      },
+      {
+        path: "templates/:id",
+        element: <TemplateEditorPage />,
       },
       {
         path: "*",
