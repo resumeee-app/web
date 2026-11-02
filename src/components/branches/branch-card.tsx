@@ -70,7 +70,7 @@ export const BranchCard: React.FC<BranchCardProps> = ({
 
   return (
     <article
-      className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-slate-300"
+      className="flex flex-col justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-all hover:border-slate-300 dark:hover:border-slate-700"
       aria-labelledby={`branch-title-${branch.id}`}
     >
       <div>
@@ -79,11 +79,11 @@ export const BranchCard: React.FC<BranchCardProps> = ({
             <div className="flex flex-wrap items-center gap-2">
               <h2
                 id={`branch-title-${branch.id}`}
-                className="text-lg font-semibold tracking-tight text-slate-900"
+                className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100"
               >
                 <Link
                   to={`/branches/${branch.id}`}
-                  className="rounded-sm hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="rounded-sm hover:text-indigo-600 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 >
                   {branch.name}
                 </Link>
@@ -92,16 +92,16 @@ export const BranchCard: React.FC<BranchCardProps> = ({
             </div>
 
             {isDefault ? (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Direct Master Profile (Untailored) — mirrors canonical master data with zero LLM tailoring.
               </p>
             ) : (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
                 <BranchTargetDisplay
                   targetCompany={branch.target_company}
                   targetRole={branch.target_role}
                   emptyFallback="Untargeted line"
-                  companyClassName="font-medium text-slate-700"
+                  companyClassName="font-medium text-slate-700 dark:text-slate-200"
                 />
               </p>
             )}
@@ -112,38 +112,38 @@ export const BranchCard: React.FC<BranchCardProps> = ({
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-xs text-slate-500">
+        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-slate-800 pt-4 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-1.5">
-            <Layers className="h-4 w-4 text-slate-400" aria-hidden="true" />
+            <Layers className="h-4 w-4 text-slate-400 dark:text-slate-500" aria-hidden="true" />
             <span className="truncate">
-              Template: <strong className="font-medium text-slate-700">{templateName || branch.template_set_id}</strong>
+              Template: <strong className="font-medium text-slate-700 dark:text-slate-300">{templateName || branch.template_set_id}</strong>
             </span>
           </div>
 
           <div className="flex items-center gap-1.5">
-            <Clock className="h-4 w-4 text-slate-400" aria-hidden="true" />
+            <Clock className="h-4 w-4 text-slate-400 dark:text-slate-500" aria-hidden="true" />
             <span className="truncate">
-              Modified: <span className="text-slate-700">{formattedDate}</span>
+              Modified: <span className="text-slate-700 dark:text-slate-300">{formattedDate}</span>
             </span>
           </div>
 
-          <div className="col-span-2 flex items-center justify-between text-slate-500">
+          <div className="col-span-2 flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span>
               Active Version:{" "}
-              <strong className="font-medium text-slate-700">
+              <strong className="font-medium text-slate-700 dark:text-slate-300">
                 {branch.active_version_id || "v1"}
               </strong>
             </span>
             {!isDefault && presetName && (
-              <span className="truncate text-slate-500">
-                Preset: <strong className="font-medium text-slate-700">{presetName}</strong>
+              <span className="truncate text-slate-500 dark:text-slate-400">
+                Preset: <strong className="font-medium text-slate-700 dark:text-slate-300">{presetName}</strong>
               </span>
             )}
           </div>
         </div>
       </div>
 
-      <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
+      <div className="mt-6 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-4">
         <Button asChild variant="outline" size="sm">
           <Link
             to={`/branches/${branch.id}`}
@@ -158,7 +158,7 @@ export const BranchCard: React.FC<BranchCardProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => onDelete(branch)}
-            className="text-red-600 hover:bg-red-50 hover:text-red-700 focus-visible:ring-red-500"
+            className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-700 dark:hover:text-red-300 focus-visible:ring-red-500"
             aria-label={`Delete branch ${branch.name}`}
           >
             <Trash2 className="mr-1 h-3.5 w-3.5" aria-hidden="true" />

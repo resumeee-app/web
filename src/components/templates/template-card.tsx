@@ -71,8 +71,8 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
     <article
       data-testid={`template-card-${template.id}`}
       className={cn(
-        "flex flex-col justify-between rounded-xl border bg-white p-5 shadow-sm transition-all hover:shadow-md",
-        isBuiltIn ? "border-slate-200" : "border-indigo-100",
+        "flex flex-col justify-between rounded-xl border bg-white dark:bg-slate-900 p-5 shadow-sm transition-all hover:shadow-md",
+        isBuiltIn ? "border-slate-200 dark:border-slate-800" : "border-indigo-100 dark:border-indigo-950",
         className
       )}
     >
@@ -81,12 +81,12 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center space-x-1.5">
             {isBuiltIn ? (
-              <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-800 ring-1 ring-inset ring-amber-600/20">
+              <span className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300 ring-1 ring-inset ring-amber-600/20">
                 <ShieldCheck className="h-3 w-3 mr-1" aria-hidden="true" />
                 Built-in
               </span>
             ) : (
-              <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
+              <span className="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-600/20">
                 <User className="h-3 w-3 mr-1" aria-hidden="true" />
                 Custom
               </span>
@@ -94,30 +94,30 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
           </div>
 
           {/* Target Formats */}
-          <div className="flex items-center space-x-1 text-[11px] font-medium text-slate-500">
+          <div className="flex items-center space-x-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
             {template.html_template && (
-              <span className="rounded bg-slate-100 px-1.5 py-0.5">HTML</span>
+              <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5">HTML</span>
             )}
             {template.markdown_template && (
-              <span className="rounded bg-slate-100 px-1.5 py-0.5">MD</span>
+              <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5">MD</span>
             )}
             {template.text_template && (
-              <span className="rounded bg-slate-100 px-1.5 py-0.5">TXT</span>
+              <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5">TXT</span>
             )}
           </div>
         </div>
 
         {/* Title & Description */}
-        <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600">
+        <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
           {template.name}
         </h3>
-        <p className="mt-1 text-sm text-slate-600 line-clamp-2">
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
           {template.description || "No description provided."}
         </p>
       </div>
 
       {/* Action Row */}
-      <div className="mt-5 border-t border-slate-100 pt-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="mt-5 border-t border-slate-100 dark:border-slate-800 pt-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center space-x-1">
           {/* Quick Preview */}
           <Button
@@ -126,9 +126,9 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
             size="sm"
             onClick={() => onPreview(template)}
             aria-label={`Preview ${template.name}`}
-            className="h-8 text-xs text-slate-700"
+            className="h-8 text-xs text-slate-700 dark:text-slate-200"
           >
-            <Eye className="h-3.5 w-3.5 mr-1 text-slate-500" aria-hidden="true" />
+            <Eye className="h-3.5 w-3.5 mr-1 text-slate-500 dark:text-slate-400" aria-hidden="true" />
             Preview
           </Button>
 
@@ -139,7 +139,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
             size="sm"
             onClick={() => onDuplicate(template)}
             aria-label={`Duplicate ${template.name} as Custom`}
-            className="h-8 text-xs text-slate-700 hover:text-indigo-600"
+            className="h-8 text-xs text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400"
           >
             <Copy className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
             Duplicate
@@ -153,13 +153,13 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
               asChild
               variant="outline"
               size="sm"
-              className="h-8 text-xs text-slate-700"
+              className="h-8 text-xs text-slate-700 dark:text-slate-200"
             >
               <Link
                 to={`/templates/${template.id}`}
                 aria-label={`Edit ${template.name}`}
               >
-                <Edit2 className="h-3.5 w-3.5 mr-1 text-slate-500" aria-hidden="true" />
+                <Edit2 className="h-3.5 w-3.5 mr-1 text-slate-500 dark:text-slate-400" aria-hidden="true" />
                 Edit
               </Link>
             </Button>
@@ -168,7 +168,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
               asChild
               variant="ghost"
               size="sm"
-              className="h-8 text-xs text-slate-500"
+              className="h-8 text-xs text-slate-500 dark:text-slate-400"
             >
               <Link
                 to={`/templates/${template.id}`}

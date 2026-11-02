@@ -108,10 +108,10 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
 
   return (
     <div className={cn("space-y-6", className)}>
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Certifications</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Certifications</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Professional licenses, accreditations, and verifiable credentials.
           </p>
         </div>
@@ -122,8 +122,8 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
       </div>
 
       {certifications.length === 0 ? (
-        <div className="rounded-lg border-2 border-dashed border-slate-300 p-8 text-center">
-          <p className="text-sm text-slate-500">
+        <div className="rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             No certifications added yet. Click &ldquo;Add Certification&rdquo; to begin.
           </p>
         </div>
@@ -132,11 +132,11 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
           {certifications.map((cert) => (
             <li
               key={cert.id}
-              className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+              className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
             >
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-base font-semibold text-slate-900">
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
                     {cert.name}
                   </h3>
                   <ShortIdBadge
@@ -145,11 +145,11 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
                   />
                 </div>
                 {cert.issuer && (
-                  <div className="text-sm font-medium text-slate-700">
+                  <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     {cert.issuer}
                   </div>
                 )}
-                <div className="flex items-center gap-3 text-xs text-slate-500">
+                <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                   {cert.date && <span>Issued: {cert.date}</span>}
                   {cert.url && isValidHttpUrl(cert.url) && (
                     <>
@@ -184,7 +184,7 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
                     onDeleteCertification(cert.id);
                     onAnnouncement?.(`Deleted certification ${cert.name}`);
                   }}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/50"
                   aria-label={`Delete ${cert.name}`}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -208,7 +208,7 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
               <div>
                 <label
                   htmlFor="cert-name"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Certification Name <span className="text-red-500">*</span>
                 </label>
@@ -219,14 +219,14 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
                   placeholder="e.g. AWS Certified Solutions Architect"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="cert-issuer"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Issuing Organization
                 </label>
@@ -236,14 +236,14 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
                   placeholder="e.g. Amazon Web Services"
                   value={issuer}
                   onChange={(e) => setIssuer(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="cert-date"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Issue Date
                 </label>
@@ -253,14 +253,14 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
                   placeholder="YYYY-MM"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="cert-url"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Credential URL
                 </label>
@@ -278,12 +278,12 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
                   className={cn(
                     "mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2",
                     urlError
-                      ? "border-red-300 text-red-900 placeholder-red-300 focus-visible:ring-red-500"
-                      : "border-slate-300 placeholder-slate-400 focus-visible:ring-indigo-500"
+                      ? "border-red-300 dark:border-red-500/70 bg-white dark:bg-slate-900 text-red-900 dark:text-red-200 placeholder-red-300 dark:placeholder-red-400/60 focus-visible:ring-red-500"
+                      : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus-visible:ring-indigo-500"
                   )}
                 />
                 {urlError && (
-                  <p id="cert-url-error" className="mt-1 text-xs text-red-600">
+                  <p id="cert-url-error" className="mt-1 text-xs text-red-600 dark:text-red-400">
                     {urlError}
                   </p>
                 )}

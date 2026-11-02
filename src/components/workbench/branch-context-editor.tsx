@@ -74,16 +74,16 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
   return (
     <section
       aria-labelledby={headingId}
-      className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+      className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-indigo-600" aria-hidden="true" />
+          <FileText className="h-5 w-5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
           <div>
-            <h2 id={headingId} className="text-lg font-bold text-slate-900">
+            <h2 id={headingId} className="text-lg font-bold text-slate-900 dark:text-slate-100">
               Job Description & Context
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Target requirements and custom tailoring instructions for this branch.
             </p>
           </div>
@@ -95,7 +95,7 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
           onClick={() => setIsExpanded((prev) => !prev)}
           aria-expanded={isExpanded}
           aria-controls={panelId}
-          className="flex items-center gap-1.5 text-xs font-medium text-slate-600"
+          className="flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300"
         >
           <span>
             {isExpanded ? "Hide Editor" : "Edit Job Description & Context"}
@@ -112,16 +112,16 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
         <form
           id={panelId}
           onSubmit={handleSubmit}
-          className="mt-6 space-y-4 border-t border-slate-100 pt-4"
+          className="mt-6 space-y-4 border-t border-slate-100 dark:border-slate-800 pt-4"
         >
           <div>
             <label
               htmlFor="target-requirements-input"
-              className="block text-sm font-semibold text-slate-800"
+              className="block text-sm font-semibold text-slate-800 dark:text-slate-200"
             >
               Job Description & Target Requirements
             </label>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               Paste the target job description or requirements to guide LLM ATS
               alignment and qualification gap analysis.
             </p>
@@ -132,18 +132,18 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
               disabled={isSaving}
               rows={6}
               placeholder="Paste job description, responsibilities, or required qualifications..."
-              className="mt-2 block w-full rounded-md border border-slate-300 p-3 text-sm font-mono text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-50 disabled:text-slate-500"
+              className="mt-2 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 p-3 text-sm font-mono text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-50 dark:disabled:bg-slate-900 disabled:text-slate-500 dark:disabled:text-slate-400"
             />
           </div>
 
           <div>
             <label
               htmlFor="branch-instructions-input"
-              className="block text-sm font-semibold text-slate-800"
+              className="block text-sm font-semibold text-slate-800 dark:text-slate-200"
             >
               Custom Branch Instructions
             </label>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               Add custom instructions or prompts specific to this resume branch
               (e.g., tone, emphasis, special constraints).
             </p>
@@ -154,7 +154,7 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
               disabled={isSaving}
               rows={4}
               placeholder="e.g., Emphasize Go distributed systems experience and keep summary under 3 sentences..."
-              className="mt-2 block w-full rounded-md border border-slate-300 p-3 text-sm font-mono text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-50 disabled:text-slate-500"
+              className="mt-2 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 p-3 text-sm font-mono text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-50 dark:disabled:bg-slate-900 disabled:text-slate-500 dark:disabled:text-slate-400"
             />
           </div>
 

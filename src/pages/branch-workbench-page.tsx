@@ -325,10 +325,10 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         className="flex min-h-[400px] flex-col items-center justify-center space-y-4"
       >
         <Loader2
-          className="h-8 w-8 animate-spin text-indigo-600"
+          className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400"
           aria-hidden="true"
         />
-        <p className="text-sm font-medium text-slate-600">
+        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
           Loading branch workbench...
         </p>
       </div>
@@ -339,13 +339,13 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     return (
       <div
         role="alert"
-        className="rounded-lg border border-rose-200 bg-rose-50 p-6 text-center"
+        className="rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 p-6 text-center"
       >
-        <AlertCircle className="mx-auto h-8 w-8 text-rose-600" aria-hidden="true" />
-        <h2 className="mt-2 text-base font-semibold text-rose-900">
+        <AlertCircle className="mx-auto h-8 w-8 text-rose-600 dark:text-rose-400" aria-hidden="true" />
+        <h2 className="mt-2 text-base font-semibold text-rose-900 dark:text-rose-200">
           Branch Not Found
         </h2>
-        <p className="mt-1 text-sm text-rose-700">
+        <p className="mt-1 text-sm text-rose-700 dark:text-rose-300">
           The requested resume branch could not be loaded or may have been deleted.
         </p>
         <div className="mt-4">
@@ -364,7 +364,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         <nav aria-label="Breadcrumb">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             <span>Back to Resumes</span>

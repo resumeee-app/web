@@ -67,10 +67,10 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
   if (!hasContent) {
     return (
       <div
-        className={`flex flex-col items-center justify-center p-12 text-center bg-slate-50 border border-slate-200 rounded-lg text-slate-500 ${className}`}
+        className={`flex flex-col items-center justify-center p-12 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 dark:text-slate-400 ${className}`}
       >
-        <FileText className="h-10 w-10 text-slate-400 mb-3" aria-hidden="true" />
-        <p className="text-base font-medium text-slate-700">
+        <FileText className="h-10 w-10 text-slate-400 dark:text-slate-500 mb-3" aria-hidden="true" />
+        <p className="text-base font-medium text-slate-700 dark:text-slate-300">
           No rendered resume output available
         </p>
         <p className="text-sm mt-1">
@@ -96,12 +96,12 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
   return (
     <div className={`flex flex-col gap-3 ${className}`}>
       {/* Controls Bar: View Mode, Zoom & Layout */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm">
         {/* View Mode Toggle: HTML vs Plain Text */}
         <div
           role="radiogroup"
           aria-label="Resume view mode"
-          className="inline-flex items-center rounded-md bg-white border border-slate-200 p-0.5 shadow-sm"
+          className="inline-flex items-center rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5 shadow-sm"
         >
           <button
             type="button"
@@ -111,7 +111,7 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
             className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors ${
               viewMode === "html"
                 ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
             <Code2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -125,7 +125,7 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
             className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors ${
               viewMode === "text"
                 ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
             <FileText className="h-3.5 w-3.5" aria-hidden="true" />
@@ -136,8 +136,8 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
         {/* Zoom & Page Boundary Controls */}
         <div className="flex items-center gap-2">
           {/* Page Boundary Layout Toggle */}
-          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-md p-0.5 shadow-sm">
-            <span className="text-xs text-slate-500 px-2 font-medium">Layout:</span>
+          <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md p-0.5 shadow-sm">
+            <span className="text-xs text-slate-500 dark:text-slate-400 px-2 font-medium">Layout:</span>
             <Button
               type="button"
               variant={layout === "letter" ? "secondary" : "ghost"}
@@ -161,8 +161,8 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
           </div>
 
           {/* Zoom Level Segmented Buttons */}
-          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-md p-0.5 shadow-sm">
-            <span className="text-xs text-slate-500 px-2 font-medium flex items-center gap-1">
+          <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md p-0.5 shadow-sm">
+            <span className="text-xs text-slate-500 dark:text-slate-400 px-2 font-medium flex items-center gap-1">
               <ZoomIn className="h-3.5 w-3.5" aria-hidden="true" />
               Zoom:
             </span>
@@ -202,15 +202,15 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
       </div>
 
       {/* Main Preview Container with Canvas Background */}
-      <div className="flex justify-center p-6 bg-slate-200/60 rounded-xl overflow-x-auto min-h-[600px] border border-slate-300/80">
+      <div className="flex justify-center p-6 bg-slate-200/60 dark:bg-slate-950 rounded-xl overflow-x-auto min-h-[600px] border border-slate-300/80 dark:border-slate-800">
         <div
           data-testid="resume-page-paper"
           data-zoom={zoom}
           data-layout={layout}
-          className={`relative bg-white shadow-lg border border-slate-300 rounded-sm transition-all duration-200 flex flex-col ${zoomClasses[zoom]} ${layoutClasses[layout]}`}
+          className={`relative bg-white dark:bg-slate-900 shadow-lg border border-slate-300 dark:border-slate-700 rounded-sm transition-all duration-200 flex flex-col ${zoomClasses[zoom]} ${layoutClasses[layout]}`}
         >
           {/* Subtle Page Boundary Guide Header Indicator */}
-          <div className="flex items-center justify-between px-4 py-1.5 border-b border-dashed border-slate-200 bg-slate-50/50 text-[11px] text-slate-400 select-none">
+          <div className="flex items-center justify-between px-4 py-1.5 border-b border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] text-slate-400 dark:text-slate-500 select-none">
             <span>
               Page Boundary: {layout.toUpperCase()} ({layout === "letter" ? "8.5 × 11 in" : "210 × 297 mm"})
             </span>
@@ -229,7 +229,7 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
             ) : (
               <pre
                 aria-label="Plain text resume"
-                className="w-full h-full p-6 font-mono text-xs text-slate-800 whitespace-pre-wrap overflow-y-auto leading-relaxed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
+                className="w-full h-full p-6 font-mono text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap overflow-y-auto leading-relaxed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
               >
                 {plainTextContent || "No plain-text version available."}
               </pre>

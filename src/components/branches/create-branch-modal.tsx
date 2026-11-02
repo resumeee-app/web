@@ -176,7 +176,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
           <div>
             <label
               htmlFor="create-branch-name"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               Branch Name *
             </label>
@@ -192,10 +192,10 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
               placeholder="e.g. Stripe - Staff Backend Engineer"
               aria-invalid={nameError ? "true" : undefined}
               aria-describedby={nameError ? "name-error" : undefined}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
             {nameError && (
-              <p id="name-error" role="alert" className="mt-1 text-xs text-red-600">
+              <p id="name-error" role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">
                 {nameError}
               </p>
             )}
@@ -206,7 +206,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
             <div>
               <label
                 htmlFor="create-target-company"
-                className="block text-sm font-medium text-slate-700"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
                 Target Company
               </label>
@@ -216,14 +216,14 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 value={targetCompany}
                 onChange={(e) => setTargetCompany(e.target.value)}
                 placeholder="e.g. Stripe"
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
 
             <div>
               <label
                 htmlFor="create-target-role"
-                className="block text-sm font-medium text-slate-700"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
                 Target Role
               </label>
@@ -233,7 +233,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 value={targetRole}
                 onChange={(e) => setTargetRole(e.target.value)}
                 placeholder="e.g. Staff Backend Engineer"
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
           </div>
@@ -243,7 +243,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
             <div>
               <label
                 htmlFor="create-preset-id"
-                className="block text-sm font-medium text-slate-700"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
                 Preset
               </label>
@@ -251,7 +251,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 id="create-preset-id"
                 value={presetId}
                 onChange={(e) => handlePresetChange(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 <option value="">-- Generic (No Preset) --</option>
                 {presets.map((preset) => (
@@ -266,7 +266,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
             <div>
               <label
                 htmlFor="create-template-set-id"
-                className="block text-sm font-medium text-slate-700"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
                 Template Set *
               </label>
@@ -275,7 +275,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 aria-required="true"
                 value={templateSetId}
                 onChange={(e) => setTemplateSetId(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 {templates.map((template) => (
                   <option key={template.id} value={template.id}>
@@ -293,7 +293,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
           <div>
             <label
               htmlFor="create-target-requirements"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               Target Requirements (Job Description)
             </label>
@@ -303,7 +303,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
               value={targetRequirements}
               onChange={(e) => setTargetRequirements(e.target.value)}
               placeholder="Paste job description or requirements to guide LLM alignment..."
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
@@ -311,7 +311,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
           <div>
             <label
               htmlFor="create-branch-instructions"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               Custom Instructions (Tier 3 Prompt)
             </label>
@@ -321,7 +321,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
               value={branchInstructions}
               onChange={(e) => setBranchInstructions(e.target.value)}
               placeholder="e.g. Prioritize distributed systems, Kubernetes, and Go architecture..."
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 

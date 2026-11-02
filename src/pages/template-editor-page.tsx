@@ -235,9 +235,9 @@ export const TemplateEditorPage: React.FC = () => {
 
   if (!isNew && isTemplateLoading) {
     return (
-      <main id="main-content" className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6">
-        <div className="flex flex-col items-center justify-center text-slate-500">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" aria-hidden="true" />
+      <main id="main-content" className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6">
+        <div className="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+          <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
           <p className="mt-3 text-sm">Loading template details...</p>
         </div>
       </main>
@@ -246,10 +246,10 @@ export const TemplateEditorPage: React.FC = () => {
 
   if (!isNew && loadError) {
     return (
-      <main id="main-content" className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6">
-        <div className="mx-auto max-w-xl rounded-lg border border-red-200 bg-red-50 p-6 text-center">
-          <h2 className="text-lg font-semibold text-red-900">Failed to load template</h2>
-          <p className="mt-2 text-sm text-red-700">{(loadError as Error).message}</p>
+      <main id="main-content" className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6">
+        <div className="mx-auto max-w-xl rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 p-6 text-center">
+          <h2 className="text-lg font-semibold text-red-900 dark:text-red-200">Failed to load template</h2>
+          <p className="mt-2 text-sm text-red-700 dark:text-red-300">{(loadError as Error).message}</p>
           <div className="mt-4">
             <Button asChild variant="outline">
               <Link to="/templates">Return to Templates Catalog</Link>
@@ -264,18 +264,18 @@ export const TemplateEditorPage: React.FC = () => {
   const canSave = !isBuiltIn && name.trim().length > 0 && !isSaving;
 
   return (
-    <main id="main-content" className="min-h-screen bg-slate-50 py-6 px-4 sm:px-6 lg:px-8">
+    <main id="main-content" className="min-h-screen bg-slate-50 dark:bg-slate-950 py-6 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Top Navigation & Actions Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div className="flex items-center space-x-3">
             <Button asChild variant="ghost" size="sm" className="h-8 px-2">
-              <Link to="/templates" className="flex items-center text-slate-600 hover:text-slate-900">
+              <Link to="/templates" className="flex items-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
                 <ArrowLeft className="h-4 w-4 mr-1" aria-hidden="true" />
                 <span>Back to Templates</span>
               </Link>
             </Button>
-            <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 sm:text-2xl">
               {isNew
                 ? "Create Template Set"
                 : isBuiltIn
@@ -318,9 +318,9 @@ export const TemplateEditorPage: React.FC = () => {
         {isBuiltIn && (
           <div
             role="status"
-            className="mt-4 flex items-center space-x-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 shadow-sm"
+            className="mt-4 flex items-center space-x-2 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-4 text-sm text-amber-900 dark:text-amber-200 shadow-sm"
           >
-            <ShieldAlert className="h-5 w-5 text-amber-600 flex-shrink-0" aria-hidden="true" />
+            <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0" aria-hidden="true" />
             <p>
               <strong className="font-semibold">Immutable Template:</strong> Built-in templates are immutable and cannot be modified. Use &quot;Duplicate as Custom&quot; to create an editable copy.
             </p>
@@ -330,7 +330,7 @@ export const TemplateEditorPage: React.FC = () => {
         {/* Split Screen Layout: Metadata & Editor on Left, Live Preview on Right */}
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Left Column: Form & Code Editor */}
-          <div className="flex flex-col space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col space-y-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
             <TemplateForm
               data={{
                 name,

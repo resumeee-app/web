@@ -83,11 +83,11 @@ export const BranchList: React.FC<BranchListProps> = ({
       <div
         role="status"
         aria-label="Loading resume branches"
-        className="flex min-h-[300px] items-center justify-center rounded-lg border border-slate-200 bg-white p-8"
+        className="flex min-h-[300px] items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8"
       >
         <div className="flex flex-col items-center gap-2">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
-          <p className="text-sm text-slate-500">Loading branches...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading branches...</p>
         </div>
       </div>
     );
@@ -95,14 +95,14 @@ export const BranchList: React.FC<BranchListProps> = ({
 
   if (branches.length === 0) {
     return (
-      <div className="flex min-h-[350px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50/50 p-12 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+      <div className="flex min-h-[350px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 p-12 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
           <FileText className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h2 className="mt-4 text-lg font-semibold text-slate-900">
+        <h2 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
           No branches created yet
         </h2>
-        <p className="mt-1 max-w-md text-sm text-slate-500">
+        <p className="mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
           Create role-targeted resume branches to tailor your career history for
           specific positions, companies, or criteria.
         </p>
@@ -133,10 +133,10 @@ export const BranchList: React.FC<BranchListProps> = ({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
-      <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
+    <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+      <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm">
         <caption className="sr-only">Resume Branches Catalog</caption>
-        <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
           <tr>
             <th scope="col" className="px-6 py-3.5">
               Branch
@@ -161,19 +161,19 @@ export const BranchList: React.FC<BranchListProps> = ({
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
           {branches.map((branch) => {
             const isDefault = isDefaultBranch(branch);
             const status = getBranchStatus(branch);
             const formattedDate = formatBranchDate(branch.updated_at);
 
             return (
-              <tr key={branch.id} className="hover:bg-slate-50/50">
+              <tr key={branch.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                 <td className="whitespace-nowrap px-6 py-4">
                   <div className="flex items-center gap-2">
                     <Link
                       to={`/branches/${branch.id}`}
-                      className="font-semibold text-slate-900 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-sm"
+                      className="font-semibold text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-sm"
                       aria-label={`Open workbench for ${branch.name}`}
                     >
                       {branch.name}
@@ -181,21 +181,21 @@ export const BranchList: React.FC<BranchListProps> = ({
                     {isDefault && <DefaultBranchBadge iconSize="sm" />}
                   </div>
                   {isDefault && (
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                       Direct Master Profile (Untailored)
                     </p>
                   )}
                 </td>
 
-                <td className="whitespace-nowrap px-6 py-4 text-slate-600">
+                <td className="whitespace-nowrap px-6 py-4 text-slate-600 dark:text-slate-300">
                   {isDefault ? (
-                    <span className="italic text-slate-400">Master Data</span>
+                    <span className="italic text-slate-400 dark:text-slate-500">Master Data</span>
                   ) : (
                     <BranchTargetDisplay
                       targetCompany={branch.target_company}
                       targetRole={branch.target_role}
                       emptyFallback="—"
-                      companyClassName="text-slate-800"
+                      companyClassName="text-slate-800 dark:text-slate-200"
                     />
                   )}
                 </td>
@@ -204,15 +204,15 @@ export const BranchList: React.FC<BranchListProps> = ({
                   <BranchStatusBadge status={status} />
                 </td>
 
-                <td className="whitespace-nowrap px-6 py-4 text-slate-600">
+                <td className="whitespace-nowrap px-6 py-4 text-slate-600 dark:text-slate-300">
                   {templatesMap[branch.template_set_id] || branch.template_set_id}
                 </td>
 
-                <td className="whitespace-nowrap px-6 py-4 text-slate-600">
+                <td className="whitespace-nowrap px-6 py-4 text-slate-600 dark:text-slate-300">
                   {branch.active_version_id || "v1"}
                 </td>
 
-                <td className="whitespace-nowrap px-6 py-4 text-slate-500">
+                <td className="whitespace-nowrap px-6 py-4 text-slate-500 dark:text-slate-400">
                   {formattedDate}
                 </td>
 
@@ -231,7 +231,7 @@ export const BranchList: React.FC<BranchListProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => onDeleteBranch(branch)}
-                        className="text-red-600 hover:bg-red-50 hover:text-red-700 focus-visible:ring-red-500"
+                        className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-700 dark:hover:text-red-300 focus-visible:ring-red-500"
                         aria-label={`Delete branch ${branch.name}`}
                       >
                         <Trash2 className="h-4 w-4" aria-hidden="true" />

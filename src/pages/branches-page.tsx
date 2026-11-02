@@ -129,10 +129,10 @@ export const BranchesPage: React.FC = () => {
       {/* Page Header Landmark */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Resume Branches
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Manage tailored resume variants, branching lines, and default master profile settings.
           </p>
         </div>
@@ -149,13 +149,13 @@ export const BranchesPage: React.FC = () => {
       </div>
 
       {/* Toolbar: Search & View Mode Switcher */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div className="relative max-w-sm flex-1">
           <label htmlFor="branch-search" className="sr-only">
             Search branches by name, company, or role
           </label>
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search className="h-4 w-4 text-slate-400" aria-hidden="true" />
+            <Search className="h-4 w-4 text-slate-400 dark:text-slate-500" aria-hidden="true" />
           </div>
           <input
             id="branch-search"
@@ -163,14 +163,14 @@ export const BranchesPage: React.FC = () => {
             placeholder="Search branches..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 py-2 pl-9 pr-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
 
         <div
           role="group"
           aria-label="View presentation mode"
-          className="flex items-center rounded-md border border-slate-200 bg-slate-50 p-1"
+          className="flex items-center rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-1"
         >
           <button
             type="button"
@@ -179,8 +179,8 @@ export const BranchesPage: React.FC = () => {
             aria-label="Grid View"
             className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               viewMode === "grid"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 shadow-sm"
+                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
             <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
@@ -193,8 +193,8 @@ export const BranchesPage: React.FC = () => {
             aria-label="Table View"
             className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               viewMode === "table"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 shadow-sm"
+                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
             <List className="h-3.5 w-3.5" aria-hidden="true" />
@@ -207,9 +207,9 @@ export const BranchesPage: React.FC = () => {
       {branchesError && (
         <div
           role="alert"
-          className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+          className="flex items-center gap-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 p-4 text-sm text-red-800 dark:text-red-200"
         >
-          <AlertCircle className="h-5 w-5 text-red-600 shrink-0" aria-hidden="true" />
+          <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" aria-hidden="true" />
           <div>
             <strong className="font-semibold">Unable to load branches: </strong>
             <span>{branchesError.message}</span>

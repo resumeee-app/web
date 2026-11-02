@@ -38,7 +38,7 @@ export const ShortIdBadge: React.FC<ShortIdBadgeProps> = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 font-mono text-xs font-medium text-slate-700 shadow-sm",
+        "inline-flex items-center rounded border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-xs font-medium text-slate-700 dark:text-slate-300 shadow-sm",
         className
       )}
       title={accessibleLabel}

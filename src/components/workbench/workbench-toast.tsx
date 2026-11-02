@@ -54,9 +54,9 @@ export const Toast = React.forwardRef<
   ToastProps
 >(({ className, variant = "default", ...props }, ref) => {
   const variantStyles = {
-    default: "border-slate-200 bg-white text-slate-900 shadow-lg",
-    destructive: "border-rose-200 bg-rose-50 text-rose-900 shadow-lg",
-    success: "border-emerald-200 bg-emerald-50 text-emerald-900 shadow-lg",
+    default: "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-lg",
+    destructive: "border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 shadow-lg",
+    success: "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 shadow-lg",
   };
 
   return (
@@ -83,7 +83,7 @@ export const ToastAction = React.forwardRef<
   <ToastPrimitives.Action
     ref={ref}
     className={cn(
-      "inline-flex h-8 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-transparent px-3 text-sm font-medium transition-colors hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+      "inline-flex h-8 shrink-0 items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-transparent px-3 text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
       className
     )}
     {...props}
@@ -101,7 +101,7 @@ export const ToastClose = React.forwardRef<
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-      "absolute right-2 top-2 rounded-md p-1 text-slate-400 opacity-70 transition-opacity hover:text-slate-900 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-indigo-500",
+      "absolute right-2 top-2 rounded-md p-1 text-slate-400 dark:text-slate-500 opacity-70 transition-opacity hover:text-slate-900 dark:hover:text-slate-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-indigo-500",
       className
     )}
     toast-close=""

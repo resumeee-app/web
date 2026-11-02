@@ -143,17 +143,17 @@ export const PresetForm: React.FC<PresetFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Immutability Banner for built-in system presets */}
       {isBuiltIn && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50/80 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="rounded-lg border border-blue-200 dark:border-blue-900/60 bg-blue-50/80 dark:bg-blue-950/40 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <Shield
-              className="h-5 w-5 text-blue-700 shrink-0 mt-0.5"
+              className="h-5 w-5 text-blue-700 dark:text-blue-400 shrink-0 mt-0.5"
               aria-hidden="true"
             />
             <div>
-              <h4 className="text-sm font-semibold text-blue-900">
+              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-200">
                 System Preset (Read-Only)
               </h4>
-              <p className="text-xs text-blue-700 mt-0.5">
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
                 This built-in preset is protected from direct modification. You
                 can duplicate it to create a customizable copy.
               </p>
@@ -165,7 +165,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
               variant="outline"
               size="sm"
               onClick={() => onDuplicate(initialValues as Preset)}
-              className="shrink-0 gap-1.5 text-xs text-blue-900 border-blue-300 bg-white hover:bg-blue-100"
+              className="shrink-0 gap-1.5 text-xs text-blue-900 dark:text-blue-200 border-blue-300 dark:border-blue-800 bg-white dark:bg-slate-900 hover:bg-blue-100 dark:hover:bg-blue-950"
             >
               <Copy className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Duplicate as Custom</span>
@@ -175,8 +175,8 @@ export const PresetForm: React.FC<PresetFormProps> = ({
       )}
 
       {/* Preset Details section */}
-      <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">
+      <div className="space-y-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
           Preset Configuration
         </h2>
 
@@ -184,7 +184,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
         <div>
           <label
             htmlFor="preset-name"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Preset Name <span className="text-red-500">*</span>
           </label>
@@ -198,7 +198,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
               clearFieldError("name");
             }}
             placeholder="e.g. 1-Page Tech Resume, Staff Architect CV"
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+            className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
             aria-invalid={Boolean(errors.name)}
             aria-describedby={errors.name ? "preset-name-error" : undefined}
           />
@@ -206,7 +206,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             <p
               id="preset-name-error"
               role="alert"
-              className="mt-1 text-xs text-red-600 flex items-center gap-1"
+              className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1"
             >
               <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{errors.name}</span>
@@ -218,7 +218,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
         <div>
           <label
             htmlFor="preset-description"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Description
           </label>
@@ -229,7 +229,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             disabled={isBuiltIn}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Brief purpose or context for this tailoring preset"
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+            className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
           />
         </div>
 
@@ -237,7 +237,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
         <div>
           <label
             htmlFor="preset-template"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Template Set <span className="text-red-500">*</span>
           </label>
@@ -249,7 +249,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
               setTemplateSetId(e.target.value);
               clearFieldError("templateSetId");
             }}
-            className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+            className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
             aria-invalid={Boolean(errors.templateSetId)}
             aria-describedby={
               errors.templateSetId ? "preset-template-error" : undefined
@@ -266,7 +266,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             <p
               id="preset-template-error"
               role="alert"
-              className="mt-1 text-xs text-red-600 flex items-center gap-1"
+              className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1"
             >
               <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{errors.templateSetId}</span>
@@ -282,16 +282,16 @@ export const PresetForm: React.FC<PresetFormProps> = ({
       />
 
       {/* System Instructions Prompt */}
-      <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="space-y-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
         <div>
           <label
             htmlFor="preset-instructions"
-            className="block text-sm font-medium text-slate-900"
+            className="block text-sm font-medium text-slate-900 dark:text-slate-100"
           >
             System Instructions (LLM Prompt){" "}
             <span className="text-red-500">*</span>
           </label>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Guidance and rules supplied to the LLM when tailoring resumes using
             this preset.
           </p>
@@ -307,7 +307,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             clearFieldError("systemInstructions");
           }}
           placeholder="e.g. Focus strictly on high-impact accomplishments, quantitative metrics, and concise technical summaries."
-          className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-mono shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+          className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 font-mono shadow-sm placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
           aria-invalid={Boolean(errors.systemInstructions)}
           aria-describedby={
             errors.systemInstructions ? "preset-instructions-error" : undefined
@@ -317,7 +317,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
           <p
             id="preset-instructions-error"
             role="alert"
-            className="mt-1 text-xs text-red-600 flex items-center gap-1"
+            className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1"
           >
             <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
             <span>{errors.systemInstructions}</span>
@@ -326,8 +326,8 @@ export const PresetForm: React.FC<PresetFormProps> = ({
       </div>
 
       {/* Advanced Overrides & Admin Fields */}
-      <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">
+      <div className="space-y-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
           Model Overrides & Invariant Options
         </h2>
 
@@ -335,7 +335,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
           <div>
             <label
               htmlFor="preset-provider"
-              className="block text-xs font-medium text-slate-700"
+              className="block text-xs font-medium text-slate-700 dark:text-slate-300"
             >
               Provider Override (Optional)
             </label>
@@ -346,14 +346,14 @@ export const PresetForm: React.FC<PresetFormProps> = ({
               disabled={isBuiltIn}
               onChange={(e) => setProviderOverride(e.target.value)}
               placeholder="e.g. gemini, anthropic, openai"
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
             />
           </div>
 
           <div>
             <label
               htmlFor="preset-model"
-              className="block text-xs font-medium text-slate-700"
+              className="block text-xs font-medium text-slate-700 dark:text-slate-300"
             >
               Model Override (Optional)
             </label>
@@ -364,7 +364,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
               disabled={isBuiltIn}
               onChange={(e) => setModelOverride(e.target.value)}
               placeholder="e.g. gemini-3.8-flash, claude-3-7-sonnet"
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
             />
           </div>
         </div>
@@ -376,11 +376,11 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             checked={includeAdminFields}
             disabled={isBuiltIn}
             onChange={(e) => setIncludeAdminFields(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
+            className="mt-1 h-4 w-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
           />
           <label
             htmlFor="preset-admin-fields"
-            className="text-sm text-slate-700 cursor-pointer"
+            className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer"
           >
             <span className="font-medium block">
               Include Administrative & Immigration Fields

@@ -53,15 +53,15 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
     return (
       <section
         aria-label="Gap Analysis Report"
-        className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
       >
-        <div className="flex items-center gap-2 text-slate-500">
-          <Target className="h-5 w-5 text-slate-400" aria-hidden="true" />
-          <h2 className="text-base font-semibold text-slate-700">
+        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+          <Target className="h-5 w-5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+          <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">
             No gap analysis report available
           </h2>
         </div>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Select a completed version from the timeline to review ATS match
           scoring and identified qualification gaps.
         </p>
@@ -75,23 +75,23 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
   return (
     <section
       aria-labelledby={headingId}
-      className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+      className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
     >
       {/* Header and Toggle */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
             <Target className="h-6 w-6" aria-hidden="true" />
           </div>
           <div>
             <h2
               id={headingId}
-              className="text-lg font-bold text-slate-900"
+              className="text-lg font-bold text-slate-900 dark:text-slate-100"
             >
               ATS Match & Gap Analysis
               {versionNumber ? ` (v${versionNumber})` : ""}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Evaluated against target role requirements and industry benchmarks.
             </p>
           </div>
@@ -106,7 +106,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
               aria-valuenow={clampedScore}
               aria-valuemin={0}
               aria-valuemax={100}
-              className="relative h-3 w-28 overflow-hidden rounded-full bg-slate-100"
+              className="relative h-3 w-28 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
             >
               <div
                 className={`h-full transition-all duration-500 ${
@@ -119,7 +119,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                 style={{ width: `${clampedScore}%` }}
               />
             </div>
-            <span className="text-base font-bold text-slate-900">
+            <span className="text-base font-bold text-slate-900 dark:text-slate-100">
               {clampedScore.toFixed(1)}%
             </span>
           </div>
@@ -145,16 +145,16 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
 
       {/* Expandable Report Panel */}
       {isExpanded && (
-        <div id={panelId} className="mt-6 space-y-6 border-t border-slate-100 pt-6">
+        <div id={panelId} className="mt-6 space-y-6 border-t border-slate-100 dark:border-slate-800 pt-6">
           {/* Identified Gaps */}
           <div>
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-              <AlertCircle className="h-4 w-4 text-amber-600" aria-hidden="true" />
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
               <span>Identified Qualification Gaps ({identified_gaps.length})</span>
             </h3>
 
             {identified_gaps.length === 0 ? (
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                 No critical qualification gaps detected for this version.
               </p>
             ) : (
@@ -162,10 +162,10 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                 {identified_gaps.map((gap, index) => (
                   <div
                     key={index}
-                    className="rounded-md border border-slate-200 bg-slate-50/50 p-3 text-sm transition-colors hover:bg-slate-50"
+                    className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 p-3 text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-semibold text-slate-900">
+                      <span className="font-semibold text-slate-900 dark:text-slate-100">
                         {gap.requirement}
                       </span>
                       <Badge
@@ -179,15 +179,15 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                       </Badge>
                     </div>
 
-                    <p className="mt-1 text-xs text-slate-600">
-                      <span className="font-medium text-slate-700">Area:</span>{" "}
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                      <span className="font-medium text-slate-700 dark:text-slate-300">Area:</span>{" "}
                       {gap.missing_area}
                     </p>
 
                     {gap.recommended_action && (
-                      <div className="mt-2 flex items-start gap-1.5 text-xs text-slate-700">
+                      <div className="mt-2 flex items-start gap-1.5 text-xs text-slate-700 dark:text-slate-300">
                         <CheckCircle2
-                          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600"
+                          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400"
                           aria-hidden="true"
                         />
                         <span>{gap.recommended_action}</span>
@@ -203,20 +203,20 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
           {strategic_recommendations &&
             strategic_recommendations.length > 0 && (
               <div>
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
                   <Lightbulb
-                    className="h-4 w-4 text-indigo-600"
+                    className="h-4 w-4 text-indigo-600 dark:text-indigo-400"
                     aria-hidden="true"
                   />
                   <span>Strategic Tailoring Recommendations</span>
                 </h3>
-                <ul className="mt-2 space-y-2 text-sm text-slate-600">
+                <ul className="mt-2 space-y-2 text-sm text-slate-600 dark:text-slate-400">
                   {strategic_recommendations.map((rec, index) => (
                     <li
                       key={index}
-                      className="flex items-start gap-2 rounded-md bg-indigo-50/50 p-2 text-xs text-indigo-950"
+                      className="flex items-start gap-2 rounded-md bg-indigo-50/50 dark:bg-indigo-950/30 p-2 text-xs text-indigo-950 dark:text-indigo-200"
                     >
-                      <span className="font-bold text-indigo-600">•</span>
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400">•</span>
                       <span>{rec}</span>
                     </li>
                   ))}

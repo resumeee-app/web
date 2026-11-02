@@ -56,15 +56,15 @@ export const PresetsPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
           <div className="flex items-center space-x-2">
-            <Sliders className="h-6 w-6 text-indigo-600" aria-hidden="true" />
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            <Sliders className="h-6 w-6 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
               Presets & Tailoring Strategies
             </h1>
           </div>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Configure Tier-2 prompt instructions, target length constraints,
             formatting rules, and administrative fields for resume generation.
           </p>
@@ -91,10 +91,10 @@ export const PresetsPage: React.FC = () => {
           className="flex flex-col items-center justify-center py-16 space-y-3"
         >
           <Loader2
-            className="h-8 w-8 animate-spin text-indigo-600"
+            className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400"
             aria-hidden="true"
           />
-          <p className="text-sm text-slate-500">Loading presets gallery...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading presets gallery...</p>
         </div>
       )}
 
@@ -102,17 +102,17 @@ export const PresetsPage: React.FC = () => {
       {isPresetsError && (
         <div
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-start gap-3"
+          className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 p-4 flex items-start gap-3"
         >
           <AlertCircle
-            className="h-5 w-5 text-red-600 shrink-0 mt-0.5"
+            className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5"
             aria-hidden="true"
           />
           <div>
-            <h3 className="text-sm font-semibold text-red-800">
+            <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
               Failed to load presets
             </h3>
-            <p className="text-xs text-red-700 mt-0.5">
+            <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
               {presetsError?.message || "An unexpected error occurred."}
             </p>
           </div>
@@ -123,32 +123,32 @@ export const PresetsPage: React.FC = () => {
       {deleteError && (
         <div
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-start gap-3"
+          className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 p-4 flex items-start gap-3"
         >
           <AlertCircle
-            className="h-5 w-5 text-red-600 shrink-0 mt-0.5"
+            className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5"
             aria-hidden="true"
           />
           <div>
-            <h3 className="text-sm font-semibold text-red-800">
+            <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
               Failed to delete preset
             </h3>
-            <p className="text-xs text-red-700 mt-0.5">{deleteError}</p>
+            <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">{deleteError}</p>
           </div>
         </div>
       )}
 
       {/* Empty state */}
       {!isPresetsLoading && !isPresetsError && presets.length === 0 && (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-12 text-center">
+        <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 p-12 text-center">
           <Sliders
-            className="mx-auto h-12 w-12 text-slate-400"
+            className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500"
             aria-hidden="true"
           />
-          <h2 className="mt-3 text-lg font-semibold text-slate-900">
+          <h2 className="mt-3 text-lg font-semibold text-slate-900 dark:text-slate-100">
             No presets found
           </h2>
-          <p className="mt-1 text-sm text-slate-500 max-w-sm mx-auto">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
             You do not have any tailoring strategy presets yet. Create a custom
             preset to guide LLM resume tailoring.
           </p>

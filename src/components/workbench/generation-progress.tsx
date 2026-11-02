@@ -22,11 +22,11 @@ export interface GenerationProgressProps {
 }
 
 const STATUS_CONTAINER_STYLES: Record<string, string> = {
-  completed: "border-emerald-200 bg-emerald-50/50",
-  completed_with_warnings: "border-amber-200 bg-amber-50/50",
-  failed: "border-rose-200 bg-rose-50/50",
-  pending: "border-indigo-200 bg-indigo-50/50",
-  processing: "border-indigo-200 bg-indigo-50/50",
+  completed: "border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30",
+  completed_with_warnings: "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30",
+  failed: "border-rose-200 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/30",
+  pending: "border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/30",
+  processing: "border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/30",
 };
 
 /**
@@ -73,31 +73,31 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
           <div className="flex items-center gap-3">
             {(status === "pending" || status === "processing") && (
               <Loader2
-                className="h-5 w-5 animate-spin text-indigo-600"
+                className="h-5 w-5 animate-spin text-indigo-600 dark:text-indigo-400"
                 aria-hidden="true"
               />
             )}
             {status === "completed" && (
               <CheckCircle2
-                className="h-5 w-5 text-emerald-600"
+                className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
                 aria-hidden="true"
               />
             )}
             {status === "completed_with_warnings" && (
               <AlertTriangle
-                className="h-5 w-5 text-amber-600"
+                className="h-5 w-5 text-amber-600 dark:text-amber-400"
                 aria-hidden="true"
               />
             )}
             {status === "failed" && (
               <AlertCircle
-                className="h-5 w-5 text-rose-600"
+                className="h-5 w-5 text-rose-600 dark:text-rose-400"
                 aria-hidden="true"
               />
             )}
 
             <div>
-              <h2 className="text-sm font-semibold text-slate-900">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {status === "pending" && "Queued for AI Generation"}
                 {status === "processing" && "Tailoring in Progress..."}
                 {status === "completed" && "Generation Completed Successfully"}
@@ -105,7 +105,7 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
                   "Completed with Validation Warnings"}
                 {status === "failed" && "Generation Failed"}
               </h2>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-slate-600 dark:text-slate-300">
                 {status === "pending" &&
                   "Job accepted and queued for worker pool allocation."}
                 {status === "processing" &&
@@ -138,8 +138,8 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
         {status === "completed_with_warnings" &&
           validation_warnings &&
           validation_warnings.length > 0 && (
-            <div className="mt-2 rounded-md border border-amber-200 bg-white p-3 text-xs text-amber-900 shadow-sm">
-              <p className="font-semibold text-amber-800">
+            <div className="mt-2 rounded-md border border-amber-200 dark:border-amber-800 bg-white dark:bg-slate-900 p-3 text-xs text-amber-900 dark:text-amber-200 shadow-sm">
+              <p className="font-semibold text-amber-800 dark:text-amber-300">
                 Validation Warnings:
               </p>
               <ul className="mt-1 list-inside list-disc space-y-1">

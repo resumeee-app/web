@@ -173,8 +173,8 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
   return (
     <div className={cn("flex flex-col space-y-3", className)}>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-          <TabsList className="bg-slate-100 p-1">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+          <TabsList className="bg-slate-100 dark:bg-slate-800 p-1">
             <TabsTrigger value="html" className="text-xs font-medium">
               HTML Template
             </TabsTrigger>
@@ -192,12 +192,12 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
           {/* Syntax validation status indicator */}
           <div className="flex items-center space-x-1.5 text-xs">
             {activeError ? (
-              <span className="flex items-center text-red-600 font-medium">
+              <span className="flex items-center text-red-600 dark:text-red-400 font-medium">
                 <AlertCircle className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
                 Syntax Diagnostic
               </span>
             ) : (
-              <span className="flex items-center text-emerald-600 font-medium">
+              <span className="flex items-center text-emerald-600 dark:text-emerald-400 font-medium">
                 <CheckCircle2 className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
                 Syntax Valid
               </span>
@@ -209,14 +209,14 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
         {activeError && (
           <div
             role="alert"
-            className="mt-2.5 flex items-start space-x-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+            className="mt-2.5 flex items-start space-x-2 rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 p-3 text-sm text-red-800 dark:text-red-200"
           >
-            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
+            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
             <div className="flex-1">
               <span className="font-semibold">Go Template Syntax Error: </span>
               <span>{activeError}</span>
               {clientDiagnostic?.line && (
-                <div className="mt-1 text-xs text-red-600 font-mono">
+                <div className="mt-1 text-xs text-red-600 dark:text-red-400 font-mono">
                   Line {clientDiagnostic.line}
                   {clientDiagnostic.column ? `, Column ${clientDiagnostic.column}` : ""}
                 </div>
@@ -238,8 +238,8 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
             spellCheck={false}
             rows={14}
             className={cn(
-              "w-full rounded-md border border-slate-300 bg-slate-900 p-3 font-mono text-xs text-emerald-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
-              readOnly && "opacity-80 cursor-not-allowed bg-slate-800"
+              "w-full rounded-md border border-slate-300 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 p-3 font-mono text-xs text-emerald-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
+              readOnly && "opacity-80 cursor-not-allowed bg-slate-800 dark:bg-slate-900"
             )}
             placeholder="<!DOCTYPE html><html>...<h1>{{.FullName}}</h1>...</html>"
           />
@@ -258,8 +258,8 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
             spellCheck={false}
             rows={14}
             className={cn(
-              "w-full rounded-md border border-slate-300 bg-slate-900 p-3 font-mono text-xs text-sky-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
-              readOnly && "opacity-80 cursor-not-allowed bg-slate-800"
+              "w-full rounded-md border border-slate-300 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 p-3 font-mono text-xs text-sky-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
+              readOnly && "opacity-80 cursor-not-allowed bg-slate-800 dark:bg-slate-900"
             )}
             placeholder="body { font-family: sans-serif; } .header { color: #2563eb; }"
           />
@@ -278,8 +278,8 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
             spellCheck={false}
             rows={14}
             className={cn(
-              "w-full rounded-md border border-slate-300 bg-slate-900 p-3 font-mono text-xs text-amber-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
-              readOnly && "opacity-80 cursor-not-allowed bg-slate-800"
+              "w-full rounded-md border border-slate-300 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 p-3 font-mono text-xs text-amber-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
+              readOnly && "opacity-80 cursor-not-allowed bg-slate-800 dark:bg-slate-900"
             )}
             placeholder="# {{.FullName}}\n## {{.Headline}}\n\n- {{.Email}}"
           />
@@ -298,8 +298,8 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
             spellCheck={false}
             rows={14}
             className={cn(
-              "w-full rounded-md border border-slate-300 bg-slate-900 p-3 font-mono text-xs text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
-              readOnly && "opacity-80 cursor-not-allowed bg-slate-800"
+              "w-full rounded-md border border-slate-300 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 p-3 font-mono text-xs text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
+              readOnly && "opacity-80 cursor-not-allowed bg-slate-800 dark:bg-slate-900"
             )}
             placeholder="{{.FullName}}\n{{.Headline}}\n{{.Email}} | {{.Phone}}"
           />

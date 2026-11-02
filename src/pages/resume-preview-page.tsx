@@ -109,9 +109,9 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
         <div
           role="status"
           aria-label="Loading resume preview"
-          className="flex flex-col items-center gap-3 text-slate-600"
+          className="flex flex-col items-center gap-3 text-slate-600 dark:text-slate-400"
         >
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" aria-hidden="true" />
+          <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
           <p className="text-sm font-medium">Loading resume preview and tailoring data...</p>
         </div>
       </main>
@@ -124,10 +124,10 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
       <main className="container mx-auto px-4 py-12">
         <div
           role="alert"
-          className="max-w-lg mx-auto p-6 bg-red-50 border border-red-200 rounded-lg text-red-900"
+          className="max-w-lg mx-auto p-6 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg text-red-900 dark:text-red-200"
         >
           <div className="flex items-center gap-2 mb-2 font-semibold">
-            <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
+            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" aria-hidden="true" />
             <span>Unable to load resume branch</span>
           </div>
           <p className="text-sm mb-4">
@@ -135,7 +135,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
           </p>
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-red-700 hover:text-red-800 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             <span>Return to dashboard</span>
@@ -155,7 +155,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
       <nav aria-label="Breadcrumb" className="mb-4 no-print">
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           <span>Back to Dashboard</span>
@@ -163,25 +163,25 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
       </nav>
 
       {/* Top Header Section: Title, Target Details, Version Picker, Export Toolbar */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-200 mb-6 no-print">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-200 dark:border-slate-800 mb-6 no-print">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             {branch.name}
           </h1>
-          <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-600">
+          <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-600 dark:text-slate-400">
             {branch.target_role && (
-              <span className="font-medium text-slate-900">{branch.target_role}</span>
+              <span className="font-medium text-slate-900 dark:text-slate-100">{branch.target_role}</span>
             )}
             {branch.target_company && (
               <>
-                <span className="text-slate-300">•</span>
+                <span className="text-slate-300 dark:text-slate-600">•</span>
                 <span>{branch.target_company}</span>
               </>
             )}
             {branch.template_set_id && (
               <>
-                <span className="text-slate-300">•</span>
-                <span className="font-mono text-slate-500">Template: {branch.template_set_id}</span>
+                <span className="text-slate-300 dark:text-slate-600">•</span>
+                <span className="font-mono text-slate-500 dark:text-slate-400">Template: {branch.template_set_id}</span>
               </>
             )}
           </div>
@@ -194,7 +194,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
             <div className="flex items-center gap-1.5">
               <label
                 htmlFor="resume-version-select"
-                className="text-xs font-medium text-slate-600"
+                className="text-xs font-medium text-slate-600 dark:text-slate-300"
               >
                 Version:
               </label>
@@ -203,7 +203,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
                 value={selectedVersionNumber ?? ""}
                 onChange={(e) => setSelectedVersionNumber(Number(e.target.value))}
                 aria-label="Select resume version"
-                className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs font-medium text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
                 {versions.map((ver) => (
                   <option key={ver.id} value={ver.version_number}>
@@ -242,9 +242,9 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
             <div
               role="status"
               aria-label="Loading version outputs"
-              className="flex justify-center p-12 text-slate-500 text-sm"
+              className="flex justify-center p-12 text-slate-500 dark:text-slate-400 text-sm"
             >
-              <Loader2 className="h-6 w-6 animate-spin text-indigo-600 mr-2" />
+              <Loader2 className="h-6 w-6 animate-spin text-indigo-600 dark:text-indigo-400 mr-2" />
               Loading rendered resume...
             </div>
           ) : (
@@ -261,9 +261,9 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
             <div
               role="status"
               aria-label="Loading diff data"
-              className="flex justify-center p-12 text-slate-500 text-sm"
+              className="flex justify-center p-12 text-slate-500 dark:text-slate-400 text-sm"
             >
-              <Loader2 className="h-6 w-6 animate-spin text-indigo-600 mr-2" />
+              <Loader2 className="h-6 w-6 animate-spin text-indigo-600 dark:text-indigo-400 mr-2" />
               Loading tailoring diff...
             </div>
           ) : (

@@ -251,7 +251,7 @@ export const ProfilePage: React.FC = () => {
         role="status"
         aria-live="polite"
       >
-        <span className="text-sm font-medium text-slate-500">
+        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
           Loading master profile career graph...
         </span>
       </div>
@@ -261,13 +261,13 @@ export const ProfilePage: React.FC = () => {
   if (isError || !snapshot) {
     return (
       <div
-        className="rounded-lg border border-red-200 bg-red-50 p-6 text-center"
+        className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 p-6 text-center"
         role="alert"
       >
-        <h2 className="text-base font-semibold text-red-800">
+        <h2 className="text-base font-semibold text-red-800 dark:text-red-200">
           Error loading master profile
         </h2>
-        <p className="mt-1 text-sm text-red-600">
+        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
           {error?.message || "Unable to reach API server. Please retry later."}
         </p>
       </div>
@@ -282,19 +282,19 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
               Master Profile &amp; Career Graph
             </h1>
             {isDirty && (
-              <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">
+              <span className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-600/20">
                 Unsaved Changes
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Single-source-of-truth career records, skills, and quantifiable achievements.
           </p>
         </div>
@@ -328,31 +328,31 @@ export const ProfilePage: React.FC = () => {
 
       {/* Navigation Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full h-auto p-1.5 gap-1 bg-slate-100">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full h-auto p-1.5 gap-1 bg-slate-100 dark:bg-slate-800">
           <TabsTrigger
             value="contact"
-            className="gap-1.5 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            className="gap-1.5 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
           >
             <User className="h-4 w-4" aria-hidden="true" />
             <span>Contact Info</span>
           </TabsTrigger>
           <TabsTrigger
             value="experience"
-            className="gap-1.5 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            className="gap-1.5 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
           >
             <Briefcase className="h-4 w-4" aria-hidden="true" />
             <span>Experience &amp; Projects</span>
           </TabsTrigger>
           <TabsTrigger
             value="skills"
-            className="gap-1.5 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            className="gap-1.5 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
           >
             <Wrench className="h-4 w-4" aria-hidden="true" />
             <span>Skills</span>
           </TabsTrigger>
           <TabsTrigger
             value="education"
-            className="gap-1.5 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            className="gap-1.5 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
           >
             <GraduationCap className="h-4 w-4" aria-hidden="true" />
             <span>Education &amp; Certifications</span>

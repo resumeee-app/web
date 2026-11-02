@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 export const NotFoundPage: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <AlertCircle className="h-12 w-12 text-slate-400" aria-hidden="true" />
-      <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">
+      <AlertCircle className="h-12 w-12 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+      <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
         Page Not Found
       </h1>
-      <p className="mt-2 text-sm text-slate-600 max-w-sm">
+      <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-sm">
         The requested page could not be located in this SPA routing context.
       </p>
       <div className="mt-6">

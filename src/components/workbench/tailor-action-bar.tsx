@@ -76,19 +76,19 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
         <div
           role="alert"
           aria-label="Upstream Master Profile Revisions Available"
-          className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900 shadow-sm"
+          className="rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-4 text-amber-900 dark:text-amber-200 shadow-sm"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <AlertTriangle
-                className="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
+                className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400"
                 aria-hidden="true"
               />
               <div>
-                <h2 className="text-sm font-semibold text-amber-900">
+                <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
                   Upstream Master Profile Revisions Available
                 </h2>
-                <p className="mt-0.5 text-xs text-amber-800">
+                <p className="mt-0.5 text-xs text-amber-800 dark:text-amber-300">
                   The Master Profile has updated since this branch was last tailored. Sync now to incorporate the latest experience, skills, and projects.
                 </p>
               </div>
@@ -99,7 +99,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
               onClick={onSyncMaster}
               disabled={isSyncing || isTailoring}
               aria-busy={isSyncing}
-              className="shrink-0 border-amber-400 bg-white text-amber-900 hover:bg-amber-100 flex items-center gap-1.5"
+              className="shrink-0 border-amber-400 dark:border-amber-700 bg-white dark:bg-slate-900 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-950/60 flex items-center gap-1.5"
             >
               <RefreshCw
                 className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`}
@@ -113,13 +113,13 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
 
       <section
         aria-label="Branch Actions and Overview"
-        className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
       >
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           {/* Left: Metadata & Context */}
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                 {branch.name}
               </h1>
               {branch.is_stale ? (
@@ -129,28 +129,28 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-300">
               {branch.target_role && (
                 <div className="flex items-center gap-1.5">
-                  <Briefcase className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                  <Briefcase className="h-4 w-4 text-slate-400 dark:text-slate-500" aria-hidden="true" />
                   <span>{branch.target_role}</span>
                 </div>
               )}
               {branch.target_company && (
                 <div className="flex items-center gap-1.5">
-                  <Building2 className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                  <Building2 className="h-4 w-4 text-slate-400 dark:text-slate-500" aria-hidden="true" />
                   <span>{branch.target_company}</span>
                 </div>
               )}
             </div>
 
             {/* Interactive Selectors for Target Preset and Template Set */}
-            <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-slate-600">
+            <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-slate-600 dark:text-slate-300">
               <div className="flex items-center gap-1.5">
-                <Sliders className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+                <Sliders className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
                 <label
                   htmlFor="workbench-preset-select"
-                  className="font-medium text-slate-700"
+                  className="font-medium text-slate-700 dark:text-slate-300"
                 >
                   Preset:
                 </label>
@@ -160,7 +160,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                   value={branch.preset_id || ""}
                   onChange={(e) => onUpdatePreset?.(e.target.value)}
                   disabled={isUpdating || isTailoring}
-                  className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2 py-1 text-xs text-slate-800 dark:text-slate-200 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 >
                   {presets.map((preset) => (
                     <option key={preset.id} value={preset.id}>
@@ -176,10 +176,10 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
               </div>
 
               <div className="flex items-center gap-1.5">
-                <Layers className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+                <Layers className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
                 <label
                   htmlFor="workbench-template-select"
-                  className="font-medium text-slate-700"
+                  className="font-medium text-slate-700 dark:text-slate-300"
                 >
                   Template:
                 </label>
@@ -189,7 +189,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                   value={branch.template_set_id || ""}
                   onChange={(e) => onUpdateTemplate?.(e.target.value)}
                   disabled={isUpdating || isTailoring}
-                  className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2 py-1 text-xs text-slate-800 dark:text-slate-200 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 >
                   {templates.map((template) => (
                     <option key={template.id} value={template.id}>

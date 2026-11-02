@@ -99,7 +99,7 @@ export const ExportToolbar: React.FC<ExportToolbarProps> = ({
       <div
         role="toolbar"
         aria-label="Resume export actions"
-        className={`flex flex-wrap items-center gap-2 p-2 bg-white border border-slate-200 rounded-lg shadow-sm ${className}`}
+        className={`flex flex-wrap items-center gap-2 p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm ${className}`}
       >
         {/* Live Region for Screen Reader & Toast Feedback */}
         <div role="status" aria-live="polite" className="sr-only">
@@ -109,7 +109,7 @@ export const ExportToolbar: React.FC<ExportToolbarProps> = ({
         {/* Visual Feedback Badge when Copied */}
         {copied && (
           <span
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md animate-in fade-in"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-md animate-in fade-in"
             aria-hidden="true"
           >
             <Check className="h-3.5 w-3.5" />

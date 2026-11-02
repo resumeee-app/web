@@ -70,7 +70,7 @@ export const DefaultBranchBadge: React.FC<DefaultBranchBadgeProps> = ({
   iconSize = "md",
 }) => {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/20">
+    <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-700/20 dark:ring-indigo-500/30">
       <ShieldCheck
         className={iconSize === "sm" ? "h-3 w-3" : "h-3.5 w-3.5"}
         aria-hidden="true"
@@ -102,24 +102,24 @@ export interface BranchStatusBadgeProps {
 export const BranchStatusBadge: React.FC<BranchStatusBadgeProps> = ({ status }) => {
   if (status === "active") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true" />
+      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-950/60 px-2 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-600/20 dark:ring-emerald-500/30">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
         Active
       </span>
     );
   }
   if (status === "tailoring") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
-        <Sparkles className="h-3 w-3 animate-pulse text-amber-600" aria-hidden="true" />
+      <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 dark:bg-amber-950/60 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-600/20 dark:ring-amber-500/30">
+        <Sparkles className="h-3 w-3 animate-pulse text-amber-600 dark:text-amber-400" aria-hidden="true" />
         Tailoring
       </span>
     );
   }
   if (status === "error") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-        <AlertCircle className="h-3 w-3 text-red-600" aria-hidden="true" />
+      <span className="inline-flex items-center gap-1 rounded-md bg-red-50 dark:bg-rose-950/60 px-2 py-1 text-xs font-medium text-red-700 dark:text-rose-300 ring-1 ring-inset ring-red-600/20 dark:ring-rose-500/30">
+        <AlertCircle className="h-3 w-3 text-red-600 dark:text-rose-400" aria-hidden="true" />
         Error
       </span>
     );
@@ -146,7 +146,7 @@ export interface BranchTargetDisplayProps {
   emptyFallback?: string;
   /**
    * Class name for the company emphasis tag.
-   * Default: "font-medium text-slate-700".
+   * Default: "font-medium text-slate-700 dark:text-slate-200".
    */
   companyClassName?: string;
 }
@@ -161,7 +161,7 @@ export const BranchTargetDisplay: React.FC<BranchTargetDisplayProps> = ({
   targetCompany,
   targetRole,
   emptyFallback = "Untargeted line",
-  companyClassName = "font-medium text-slate-700",
+  companyClassName = "font-medium text-slate-700 dark:text-slate-200",
 }) => {
   if (targetCompany && targetRole) {
     return (
@@ -178,5 +178,5 @@ export const BranchTargetDisplay: React.FC<BranchTargetDisplayProps> = ({
   if (targetRole) {
     return <span>{targetRole}</span>;
   }
-  return <span className="italic text-slate-400">{emptyFallback}</span>;
+  return <span className="italic text-slate-400 dark:text-slate-500">{emptyFallback}</span>;
 };

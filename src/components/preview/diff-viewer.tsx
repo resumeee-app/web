@@ -59,10 +59,10 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       <div
         role="region"
         aria-label="Tailored resume diff viewer"
-        className={`flex flex-col items-center justify-center p-12 text-center bg-slate-50 border border-slate-200 rounded-lg text-slate-500 ${className}`}
+        className={`flex flex-col items-center justify-center p-12 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 dark:text-slate-400 ${className}`}
       >
-        <GitCompare className="h-10 w-10 text-slate-400 mb-3" aria-hidden="true" />
-        <p className="text-base font-medium text-slate-700">
+        <GitCompare className="h-10 w-10 text-slate-400 dark:text-slate-500 mb-3" aria-hidden="true" />
+        <p className="text-base font-medium text-slate-700 dark:text-slate-300">
           No tailored content available for diff
         </p>
         <p className="text-sm mt-1">
@@ -96,24 +96,24 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       className={`flex flex-col gap-6 ${className}`}
     >
       {/* Header & Baseline Selector Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
         <div className="flex items-center gap-2">
-          <GitCompare className="h-5 w-5 text-indigo-600" aria-hidden="true" />
-          <h2 className="text-base font-semibold text-slate-900">
+          <GitCompare className="h-5 w-5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
             Tailoring Diff: Version v{currentVersion?.version_number ?? 1}
           </h2>
         </div>
 
         {/* Baseline Selector */}
         <div className="flex items-center gap-2">
-          <label htmlFor="diff-baseline-select" className="text-sm font-medium text-slate-700">
+          <label htmlFor="diff-baseline-select" className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Compare against:
           </label>
           <select
             id="diff-baseline-select"
             value={baselineId}
             onChange={(e) => setBaselineId(e.target.value)}
-            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
             <option value="master">Master Career Profile</option>
             {candidateVersions.map((v) => (
@@ -126,35 +126,35 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       </div>
 
       {/* Headline & Summary Diff Card */}
-      <section className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">
+      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
           Headline & Professional Summary
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Baseline Column */}
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-md">
-            <span className="text-xs font-semibold text-slate-500 uppercase block mb-1">
+          <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-md">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase block mb-1">
               Baseline ({isComparingMaster ? "Master Profile" : `v${baselineVersion?.version_number}`})
             </span>
-            <p className="text-sm font-medium text-slate-800 mb-2">
+            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 mb-2">
               {baselineHeadline || "No headline set"}
             </p>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               {baselineSummary || "No summary set"}
             </p>
           </div>
 
           {/* Tailored Column */}
-          <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-md">
-            <span className="text-xs font-semibold text-emerald-800 uppercase flex items-center gap-1 mb-1">
+          <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-md">
+            <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 uppercase flex items-center gap-1 mb-1">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
               Tailored (v{currentVersion?.version_number ?? 1})
             </span>
-            <p className="text-sm font-semibold text-emerald-950 mb-2">
+            <p className="text-sm font-semibold text-emerald-950 dark:text-emerald-100 mb-2">
               {tailored.headline}
             </p>
-            <p className="text-xs text-emerald-900 leading-relaxed">
+            <p className="text-xs text-emerald-900 dark:text-emerald-200 leading-relaxed">
               {tailored.summary}
             </p>
           </div>
@@ -162,8 +162,8 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       </section>
 
       {/* Targeted Skills Diff Card */}
-      <section className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">
+      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
           Targeted & Highlighted Skills
         </h3>
 
@@ -173,11 +173,11 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               <span
                 key={`${group.category}-${skill}`}
                 data-skill-badge="highlighted"
-                className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-blue-100 text-blue-900 border border-blue-200 rounded-full shadow-xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-950/60 text-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-800 rounded-full shadow-xs"
               >
-                <Sparkles className="h-3 w-3 text-blue-600" aria-hidden="true" />
+                <Sparkles className="h-3 w-3 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                 <span>{skill}</span>
-                <span className="text-[10px] text-blue-600">({group.category})</span>
+                <span className="text-[10px] text-blue-600 dark:text-blue-400">({group.category})</span>
               </span>
             ))
           )}
@@ -185,8 +185,8 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       </section>
 
       {/* Experience Bullet Points Diff */}
-      <section className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-4">
+      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
           Experience Bullet Points & Impact Comparison
         </h3>
 
@@ -214,12 +214,12 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
             );
 
             return (
-              <div key={exp.source_entity_id || exp.company} className="border-t border-slate-100 pt-4 first:border-t-0 first:pt-0">
+              <div key={exp.source_entity_id || exp.company} className="border-t border-slate-100 dark:border-slate-800 pt-4 first:border-t-0 first:pt-0">
                 <div className="flex items-baseline justify-between mb-2">
-                  <h4 className="text-sm font-bold text-slate-900">
-                    {exp.role_title} <span className="font-normal text-slate-500">at</span> {exp.company}
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    {exp.role_title} <span className="font-normal text-slate-500 dark:text-slate-400">at</span> {exp.company}
                   </h4>
-                  <span className="text-xs text-slate-500 font-mono">{exp.start_date}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{exp.start_date}</span>
                 </div>
 
                 <ul className="space-y-2 mt-3 list-none p-0">
@@ -236,18 +236,18 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
                         data-diff-type={diffType}
                         className={`p-3 rounded-md border text-xs leading-relaxed flex items-start gap-2.5 transition-colors ${
                           diffType === "addition"
-                            ? "bg-emerald-50 text-emerald-950 border-emerald-300 font-medium"
-                            : "bg-slate-50 text-slate-800 border-slate-200"
+                            ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800 font-medium"
+                            : "bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700"
                         }`}
                       >
                         {diffType === "addition" ? (
                           <PlusCircle
-                            className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5"
+                            className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"
                             aria-hidden="true"
                           />
                         ) : (
                           <Check
-                            className="h-4 w-4 text-slate-400 shrink-0 mt-0.5"
+                            className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5"
                             aria-hidden="true"
                           />
                         )}
@@ -266,10 +266,10 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
                     <li
                       key={`omitted-${idx}`}
                       data-diff-type="deletion"
-                      className="p-3 rounded-md border border-red-200 bg-red-50/50 text-red-900 line-through text-xs leading-relaxed flex items-start gap-2.5"
+                      className="p-3 rounded-md border border-red-200 dark:border-red-900/60 bg-red-50/50 dark:bg-red-950/30 text-red-900 dark:text-red-300 line-through text-xs leading-relaxed flex items-start gap-2.5"
                     >
                       <MinusCircle
-                        className="h-4 w-4 text-red-500 shrink-0 mt-0.5"
+                        className="h-4 w-4 text-red-500 dark:text-red-400 shrink-0 mt-0.5"
                         aria-hidden="true"
                       />
                       <div>

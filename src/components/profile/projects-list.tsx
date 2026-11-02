@@ -140,10 +140,10 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
 
   return (
     <div className={cn("space-y-6", className)}>
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Projects</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Projects</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Open-source libraries, major initiatives, and featured technical projects.
           </p>
         </div>
@@ -154,8 +154,8 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
       </div>
 
       {projects.length === 0 ? (
-        <div className="rounded-lg border-2 border-dashed border-slate-300 p-8 text-center">
-          <p className="text-sm text-slate-500">
+        <div className="rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             No projects added yet. Click &ldquo;Add Project&rdquo; to begin.
           </p>
         </div>
@@ -164,20 +164,20 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
           {projects.map((proj) => (
             <li
               key={proj.id}
-              className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+              className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
             >
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-base font-semibold text-slate-900">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
                       {proj.name}
                     </h3>
                     {proj.role && (
                       <>
-                        <span className="text-slate-500" aria-hidden="true">
+                        <span className="text-slate-500 dark:text-slate-400" aria-hidden="true">
                           •
                         </span>
-                        <span className="font-medium text-slate-700">{proj.role}</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{proj.role}</span>
                       </>
                     )}
                     <ShortIdBadge
@@ -190,14 +190,14 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                       href={proj.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:underline"
+                      className="inline-flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
                     >
                       <span>{proj.url}</span>
                       <ExternalLink className="h-3 w-3" aria-hidden="true" />
                     </a>
                   )}
                   {proj.summary && (
-                    <p className="text-sm text-slate-600 mt-1">{proj.summary}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{proj.summary}</p>
                   )}
                 </div>
 
@@ -217,7 +217,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                       onDeleteProject(proj.id);
                       onAnnouncement?.(`Deleted project ${proj.name}`);
                     }}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/50"
                     aria-label={`Delete ${proj.name}`}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -226,15 +226,15 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
               </div>
 
               {/* Bullets (Facts) */}
-              <div className="mt-4 border-t border-slate-100 pt-3">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Project Highlights
                 </h4>
                 <ul className="mt-2 space-y-2">
                   {proj.facts?.map((fact) => (
                     <li
                       key={fact.id}
-                      className="flex items-start justify-between gap-3 rounded bg-slate-50 px-3 py-2 text-sm text-slate-800"
+                      className="flex items-start justify-between gap-3 rounded bg-slate-50 dark:bg-slate-800/60 px-3 py-2 text-sm text-slate-800 dark:text-slate-200"
                     >
                       <div className="flex items-start gap-2">
                         <ShortIdBadge
@@ -251,7 +251,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                           onDeleteFact(fact.id);
                           onAnnouncement?.("Deleted project bullet point");
                         }}
-                        className="h-6 w-6 p-0 text-slate-400 hover:text-red-600"
+                        className="h-6 w-6 p-0 text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400"
                         aria-label={`Delete bullet point ${fact.id}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -282,7 +282,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                       }
                     }}
                     placeholder="Add project highlight (markdown supported)..."
-                    className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="flex-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   />
                   <Button
                     type="button"
@@ -313,7 +313,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
               <div>
                 <label
                   htmlFor="proj-name"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Project Name <span className="text-red-500">*</span>
                 </label>
@@ -323,14 +323,14 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="proj-role"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Role
                 </label>
@@ -340,14 +340,14 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                   placeholder="e.g. Lead Maintainer / Author"
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="proj-url"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Project URL
                 </label>
@@ -365,12 +365,12 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                   className={cn(
                     "mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2",
                     urlError
-                      ? "border-red-300 text-red-900 placeholder-red-300 focus-visible:ring-red-500"
-                      : "border-slate-300 placeholder-slate-400 focus-visible:ring-indigo-500"
+                      ? "border-red-300 dark:border-red-500/70 bg-white dark:bg-slate-900 text-red-900 dark:text-red-200 placeholder-red-300 dark:placeholder-red-400/60 focus-visible:ring-red-500"
+                      : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus-visible:ring-indigo-500"
                   )}
                 />
                 {urlError && (
-                  <p id="proj-url-error" className="mt-1 text-xs text-red-600">
+                  <p id="proj-url-error" className="mt-1 text-xs text-red-600 dark:text-red-400">
                     {urlError}
                   </p>
                 )}
@@ -379,7 +379,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
               <div>
                 <label
                   htmlFor="proj-summary"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Summary
                 </label>
@@ -389,7 +389,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                   placeholder="Brief description of the project..."
                   value={summary}
                   onChange={(e) => setSummary(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
             </div>

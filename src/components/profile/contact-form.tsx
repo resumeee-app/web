@@ -156,10 +156,10 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   };
 
   return (
-    <div className={cn("space-y-6 bg-white p-6 rounded-lg border border-slate-200 shadow-sm", className)}>
-      <div className="border-b border-slate-200 pb-4">
-        <h2 className="text-lg font-semibold text-slate-900">Contact Information</h2>
-        <p className="text-sm text-slate-500">
+    <div className={cn("space-y-6 bg-white dark:bg-slate-900 p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm", className)}>
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Contact Information</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Personal contact details and social links displayed across your resumes.
         </p>
       </div>
@@ -169,7 +169,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <div className="sm:col-span-1">
           <label
             htmlFor="contact-full-name"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Full Name <span className="text-red-500" aria-hidden="true">*</span>
           </label>
@@ -189,13 +189,13 @@ export const ContactForm: React.FC<ContactFormProps> = ({
                 "block w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                 touched.full_name && errors.full_name
-                  ? "border-red-300 text-red-900 placeholder-red-300 focus-visible:ring-red-500"
-                  : "border-slate-300 placeholder-slate-400"
+                  ? "border-red-300 dark:border-red-500/70 bg-white dark:bg-slate-900 text-red-900 dark:text-red-200 placeholder-red-300 dark:placeholder-red-400/60 focus-visible:ring-red-500"
+                  : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
               )}
             />
           </div>
           {touched.full_name && errors.full_name && (
-            <p id="contact-full-name-error" className="mt-1 text-xs text-red-600">
+            <p id="contact-full-name-error" className="mt-1 text-xs text-red-600 dark:text-red-400">
               {errors.full_name}
             </p>
           )}
@@ -205,7 +205,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <div className="sm:col-span-1">
           <label
             htmlFor="contact-headline"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Headline
           </label>
@@ -216,7 +216,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
               value={formData.headline || ""}
               onChange={(e) => updateField("headline", e.target.value)}
               placeholder="e.g. Senior Software Architect"
-              className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             />
           </div>
         </div>
@@ -225,7 +225,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <div className="sm:col-span-2">
           <label
             htmlFor="contact-summary"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Summary Bio
           </label>
@@ -236,7 +236,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
               value={formData.summary || ""}
               onChange={(e) => updateField("summary", e.target.value)}
               placeholder="Brief professional summary or executive bio..."
-              className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             />
           </div>
         </div>
@@ -245,7 +245,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <div className="sm:col-span-1">
           <label
             htmlFor="contact-email"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Email
           </label>
@@ -264,13 +264,13 @@ export const ContactForm: React.FC<ContactFormProps> = ({
                 "block w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                 touched.email && errors.email
-                  ? "border-red-300 text-red-900 placeholder-red-300 focus-visible:ring-red-500"
-                  : "border-slate-300 placeholder-slate-400"
+                  ? "border-red-300 dark:border-red-500/70 bg-white dark:bg-slate-900 text-red-900 dark:text-red-200 placeholder-red-300 dark:placeholder-red-400/60 focus-visible:ring-red-500"
+                  : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
               )}
             />
           </div>
           {touched.email && errors.email && (
-            <p id="contact-email-error" className="mt-1 text-xs text-red-600">
+            <p id="contact-email-error" className="mt-1 text-xs text-red-600 dark:text-red-400">
               {errors.email}
             </p>
           )}
@@ -280,7 +280,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <div className="sm:col-span-1">
           <label
             htmlFor="contact-phone"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Phone
           </label>
@@ -291,7 +291,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
               value={formData.phone || ""}
               onChange={(e) => updateField("phone", e.target.value)}
               placeholder="+1-555-0100"
-              className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             />
           </div>
         </div>
@@ -300,7 +300,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <div className="sm:col-span-1">
           <label
             htmlFor="contact-city"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             City
           </label>
@@ -311,7 +311,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
               value={formData.location?.city || ""}
               onChange={(e) => updateLocation("city", e.target.value)}
               placeholder="e.g. San Francisco"
-              className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             />
           </div>
         </div>
@@ -320,7 +320,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <div className="sm:col-span-1">
           <label
             htmlFor="contact-region"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             State/Country
           </label>
@@ -331,7 +331,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
               value={formData.location?.region || ""}
               onChange={(e) => updateLocation("region", e.target.value)}
               placeholder="e.g. California, US"
-              className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             />
           </div>
         </div>
@@ -340,7 +340,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <div className="sm:col-span-2">
           <label
             htmlFor="contact-link-linkedin"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             LinkedIn URL
           </label>
@@ -360,13 +360,13 @@ export const ContactForm: React.FC<ContactFormProps> = ({
                 "block w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                 touched.linkedin && errors.linkedin
-                  ? "border-red-300 text-red-900 focus-visible:ring-red-500"
-                  : "border-slate-300 placeholder-slate-400"
+                  ? "border-red-300 dark:border-red-500/70 bg-white dark:bg-slate-900 text-red-900 dark:text-red-200 placeholder-slate-400 dark:placeholder-slate-500 focus-visible:ring-red-500"
+                  : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
               )}
             />
           </div>
           {touched.linkedin && errors.linkedin && (
-            <p id="contact-linkedin-error" className="mt-1 text-xs text-red-600">
+            <p id="contact-linkedin-error" className="mt-1 text-xs text-red-600 dark:text-red-400">
               {errors.linkedin}
             </p>
           )}
@@ -376,7 +376,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <div className="sm:col-span-2">
           <label
             htmlFor="contact-link-github"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             GitHub URL
           </label>
@@ -396,13 +396,13 @@ export const ContactForm: React.FC<ContactFormProps> = ({
                 "block w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                 touched.github && errors.github
-                  ? "border-red-300 text-red-900 focus-visible:ring-red-500"
-                  : "border-slate-300 placeholder-slate-400"
+                  ? "border-red-300 dark:border-red-500/70 bg-white dark:bg-slate-900 text-red-900 dark:text-red-200 placeholder-slate-400 dark:placeholder-slate-500 focus-visible:ring-red-500"
+                  : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
               )}
             />
           </div>
           {touched.github && errors.github && (
-            <p id="contact-github-error" className="mt-1 text-xs text-red-600">
+            <p id="contact-github-error" className="mt-1 text-xs text-red-600 dark:text-red-400">
               {errors.github}
             </p>
           )}
@@ -412,7 +412,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <div className="sm:col-span-2">
           <label
             htmlFor="contact-link-portfolio"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Portfolio URL
           </label>
@@ -432,13 +432,13 @@ export const ContactForm: React.FC<ContactFormProps> = ({
                 "block w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                 touched.portfolio && errors.portfolio
-                  ? "border-red-300 text-red-900 focus-visible:ring-red-500"
-                  : "border-slate-300 placeholder-slate-400"
+                  ? "border-red-300 dark:border-red-500/70 bg-white dark:bg-slate-900 text-red-900 dark:text-red-200 placeholder-slate-400 dark:placeholder-slate-500 focus-visible:ring-red-500"
+                  : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
               )}
             />
           </div>
           {touched.portfolio && errors.portfolio && (
-            <p id="contact-portfolio-error" className="mt-1 text-xs text-red-600">
+            <p id="contact-portfolio-error" className="mt-1 text-xs text-red-600 dark:text-red-400">
               {errors.portfolio}
             </p>
           )}

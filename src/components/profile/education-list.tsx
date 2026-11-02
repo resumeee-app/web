@@ -104,10 +104,10 @@ export const EducationList: React.FC<EducationListProps> = ({
 
   return (
     <div className={cn("space-y-6", className)}>
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Education</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Education</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Degrees, academic institutions, fields of study, and honors.
           </p>
         </div>
@@ -118,8 +118,8 @@ export const EducationList: React.FC<EducationListProps> = ({
       </div>
 
       {education.length === 0 ? (
-        <div className="rounded-lg border-2 border-dashed border-slate-300 p-8 text-center">
-          <p className="text-sm text-slate-500">
+        <div className="rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             No education history added yet. Click &ldquo;Add Education&rdquo; to begin.
           </p>
         </div>
@@ -133,11 +133,11 @@ export const EducationList: React.FC<EducationListProps> = ({
             return (
               <li
                 key={edu.id}
-                className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+                className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-base font-semibold text-slate-900">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
                       {edu.institution}
                     </h3>
                     <ShortIdBadge
@@ -145,15 +145,15 @@ export const EducationList: React.FC<EducationListProps> = ({
                       shortId={(edu as { short_id?: string }).short_id}
                     />
                   </div>
-                  <div className="text-sm font-medium text-slate-700">
+                  <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     {[edu.degree, edu.field].filter(Boolean).join(" in ")}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                  <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                     {dateDisplay && <span>{dateDisplay}</span>}
                     {edu.score && (
                       <>
                         <span aria-hidden="true">•</span>
-                        <span className="font-medium text-slate-600">
+                        <span className="font-medium text-slate-600 dark:text-slate-300">
                           {edu.score}
                         </span>
                       </>
@@ -177,7 +177,7 @@ export const EducationList: React.FC<EducationListProps> = ({
                       onDeleteEducation(edu.id);
                       onAnnouncement?.(`Deleted education at ${edu.institution}`);
                     }}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/50"
                     aria-label={`Delete education at ${edu.institution}`}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -202,7 +202,7 @@ export const EducationList: React.FC<EducationListProps> = ({
               <div>
                 <label
                   htmlFor="edu-institution"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Institution / University <span className="text-red-500">*</span>
                 </label>
@@ -213,14 +213,14 @@ export const EducationList: React.FC<EducationListProps> = ({
                   placeholder="e.g. Stanford University"
                   value={institution}
                   onChange={(e) => setInstitution(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="edu-degree"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Degree
                 </label>
@@ -230,14 +230,14 @@ export const EducationList: React.FC<EducationListProps> = ({
                   placeholder="e.g. Bachelor of Science"
                   value={degree}
                   onChange={(e) => setDegree(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="edu-field"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Field of Study
                 </label>
@@ -247,7 +247,7 @@ export const EducationList: React.FC<EducationListProps> = ({
                   placeholder="e.g. Computer Science"
                   value={field}
                   onChange={(e) => setField(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
 
@@ -255,7 +255,7 @@ export const EducationList: React.FC<EducationListProps> = ({
                 <div>
                   <label
                     htmlFor="edu-start"
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Start Date
                   </label>
@@ -265,13 +265,13 @@ export const EducationList: React.FC<EducationListProps> = ({
                     placeholder="YYYY-MM"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="edu-end"
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Graduation Date
                   </label>
@@ -281,7 +281,7 @@ export const EducationList: React.FC<EducationListProps> = ({
                     placeholder="YYYY-MM"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   />
                 </div>
               </div>
@@ -289,7 +289,7 @@ export const EducationList: React.FC<EducationListProps> = ({
               <div>
                 <label
                   htmlFor="edu-score"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Honors / GPA / Awards
                 </label>
@@ -299,7 +299,7 @@ export const EducationList: React.FC<EducationListProps> = ({
                   placeholder="e.g. Summa Cum Laude, GPA 3.9"
                   value={score}
                   onChange={(e) => setScore(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
             </div>

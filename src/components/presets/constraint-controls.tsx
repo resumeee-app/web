@@ -122,13 +122,13 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
 
   return (
     <div
-      className={`rounded-lg border border-slate-200 bg-slate-50/50 p-4 space-y-4 ${className}`}
+      className={`rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-4 space-y-4 ${className}`}
     >
       <div>
-        <h2 className="text-sm font-semibold text-slate-900">
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           Tailoring Constraints Builder
         </h2>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Configure prompt constraints and section priorities. These synthesize
           directly into the preset system instructions.
         </p>
@@ -139,7 +139,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
         <div>
           <label
             htmlFor="constraint-page-length"
-            className="block text-xs font-medium text-slate-700 mb-1"
+            className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1"
           >
             Target Page Length
           </label>
@@ -148,7 +148,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
             value={pageLength}
             disabled={disabled}
             onChange={(e) => setPageLength(e.target.value)}
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
+            className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500"
           >
             <option value="1-page">Strict 1-Page Max</option>
             <option value="2-page">Standard 2-Page Max</option>
@@ -160,7 +160,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
         <div>
           <label
             htmlFor="constraint-max-bullets"
-            className="block text-xs font-medium text-slate-700 mb-1"
+            className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1"
           >
             Maximum Bullets per Role
           </label>
@@ -181,7 +181,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
                 setMaxBullets(Math.max(1, Math.min(15, val)));
               }
             }}
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
+            className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500"
           />
         </div>
 
@@ -189,7 +189,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
         <div>
           <label
             htmlFor="constraint-tone"
-            className="block text-xs font-medium text-slate-700 mb-1"
+            className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1"
           >
             Tone & Focus
           </label>
@@ -198,7 +198,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
             value={tone}
             disabled={disabled}
             onChange={(e) => setTone(e.target.value)}
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
+            className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500"
           >
             <option value="tactical">Tactical / Hands-on</option>
             <option value="strategic">Strategic / Leadership</option>
@@ -212,13 +212,13 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
       <div>
         <span
           id="section-priority-label"
-          className="block text-xs font-medium text-slate-700 mb-1"
+          className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1"
         >
           Section Priority & Ordering
         </span>
         <ul
           aria-labelledby="section-priority-label"
-          className="divide-y divide-slate-200 rounded-md border border-slate-200 bg-white"
+          className="divide-y divide-slate-200 dark:divide-slate-800 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
         >
           {sections.map((section, index) => {
             const isFirst = index === 0;
@@ -230,10 +230,10 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
                 className="flex items-center justify-between px-3 py-2 text-sm"
               >
                 <div className="flex items-center space-x-2">
-                  <span className="w-5 text-xs font-semibold text-slate-400">
+                  <span className="w-5 text-xs font-semibold text-slate-400 dark:text-slate-500">
                     {index + 1}.
                   </span>
-                  <span className="font-medium text-slate-800">
+                  <span className="font-medium text-slate-800 dark:text-slate-200">
                     {section.name}
                   </span>
                 </div>
@@ -245,7 +245,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
                     disabled={disabled || isFirst}
                     onClick={() => moveSection(index, "up")}
                     aria-label={`Move ${section.name} up`}
-                    className="h-7 w-7 p-0 text-slate-500 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="h-7 w-7 p-0 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500"
                   >
                     <ArrowUp className="h-4 w-4" aria-hidden="true" />
                   </Button>
@@ -256,7 +256,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
                     disabled={disabled || isLast}
                     onClick={() => moveSection(index, "down")}
                     aria-label={`Move ${section.name} down`}
-                    className="h-7 w-7 p-0 text-slate-500 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="h-7 w-7 p-0 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500"
                   >
                     <ArrowDown className="h-4 w-4" aria-hidden="true" />
                   </Button>
@@ -275,9 +275,9 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
             size="sm"
             disabled={disabled}
             onClick={handleApply}
-            className="flex items-center space-x-1.5 text-xs text-indigo-700 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 focus-visible:ring-indigo-500"
+            className="flex items-center space-x-1.5 text-xs text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 focus-visible:ring-indigo-500"
           >
-            <Sparkles className="h-3.5 w-3.5 text-indigo-600" aria-hidden="true" />
+            <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
             <span>Apply Constraints to Instructions</span>
           </Button>
         </div>

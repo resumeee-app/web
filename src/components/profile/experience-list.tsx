@@ -156,10 +156,10 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
 
   return (
     <div className={cn("space-y-6", className)}>
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Work Experience</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Work Experience</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Chronological employment history with quantifiable markdown bullet points.
           </p>
         </div>
@@ -170,8 +170,8 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
       </div>
 
       {experiences.length === 0 ? (
-        <div className="rounded-lg border-2 border-dashed border-slate-300 p-8 text-center">
-          <p className="text-sm text-slate-500">
+        <div className="rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             No work experiences added yet. Click &ldquo;Add Work Experience&rdquo; to begin.
           </p>
         </div>
@@ -188,21 +188,21 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
             return (
               <li
                 key={exp.id}
-                className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+                className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-base font-semibold text-slate-900">
+                      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
                         {exp.role_title}
                       </h3>
-                      <span className="text-slate-500" aria-hidden="true">
+                      <span className="text-slate-500 dark:text-slate-400" aria-hidden="true">
                         at
                       </span>
-                      <span className="font-medium text-slate-800">{exp.company}</span>
+                      <span className="font-medium text-slate-800 dark:text-slate-200">{exp.company}</span>
                       <ShortIdBadge id={exp.id} shortId={(exp as { short_id?: string }).short_id} />
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                       <span>{dateDisplay}</span>
                       {locationDisplay && (
                         <>
@@ -248,7 +248,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                         onDeleteExperience(exp.id);
                         onAnnouncement?.(`Deleted experience for ${exp.company}`);
                       }}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50"
                       aria-label={`Delete ${exp.role_title} at ${exp.company}`}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -257,15 +257,15 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                 </div>
 
                 {/* Bullets (Facts) */}
-                <div className="mt-4 border-t border-slate-100 pt-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Key Achievements & Bullet Points
                   </h4>
                   <ul className="mt-2 space-y-2">
                     {exp.facts?.map((fact) => (
                       <li
                         key={fact.id}
-                        className="flex items-start justify-between gap-3 rounded bg-slate-50 px-3 py-2 text-sm text-slate-800"
+                        className="flex items-start justify-between gap-3 rounded bg-slate-50 dark:bg-slate-800/60 px-3 py-2 text-sm text-slate-800 dark:text-slate-200"
                       >
                         <div className="flex items-start gap-2">
                           <ShortIdBadge
@@ -282,7 +282,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                             onDeleteFact(fact.id);
                             onAnnouncement?.(`Deleted bullet point`);
                           }}
-                          className="h-6 w-6 p-0 text-slate-400 hover:text-red-600"
+                          className="h-6 w-6 p-0 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400"
                           aria-label={`Delete bullet point ${fact.id}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -316,7 +316,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                         }
                       }}
                       placeholder="Add quantifiable bullet point (markdown supported)..."
-                      className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      className="flex-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                     />
                     <Button
                       type="button"
@@ -348,7 +348,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
               <div>
                 <label
                   htmlFor="exp-role"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Role / Title <span className="text-red-500">*</span>
                 </label>
@@ -358,14 +358,14 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                   type="text"
                   value={roleTitle}
                   onChange={(e) => setRoleTitle(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="exp-company"
-                  className="block text-sm font-medium text-slate-700"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   Company / Organization <span className="text-red-500">*</span>
                 </label>
@@ -375,7 +375,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                   type="text"
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
 
@@ -383,7 +383,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                 <div>
                   <label
                     htmlFor="exp-city"
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     City
                   </label>
@@ -392,13 +392,13 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                     type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="exp-region"
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     State / Region
                   </label>
@@ -407,7 +407,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                     type="text"
                     value={region}
                     onChange={(e) => setRegion(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   />
                 </div>
               </div>
@@ -416,7 +416,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                 <div>
                   <label
                     htmlFor="exp-start"
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Start Date <span className="text-red-500">*</span>
                   </label>
@@ -427,13 +427,13 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                     placeholder="YYYY-MM"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="exp-end"
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     End Date
                   </label>
@@ -444,7 +444,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                     disabled={isCurrent}
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   />
                 </div>
               </div>
@@ -455,11 +455,11 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                   type="checkbox"
                   checked={isCurrent}
                   onChange={(e) => setIsCurrent(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus-visible:ring-indigo-500"
+                  className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-indigo-600 focus-visible:ring-indigo-500"
                 />
                 <label
                   htmlFor="exp-current"
-                  className="text-sm font-medium text-slate-700"
+                  className="text-sm font-medium text-slate-700 dark:text-slate-300"
                 >
                   I currently work here (Present)
                 </label>

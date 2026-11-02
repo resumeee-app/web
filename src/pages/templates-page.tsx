@@ -119,15 +119,15 @@ export const TemplatesPage: React.FC = () => {
   };
 
   return (
-    <main id="main-content" className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+    <main id="main-content" className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Page Header */}
-        <div className="sm:flex sm:items-center sm:justify-between border-b border-slate-200 pb-5">
+        <div className="sm:flex sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
               Template Sets
             </h1>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
               Browse standard built-in ATS templates or construct custom Go templates for multi-format resumes.
             </p>
           </div>
@@ -149,7 +149,7 @@ export const TemplatesPage: React.FC = () => {
               Search templates by name or description
             </label>
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="h-4 w-4 text-slate-400" aria-hidden="true" />
+              <Search className="h-4 w-4 text-slate-400 dark:text-slate-500" aria-hidden="true" />
             </div>
             <input
               id="template-search"
@@ -158,7 +158,7 @@ export const TemplatesPage: React.FC = () => {
               placeholder="Search templates by name or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm placeholder-slate-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 py-2 pl-9 pr-3 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
@@ -166,7 +166,7 @@ export const TemplatesPage: React.FC = () => {
           <div
             role="group"
             aria-label="Filter templates by category"
-            className="inline-flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm"
+            className="inline-flex rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shadow-sm"
           >
             <button
               type="button"
@@ -175,7 +175,7 @@ export const TemplatesPage: React.FC = () => {
               className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 filterType === "all"
                   ? "bg-indigo-600 text-white"
-                  : "text-slate-600 hover:text-slate-900"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
               All ({templates.length})
@@ -187,7 +187,7 @@ export const TemplatesPage: React.FC = () => {
               className={`flex items-center rounded-md px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 filterType === "builtin"
                   ? "bg-amber-600 text-white"
-                  : "text-slate-600 hover:text-slate-900"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
               <ShieldCheck className="h-3 w-3 mr-1" aria-hidden="true" />
@@ -200,7 +200,7 @@ export const TemplatesPage: React.FC = () => {
               className={`flex items-center rounded-md px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 filterType === "custom"
                   ? "bg-indigo-600 text-white"
-                  : "text-slate-600 hover:text-slate-900"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
               <User className="h-3 w-3 mr-1" aria-hidden="true" />
@@ -211,8 +211,8 @@ export const TemplatesPage: React.FC = () => {
 
         {/* Loading and Error States */}
         {isLoading && (
-          <div className="mt-16 flex flex-col items-center justify-center text-slate-500">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" aria-hidden="true" />
+          <div className="mt-16 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
             <p className="mt-3 text-sm">Loading template sets catalog...</p>
           </div>
         )}
@@ -220,13 +220,13 @@ export const TemplatesPage: React.FC = () => {
         {error && (
           <div
             role="alert"
-            className="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+            className="mt-8 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 p-4 text-sm text-red-800 dark:text-red-200"
           >
             <div className="flex items-center space-x-2">
-              <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" aria-hidden="true" />
               <span className="font-semibold">Failed to load templates</span>
             </div>
-            <p className="mt-1 text-xs text-red-700">
+            <p className="mt-1 text-xs text-red-700 dark:text-red-300">
               {(error as Error)?.message || "An unexpected error occurred while communicating with the server."}
             </p>
           </div>
@@ -254,12 +254,12 @@ export const TemplatesPage: React.FC = () => {
 
         {/* Empty State */}
         {!isLoading && !error && filteredTemplates.length === 0 && (
-          <div className="mt-16 rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
-            <Layers className="mx-auto h-12 w-12 text-slate-400" aria-hidden="true" />
-            <h3 className="mt-2 text-base font-semibold text-slate-900">
+          <div className="mt-16 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center">
+            <Layers className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+            <h3 className="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
               No template sets found
             </h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               {searchQuery
                 ? `No templates match your query "${searchQuery}". Try a different keyword.`
                 : "No template sets available in this category."}

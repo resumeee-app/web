@@ -103,10 +103,10 @@ export const SkillsEditor: React.FC<SkillsEditorProps> = ({
   };
 
   return (
-    <div className={cn("space-y-6 bg-white p-6 rounded-lg border border-slate-200 shadow-sm", className)}>
-      <div className="border-b border-slate-200 pb-4">
-        <h2 className="text-lg font-semibold text-slate-900">Skills & Competencies</h2>
-        <p className="text-sm text-slate-500">
+    <div className={cn("space-y-6 bg-white dark:bg-slate-900 p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm", className)}>
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Skills & Competencies</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Tag-based categorized skills used by the ATS engine for tailored matching.
         </p>
       </div>
@@ -119,9 +119,9 @@ export const SkillsEditor: React.FC<SkillsEditorProps> = ({
           return (
             <div
               key={category}
-              className="rounded-lg border border-slate-200 p-4 bg-slate-50/50"
+              className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-800/40"
             >
-              <h3 className="text-sm font-semibold text-slate-900 mb-3">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">
                 {category}
               </h3>
 
@@ -131,14 +131,14 @@ export const SkillsEditor: React.FC<SkillsEditorProps> = ({
                 aria-label={`${category} skills`}
               >
                 {categorySkills.length === 0 ? (
-                  <span className="text-xs text-slate-400 italic">
+                  <span className="text-xs text-slate-400 dark:text-slate-500 italic">
                     No skills in {category} yet.
                   </span>
                 ) : (
                   categorySkills.map((skill) => (
                     <span
                       key={skill.id}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200 px-3 py-1 text-xs font-medium text-indigo-800"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200 px-3 py-1 text-xs font-medium text-indigo-800 dark:bg-indigo-950/60 dark:border-indigo-800 dark:text-indigo-300"
                     >
                       <span>{skill.name}</span>
                       <button
@@ -147,7 +147,7 @@ export const SkillsEditor: React.FC<SkillsEditorProps> = ({
                           onDeleteSkill(skill.id);
                           onAnnouncement?.(`Removed skill ${skill.name}`);
                         }}
-                        className="rounded-full p-0.5 text-indigo-600 hover:bg-indigo-200 hover:text-indigo-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                        className="rounded-full p-0.5 text-indigo-600 hover:bg-indigo-200 hover:text-indigo-900 dark:text-indigo-400 dark:hover:bg-indigo-900/60 dark:hover:text-indigo-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                         aria-label={`Remove skill ${skill.name}`}
                       >
                         <X className="h-3 w-3" />
@@ -179,7 +179,7 @@ export const SkillsEditor: React.FC<SkillsEditorProps> = ({
                     }
                   }}
                   placeholder={`Add ${category.toLowerCase()} skill...`}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 max-w-xs"
+                  className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 max-w-xs"
                 />
                 <Button
                   type="button"
@@ -198,7 +198,7 @@ export const SkillsEditor: React.FC<SkillsEditorProps> = ({
         {/* Add New Category Section */}
         <form
           onSubmit={handleAddCategory}
-          className="flex items-center gap-2 border-t border-slate-200 pt-4"
+          className="flex items-center gap-2 border-t border-slate-200 dark:border-slate-800 pt-4"
         >
           <label htmlFor="new-category-input" className="sr-only">
             Add New Skill Category
@@ -209,7 +209,7 @@ export const SkillsEditor: React.FC<SkillsEditorProps> = ({
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
             placeholder="New Category (e.g. Design Systems, DevOps)..."
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 max-w-xs"
+            className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 max-w-xs"
           />
           <Button type="submit" size="sm" variant="outline" className="gap-1">
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />

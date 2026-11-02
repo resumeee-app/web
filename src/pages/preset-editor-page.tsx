@@ -134,19 +134,19 @@ export const PresetEditorPage: React.FC = () => {
       <div>
         <Link
           to="/presets"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-1 -ml-1"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-1 -ml-1"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           <span>Back to Presets</span>
         </Link>
 
         <div className="mt-3 flex items-center space-x-2">
-          <Sliders className="h-6 w-6 text-indigo-600" aria-hidden="true" />
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <Sliders className="h-6 w-6 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             {pageTitle}
           </h1>
         </div>
-        <p className="mt-1 text-sm text-slate-600">{pageSubtitle}</p>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{pageSubtitle}</p>
       </div>
 
       {/* Loading state */}
@@ -157,10 +157,10 @@ export const PresetEditorPage: React.FC = () => {
           className="flex flex-col items-center justify-center py-16 space-y-3"
         >
           <Loader2
-            className="h-8 w-8 animate-spin text-indigo-600"
+            className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400"
             aria-hidden="true"
           />
-          <p className="text-sm text-slate-500">Loading preset details...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading preset details...</p>
         </div>
       )}
 
@@ -168,17 +168,17 @@ export const PresetEditorPage: React.FC = () => {
       {!isCreateMode && isPresetError && (
         <div
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-start gap-3"
+          className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 p-4 flex items-start gap-3"
         >
           <AlertCircle
-            className="h-5 w-5 text-red-600 shrink-0 mt-0.5"
+            className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5"
             aria-hidden="true"
           />
           <div>
-            <h3 className="text-sm font-semibold text-red-800">
+            <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
               Failed to load preset
             </h3>
-            <p className="text-xs text-red-700 mt-0.5">
+            <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
               {presetError?.message || "The requested preset could not be found."}
             </p>
           </div>
@@ -189,17 +189,17 @@ export const PresetEditorPage: React.FC = () => {
       {saveError && (
         <div
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-start gap-3"
+          className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 p-4 flex items-start gap-3"
         >
           <AlertCircle
-            className="h-5 w-5 text-red-600 shrink-0 mt-0.5"
+            className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5"
             aria-hidden="true"
           />
           <div>
-            <h3 className="text-sm font-semibold text-red-800">
+            <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
               Failed to save preset
             </h3>
-            <p className="text-xs text-red-700 mt-0.5">{saveError}</p>
+            <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">{saveError}</p>
           </div>
         </div>
       )}

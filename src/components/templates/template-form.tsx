@@ -68,7 +68,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
       <div>
         <label
           htmlFor="template-name"
-          className="block text-xs font-semibold uppercase tracking-wider text-slate-700"
+          className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300"
         >
           Template Name <span className="text-red-500">*</span>
         </label>
@@ -80,14 +80,14 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
           value={data.name}
           onChange={(e) => onChange({ name: e.target.value })}
           placeholder="e.g. Executive Modern Tech Resume"
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:opacity-75"
+          className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-900 disabled:text-slate-500 dark:disabled:text-slate-400 disabled:opacity-75"
         />
       </div>
 
       <div>
         <label
           htmlFor="template-description"
-          className="block text-xs font-semibold uppercase tracking-wider text-slate-700"
+          className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300"
         >
           Description
         </label>
@@ -98,12 +98,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
           value={data.description}
           onChange={(e) => onChange({ description: e.target.value })}
           placeholder="Brief summary of layout, font hierarchy, or targeted industry"
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:opacity-75"
+          className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-900 disabled:text-slate-500 dark:disabled:text-slate-400 disabled:opacity-75"
         />
       </div>
 
       <div className="pt-2">
-        <span className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
+        <span className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
           Template Definition
         </span>
         <TemplateCodeEditor

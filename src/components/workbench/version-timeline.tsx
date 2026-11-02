@@ -63,13 +63,13 @@ export const VersionTimeline: React.FC<VersionTimelineProps> = ({
     return (
       <section
         aria-label="Version Timeline"
-        className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center"
+        className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 text-center"
       >
-        <History className="mx-auto h-8 w-8 text-slate-400" aria-hidden="true" />
-        <h2 className="mt-2 text-base font-semibold text-slate-900">
+        <History className="mx-auto h-8 w-8 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+        <h2 className="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
           No versions generated yet
         </h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Trigger "Tailor Resume" to generate your first AI resume iteration.
         </p>
       </section>
@@ -84,20 +84,20 @@ export const VersionTimeline: React.FC<VersionTimelineProps> = ({
   return (
     <section
       aria-label="Version Timeline"
-      className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+      className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
     >
       <div className="flex items-center justify-between pb-4">
         <div className="flex items-center gap-2">
-          <History className="h-5 w-5 text-indigo-600" aria-hidden="true" />
-          <h2 className="text-lg font-bold text-slate-900">Version History</h2>
+          <History className="h-5 w-5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Version History</h2>
         </div>
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-slate-500 dark:text-slate-400">
           {versions.length} {versions.length === 1 ? "version" : "versions"}{" "}
           recorded
         </span>
       </div>
 
-      <ul className="divide-y divide-slate-100" aria-label="Version list">
+      <ul className="divide-y divide-slate-100 dark:divide-slate-800" aria-label="Version list">
         {sortedVersions.map((v) => {
           const isActive = v.id === activeVersionId;
           const isSelected = v.id === selectedVersionId;
@@ -108,12 +108,12 @@ export const VersionTimeline: React.FC<VersionTimelineProps> = ({
             <li
               key={v.id}
               className={`flex flex-col gap-3 py-4 transition-colors sm:flex-row sm:items-center sm:justify-between ${
-                isSelected ? "rounded-md bg-indigo-50/40 px-3" : ""
+                isSelected ? "rounded-md bg-indigo-50/40 dark:bg-indigo-950/40 px-3" : ""
               }`}
             >
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
                     Version v{v.version_number}
                   </span>
 
@@ -141,16 +141,16 @@ export const VersionTimeline: React.FC<VersionTimelineProps> = ({
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
                   {v.model_used && (
                     <div className="flex items-center gap-1">
-                      <Cpu className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+                      <Cpu className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
                       <span>{v.model_used}</span>
                     </div>
                   )}
                   {v.created_at && (
                     <div className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+                      <Clock className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
                       <time dateTime={v.created_at}>
                         {new Date(v.created_at).toLocaleString()}
                       </time>
