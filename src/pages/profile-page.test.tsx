@@ -400,6 +400,144 @@ describe("ProfilePage", () => {
     );
   });
 
+  it("adds education with draft facts and persists both education and child facts", async () => {
+    const user = userEvent.setup();
+    const createdEduId = "edu-new-12345678-0000-0000-0000-000000000000";
+
+    vi.mocked(api.POST).mockImplementation(async (endpoint) => {
+      if (endpoint === "/education") {
+        return {
+          data: {
+            id: createdEduId,
+            user_id: "user-1",
+            institution: "Princeton University",
+            degree: "PhD",
+            field: "Mathematics",
+            location: { city: "Princeton", region: "NJ" },
+          },
+          error: undefined,
+          response: new Response(),
+        } as unknown as Awaited<ReturnType<typeof api.POST>>;
+      }
+      if (endpoint === "/facts") {
+        return {
+          data: {
+            id: "fact-new-1",
+            user_id: "user-1",
+            owner_id: createdEduId,
+            owner_type: "education",
+            statement: "Published ordinal logic paper",
+          },
+          error: undefined,
+          response: new Response(),
+        } as unknown as Awaited<ReturnType<typeof api.POST>>;
+      }
+      return {
+        data: {},
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.POST>>;
+    });
+
+    renderProfilePage();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Full Name/i)).toBeInTheDocument();
+    });
+
+    // Switch to Education tab
+    const eduTab = screen.getByRole("tab", {
+      name: /Education & Certifications/i,
+    });
+    await user.click(eduTab);
+
+    // Click Add Education
+    const addEduBtn = screen.getByRole("button", { name: /Add Education/i });
+    await user.click(addEduBtn);
+
+    // Type institution
+    await user.type(screen.getByLabelText(/Institution/i), "Princeton University");
+
+    // Expand Extended Details
+    const extendedToggle = screen.getByRole("button", {
+      name: /Extended Details/i,
+    });
+    await user.click(extendedToggle);
+
+    // Type Location
+    await user.type(screen.getByLabelText(/City/i), "Princeton");
+    await user.type(screen.getByLabelText(/State \/ Region/i), "NJ");
+
+    // Add draft fact
+    const modalBulletInput = screen.getByPlaceholderText(
+      /Add achievement or bullet point/i
+    );
+    await user.type(modalBulletInput, "Published ordinal logic paper");
+
+    const modalAddBulletBtn = screen.getByRole("button", {
+      name: /Add Bullet/i,
+    });
+    await user.click(modalAddBulletBtn);
+
+    expect(
+      screen.getByText("Published ordinal logic paper")
+    ).toBeInTheDocument();
+
+    // Click Save Education
+    const saveBtn = screen.getByRole("button", { name: /Save Education/i });
+    await user.click(saveBtn);
+
+    await waitFor(() => {
+      expect(api.POST).toHaveBeenCalledWith("/education", {
+        body: expect.objectContaining({
+          institution: "Princeton University",
+          location: {
+            city: "Princeton",
+            region: "NJ",
+          },
+        }),
+      });
+      expect(api.POST).toHaveBeenCalledWith("/facts", {
+        body: expect.objectContaining({
+          owner_id: createdEduId,
+          owner_type: "education",
+          statement: "Published ordinal logic paper",
+        }),
+      });
+    });
+  });
+
+  it("announces error message when creating education fails", async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.POST).mockResolvedValueOnce({
+      data: undefined,
+      error: { error: { message: "Database connection failed" } },
+      response: new Response("", { status: 500 }),
+    } as unknown as Awaited<ReturnType<typeof api.POST>>);
+
+    renderProfilePage();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Full Name/i)).toBeInTheDocument();
+    });
+
+    const eduTab = screen.getByRole("tab", {
+      name: /Education & Certifications/i,
+    });
+    await user.click(eduTab);
+
+    const addEduBtn = screen.getByRole("button", { name: /Add Education/i });
+    await user.click(addEduBtn);
+
+    await user.type(screen.getByLabelText(/Institution/i), "Princeton University");
+    const saveBtn = screen.getByRole("button", { name: /Save Education/i });
+    await user.click(saveBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("Database connection failed")).toBeInTheDocument();
+    });
+  });
+
   it("passes axe-core accessibility audit on full page render", async () => {
     const { container } = renderProfilePage();
 

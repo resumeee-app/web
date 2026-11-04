@@ -431,11 +431,35 @@ export const ProfilePage: React.FC = () => {
         <TabsContent value="education" className="mt-6 space-y-8">
           <EducationList
             education={snapshot.education || []}
-            onAddEducation={(eduData) => createEduMutation.mutate(eduData)}
+            onAddEducation={async (eduData, facts) => {
+              try {
+                const created = await createEduMutation.mutateAsync(eduData);
+                if (facts && facts.length > 0 && created?.id) {
+                  for (const statement of facts) {
+                    await createFactMutation.mutateAsync({
+                      owner_id: created.id,
+                      owner_type: "education",
+                      statement,
+                    });
+                  }
+                }
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : "Failed to add education";
+                announce(msg);
+              }
+            }}
             onUpdateEducation={(id, eduData) =>
               updateEduMutation.mutate({ id, data: eduData })
             }
             onDeleteEducation={(id) => deleteEduMutation.mutate(id)}
+            onAddFact={(ownerId, statement) =>
+              createFactMutation.mutate({
+                owner_id: ownerId,
+                owner_type: "education",
+                statement,
+              })
+            }
+            onDeleteFact={(factId) => deleteFactMutation.mutate(factId)}
             onAnnouncement={announce}
           />
 
