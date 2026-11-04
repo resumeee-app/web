@@ -373,6 +373,7 @@ export const ProfilePage: React.FC = () => {
         <TabsContent value="experience" className="mt-6 space-y-8">
           <ExperienceList
             experiences={snapshot.experiences || []}
+            availableSkills={snapshot.skills || []}
             onReorder={(reordered) => {
               queryClient.setQueryData<components["schemas"]["MasterProfileSnapshot"]>(
                 PROFILE_FULL_QUERY_KEY,

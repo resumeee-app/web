@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Plus, ArrowUp, ArrowDown, Trash2, Edit2 } from "lucide-react";
+import { Plus, ArrowUp, ArrowDown, Trash2, Edit2, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,11 +13,26 @@ import { ShortIdBadge } from "./short-id-badge";
 import type { components } from "@/api/schema";
 
 /**
+ * Helper to split a comma-separated skill string into a normalized array of non-empty tokens.
+ *
+ * @param input - Raw comma-separated skill tokens.
+ * @returns Array of trimmed skill IDs.
+ */
+export function parseSkillTokens(input: string): string[] {
+  return input
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/**
  * Props for the ExperienceList component.
  */
 export interface ExperienceListProps {
   /** Array of work experiences from the canonical profile snapshot */
   experiences: components["schemas"]["WorkExperience"][];
+  /** Optional array of all available master skills for selection */
+  availableSkills?: components["schemas"]["Skill"][];
   /** Callback invoked when the user changes the chronological order of experiences */
   onReorder: (experiences: components["schemas"]["WorkExperience"][]) => void;
   /** Callback to create a new work experience record */
@@ -46,6 +61,9 @@ export interface ExperienceListProps {
  * - Orderable list with keyboard-accessible Move Up and Move Down controls.
  * - Display of compact ShortIDs (Issue #84) for experiences and bullet points.
  * - Nested list of quantifiable markdown bullet points (Facts) with add and delete actions.
+ * - Collapsible "Extended Details" section for administrative, government, and visa fields:
+ *   employment type, company location, company contact, hours per week, supervisor details,
+ *   duties summary, and linked skills.
  * - Radix UI Dialog primitive for creating and editing work experience records.
  * - Screen-reader announcements for dynamic additions, removals, and reordering.
  *
@@ -54,6 +72,7 @@ export interface ExperienceListProps {
  */
 export const ExperienceList: React.FC<ExperienceListProps> = ({
   experiences,
+  availableSkills,
   onReorder,
   onAddExperience,
   onUpdateExperience,
@@ -65,6 +84,20 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
 }) => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [editingExperience, setEditingExperience] =
+    React.useState<components["schemas"]["WorkExperience"] | null>(null);
+
+  const skillLookupPool = React.useMemo(() => {
+    const pool = [...(availableSkills || [])];
+    if (editingExperience?.skills) {
+      for (const s of editingExperience.skills) {
+        if (!pool.some((p) => p.id === s.id)) {
+          pool.push(s);
+        }
+      }
+    }
+    return pool;
+  }, [availableSkills, editingExperience]);
 
   // Form state for add/edit dialog
   const [company, setCompany] = React.useState("");
@@ -75,11 +108,26 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
   const [endDate, setEndDate] = React.useState("");
   const [isCurrent, setIsCurrent] = React.useState(false);
 
+  // Extended details form state
+  const [showExtended, setShowExtended] = React.useState(false);
+  const [employmentType, setEmploymentType] = React.useState<string>("");
+  const [companyCity, setCompanyCity] = React.useState("");
+  const [companyRegion, setCompanyRegion] = React.useState("");
+  const [companyContactType, setCompanyContactType] =
+    React.useState<components["schemas"]["ContactType"]>("Email");
+  const [companyContactValue, setCompanyContactValue] = React.useState("");
+  const [hoursPerWeek, setHoursPerWeek] = React.useState<string>("");
+  const [supervisorName, setSupervisorName] = React.useState("");
+  const [supervisorContact, setSupervisorContact] = React.useState("");
+  const [dutiesSummary, setDutiesSummary] = React.useState("");
+  const [skillsInput, setSkillsInput] = React.useState("");
+
   // Per-experience bullet input drafts
   const [bulletDrafts, setBulletDrafts] = React.useState<Record<string, string>>({});
 
   const handleOpenAdd = () => {
     setEditingId(null);
+    setEditingExperience(null);
     setCompany("");
     setRoleTitle("");
     setCity("");
@@ -87,11 +135,23 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
     setStartDate("");
     setEndDate("");
     setIsCurrent(false);
+    setEmploymentType("");
+    setCompanyCity("");
+    setCompanyRegion("");
+    setCompanyContactType("Email");
+    setCompanyContactValue("");
+    setHoursPerWeek("");
+    setSupervisorName("");
+    setSupervisorContact("");
+    setDutiesSummary("");
+    setSkillsInput("");
+    setShowExtended(false);
     setDialogOpen(true);
   };
 
   const handleOpenEdit = (exp: components["schemas"]["WorkExperience"]) => {
     setEditingId(exp.id);
+    setEditingExperience(exp);
     setCompany(exp.company);
     setRoleTitle(exp.role_title);
     setCity(exp.location?.city || "");
@@ -99,6 +159,21 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
     setStartDate(exp.start_date);
     setEndDate(exp.end_date || "");
     setIsCurrent(Boolean(exp.is_current));
+    setEmploymentType(exp.employment_type || "");
+    setCompanyCity(exp.company_location?.city || "");
+    setCompanyRegion(exp.company_location?.region || "");
+    setCompanyContactType(exp.company_contact?.type || "Email");
+    setCompanyContactValue(exp.company_contact?.value || "");
+    setHoursPerWeek(
+      exp.hours_per_week !== null && exp.hours_per_week !== undefined
+        ? String(exp.hours_per_week)
+        : ""
+    );
+    setSupervisorName(exp.supervisor_name || "");
+    setSupervisorContact(exp.supervisor_contact || "");
+    setDutiesSummary(exp.duties_summary || "");
+    setSkillsInput(exp.skills?.map((s) => s.id).join(", ") || "");
+    setShowExtended(false);
     setDialogOpen(true);
   };
 
@@ -107,6 +182,42 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
     if (!company.trim() || !roleTitle.trim() || !startDate.trim()) {
       return;
     }
+
+    const trimmedCompanyCity = companyCity.trim();
+    const trimmedCompanyRegion = companyRegion.trim();
+    const hasCompanyLocation = Boolean(trimmedCompanyCity || trimmedCompanyRegion);
+    const companyLocation = editingId
+      ? {
+          city: trimmedCompanyCity || undefined,
+          region: trimmedCompanyRegion || undefined,
+        }
+      : hasCompanyLocation
+      ? {
+          city: trimmedCompanyCity || undefined,
+          region: trimmedCompanyRegion || undefined,
+        }
+      : undefined;
+
+    const trimmedCompanyContact = companyContactValue.trim();
+    const companyContact = editingId
+      ? {
+          type: companyContactType,
+          value: trimmedCompanyContact,
+        }
+      : trimmedCompanyContact
+      ? {
+          type: companyContactType,
+          value: trimmedCompanyContact,
+        }
+      : undefined;
+
+    const parsed = parseInt(hoursPerWeek.trim(), 10);
+    const parsedHours =
+      !Number.isNaN(parsed) && Number.isFinite(parsed) && parsed >= 1 && parsed <= 168
+        ? parsed
+        : undefined;
+
+    const skillIds = parseSkillTokens(skillsInput);
 
     const payload: components["schemas"]["CreateExperienceRequest"] = {
       company: company.trim(),
@@ -118,6 +229,18 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
         city: city.trim() || undefined,
         region: region.trim() || undefined,
       },
+      employment_type: employmentType
+        ? (employmentType as components["schemas"]["EmploymentType"])
+        : editingId
+        ? ("" as components["schemas"]["EmploymentType"])
+        : undefined,
+      company_location: companyLocation,
+      company_contact: companyContact,
+      hours_per_week: editingId ? (parsedHours !== undefined ? parsedHours : 0) : parsedHours,
+      supervisor_name: supervisorName.trim() || (editingId ? "" : undefined),
+      supervisor_contact: supervisorContact.trim() || (editingId ? "" : undefined),
+      duties_summary: dutiesSummary.trim() || (editingId ? "" : undefined),
+      skill_ids: editingId ? skillIds : skillIds.length > 0 ? skillIds : undefined,
     };
 
     if (editingId) {
@@ -201,6 +324,11 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                       </span>
                       <span className="font-medium text-slate-800 dark:text-slate-200">{exp.company}</span>
                       <ShortIdBadge id={exp.id} shortId={(exp as { short_id?: string }).short_id} />
+                      {exp.employment_type && (
+                        <span className="inline-flex items-center rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                          {exp.employment_type}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                       <span>{dateDisplay}</span>
@@ -211,6 +339,23 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                         </>
                       )}
                     </div>
+                    {exp.duties_summary && (
+                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                        {exp.duties_summary}
+                      </p>
+                    )}
+                    {exp.skills && exp.skills.length > 0 && (
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        {exp.skills.map((skill) => (
+                          <span
+                            key={skill.id}
+                            className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 px-2 py-0.5 text-xs text-slate-700 dark:text-slate-300"
+                          >
+                            {skill.name || skill.id}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions: Reorder, Edit, Delete */}
@@ -337,8 +482,8 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
 
       {/* Add / Edit Experience Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
-          <form onSubmit={handleSaveDialog}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <form noValidate onSubmit={handleSaveDialog}>
             <DialogHeader>
               <DialogTitle>
                 {editingId ? "Edit Work Experience" : "Add Work Experience"}
@@ -464,6 +609,254 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                   I currently work here (Present)
                 </label>
               </div>
+
+              {/* Collapsible Extended Details */}
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowExtended((prev) => !prev)}
+                  className="flex w-full items-center justify-between py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  aria-expanded={showExtended}
+                  aria-controls="extended-details-section"
+                >
+                  <span>Extended Details (Optional)</span>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200",
+                      showExtended && "rotate-180"
+                    )}
+                    aria-hidden="true"
+                  />
+                </button>
+
+                {showExtended && (
+                  <div id="extended-details-section" className="mt-3 space-y-4">
+                    {/* 1. Employment Type */}
+                    <div>
+                      <label
+                        htmlFor="exp-employment-type"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                      >
+                        Employment Type
+                      </label>
+                      <select
+                        id="exp-employment-type"
+                        value={employmentType}
+                        onChange={(e) => setEmploymentType(e.target.value)}
+                        className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      >
+                        <option value="">Select Employment Type</option>
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Internship">Internship</option>
+                      </select>
+                    </div>
+
+                    {/* 2. Company Location */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          htmlFor="exp-company-city"
+                          className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                        >
+                          Company City
+                        </label>
+                        <input
+                          id="exp-company-city"
+                          type="text"
+                          placeholder="City"
+                          value={companyCity}
+                          onChange={(e) => setCompanyCity(e.target.value)}
+                          className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="exp-company-region"
+                          className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                        >
+                          Company State / Region
+                        </label>
+                        <input
+                          id="exp-company-region"
+                          type="text"
+                          placeholder="State or Region"
+                          value={companyRegion}
+                          onChange={(e) => setCompanyRegion(e.target.value)}
+                          className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* 3. Company Contact */}
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label
+                          htmlFor="exp-company-contact-type"
+                          className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                        >
+                          Company Contact Type
+                        </label>
+                        <select
+                          id="exp-company-contact-type"
+                          value={companyContactType}
+                          onChange={(e) =>
+                            setCompanyContactType(
+                              e.target.value as components["schemas"]["ContactType"]
+                            )
+                          }
+                          className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                        >
+                          <option value="Email">Email</option>
+                          <option value="Phone">Phone</option>
+                        </select>
+                      </div>
+                      <div className="col-span-2">
+                        <label
+                          htmlFor="exp-company-contact-value"
+                          className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                        >
+                          Company Contact Value
+                        </label>
+                        <input
+                          id="exp-company-contact-value"
+                          type="text"
+                          placeholder="hr@example.com or phone"
+                          value={companyContactValue}
+                          onChange={(e) => setCompanyContactValue(e.target.value)}
+                          className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* 4. Hours Per Week */}
+                    <div>
+                      <label
+                        htmlFor="exp-hours-per-week"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                      >
+                        Hours Per Week
+                      </label>
+                      <input
+                        id="exp-hours-per-week"
+                        type="number"
+                        min="1"
+                        max="168"
+                        placeholder="e.g. 40"
+                        value={hoursPerWeek}
+                        onChange={(e) => setHoursPerWeek(e.target.value)}
+                        className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      />
+                    </div>
+
+                    {/* 5. Supervisor Name */}
+                    <div>
+                      <label
+                        htmlFor="exp-supervisor-name"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                      >
+                        Supervisor Name
+                      </label>
+                      <input
+                        id="exp-supervisor-name"
+                        type="text"
+                        placeholder="e.g. Jane Doe"
+                        value={supervisorName}
+                        onChange={(e) => setSupervisorName(e.target.value)}
+                        className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      />
+                    </div>
+
+                    {/* 6. Supervisor Contact */}
+                    <div>
+                      <label
+                        htmlFor="exp-supervisor-contact"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                      >
+                        Supervisor Contact
+                      </label>
+                      <input
+                        id="exp-supervisor-contact"
+                        type="text"
+                        placeholder="e.g. jane.doe@company.com"
+                        value={supervisorContact}
+                        onChange={(e) => setSupervisorContact(e.target.value)}
+                        className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      />
+                    </div>
+
+                    {/* 7. Duties Summary */}
+                    <div>
+                      <label
+                        htmlFor="exp-duties-summary"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                      >
+                        Duties Summary
+                      </label>
+                      <textarea
+                        id="exp-duties-summary"
+                        rows={3}
+                        placeholder="Summary of official duties and scope of responsibility..."
+                        value={dutiesSummary}
+                        onChange={(e) => setDutiesSummary(e.target.value)}
+                        className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      />
+                    </div>
+
+                    {/* 8. Skills */}
+                    <div>
+                      <label
+                        htmlFor="exp-skills"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                      >
+                        Skills (IDs, comma-separated)
+                      </label>
+                      <input
+                        id="exp-skills"
+                        type="text"
+                        placeholder="skill-1, skill-2"
+                        value={skillsInput}
+                        onChange={(e) => setSkillsInput(e.target.value)}
+                        className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      />
+                      {skillLookupPool && skillLookupPool.length > 0 && (() => {
+                        const currentSkillIds = parseSkillTokens(skillsInput);
+                        const selectedSkillIdSet = new Set(currentSkillIds);
+
+                        return (
+                          <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Available skill tags">
+                            {skillLookupPool.map((s) => {
+                              const isSelected = selectedSkillIdSet.has(s.id);
+                              return (
+                                <button
+                                  key={s.id}
+                                  type="button"
+                                  onClick={() => {
+                                    const next = isSelected
+                                      ? currentSkillIds.filter((id) => id !== s.id)
+                                      : [...currentSkillIds, s.id];
+                                    setSkillsInput(next.join(", "));
+                                  }}
+                                  className={cn(
+                                    "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border transition-colors",
+                                    isSelected
+                                      ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300"
+                                      : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600"
+                                  )}
+                                  aria-pressed={isSelected}
+                                >
+                                  {s.name || s.id}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <DialogFooter>
               <Button
@@ -481,3 +874,4 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
     </div>
   );
 };
+

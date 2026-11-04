@@ -24,6 +24,31 @@ const mockExperiences: components["schemas"]["WorkExperience"][] = [
         statement: "Designed distributed transaction engine reducing latency by 45%.",
       },
     ],
+    employment_type: "Full-time",
+    company_location: { city: "New York", region: "NY" },
+    company_contact: { type: "Email", value: "hr@acme.corp" },
+    hours_per_week: 40,
+    supervisor_name: "Sarah Connor",
+    supervisor_contact: "sarah@acme.corp",
+    duties_summary: "Leading platform infrastructure and architecture.",
+    skills: [
+      {
+        id: "skill-1",
+        user_id: "user-1",
+        name: "Go",
+        category: "Languages",
+        proficiency: "Expert",
+        years_experience: 5,
+      },
+      {
+        id: "skill-2",
+        user_id: "user-1",
+        name: "Distributed Systems",
+        category: "Backend",
+        proficiency: "Expert",
+        years_experience: 4,
+      },
+    ],
   },
   {
     id: "exp-22222222-3333-4444-5555-666666666666",
@@ -235,6 +260,374 @@ describe("ExperienceList", () => {
       "fact-aaaaaaa1-2222-3333-4444-555555555555"
     );
   });
+
+  it("renders extended details like employment type, duties summary, and skills in experience card", () => {
+    render(
+      <ExperienceList
+        experiences={mockExperiences}
+        onReorder={vi.fn()}
+        onAddExperience={vi.fn()}
+        onUpdateExperience={vi.fn()}
+        onDeleteExperience={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("Full-time")).toBeInTheDocument();
+    expect(
+      screen.getByText("Leading platform infrastructure and architecture.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Go")).toBeInTheDocument();
+    expect(screen.getByText("Distributed Systems")).toBeInTheDocument();
+  });
+
+  it("toggles extended details section when expanding collapsible in dialog", async () => {
+    const user = userEvent.setup();
+    render(
+      <ExperienceList
+        experiences={mockExperiences}
+        onReorder={vi.fn()}
+        onAddExperience={vi.fn()}
+        onUpdateExperience={vi.fn()}
+        onDeleteExperience={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    const addExpBtn = screen.getByRole("button", {
+      name: /Add Work Experience/i,
+    });
+    await user.click(addExpBtn);
+
+    const toggleBtn = screen.getByRole("button", {
+      name: /Extended Details/i,
+    });
+    expect(toggleBtn).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByLabelText(/Employment Type/i)).not.toBeInTheDocument();
+
+    await user.click(toggleBtn);
+    expect(toggleBtn).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByLabelText(/Employment Type/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Company City/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Company State \/ Region/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Company Contact Type/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Company Contact Value/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Hours Per Week/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Supervisor Name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Supervisor Contact/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Duties Summary/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Skills/i)).toBeInTheDocument();
+
+    await user.click(toggleBtn);
+    expect(toggleBtn).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByLabelText(/Employment Type/i)).not.toBeInTheDocument();
+  });
+
+  it("submits modal form with all 8 extended details fields", async () => {
+    const user = userEvent.setup();
+    const handleAddExperience = vi.fn();
+    render(
+      <ExperienceList
+        experiences={mockExperiences}
+        onReorder={vi.fn()}
+        onAddExperience={handleAddExperience}
+        onUpdateExperience={vi.fn()}
+        onDeleteExperience={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    const addExpBtn = screen.getByRole("button", {
+      name: /Add Work Experience/i,
+    });
+    await user.click(addExpBtn);
+
+    await user.type(screen.getByLabelText(/Company \/ Organization/i), "Acme Labs");
+    await user.type(screen.getByLabelText(/Role \/ Title/i), "Principal Architect");
+    await user.type(screen.getByLabelText(/Start Date/i), "2023-01");
+
+    const toggleBtn = screen.getByRole("button", { name: /Extended Details/i });
+    await user.click(toggleBtn);
+
+    await user.selectOptions(screen.getByLabelText(/Employment Type/i), "Contract");
+    await user.type(screen.getByLabelText(/Company City/i), "San Jose");
+    await user.type(screen.getByLabelText(/Company State \/ Region/i), "CA");
+    await user.selectOptions(screen.getByLabelText(/Company Contact Type/i), "Email");
+    await user.type(screen.getByLabelText(/Company Contact Value/i), "hr@acmelabs.com");
+    await user.type(screen.getByLabelText(/Hours Per Week/i), "35");
+    await user.type(screen.getByLabelText(/Supervisor Name/i), "Dr. Bruce Banner");
+    await user.type(screen.getByLabelText(/Supervisor Contact/i), "banner@acmelabs.com");
+    await user.type(
+      screen.getByLabelText(/Duties Summary/i),
+      "Leading cloud migration and infrastructure architecture."
+    );
+    await user.type(screen.getByLabelText(/Skills/i), "skill-ts, skill-go");
+
+    const saveBtn = screen.getByRole("button", { name: /Save Experience/i });
+    await user.click(saveBtn);
+
+    expect(handleAddExperience).toHaveBeenCalledWith({
+      company: "Acme Labs",
+      role_title: "Principal Architect",
+      start_date: "2023-01",
+      end_date: null,
+      is_current: false,
+      location: {
+        city: undefined,
+        region: undefined,
+      },
+      employment_type: "Contract",
+      company_location: {
+        city: "San Jose",
+        region: "CA",
+      },
+      company_contact: {
+        type: "Email",
+        value: "hr@acmelabs.com",
+      },
+      hours_per_week: 35,
+      supervisor_name: "Dr. Bruce Banner",
+      supervisor_contact: "banner@acmelabs.com",
+      duties_summary: "Leading cloud migration and infrastructure architecture.",
+      skill_ids: ["skill-ts", "skill-go"],
+    });
+  });
+
+  it("populates extended details when editing an experience and saves updates", async () => {
+    const user = userEvent.setup();
+    const handleUpdateExperience = vi.fn();
+    render(
+      <ExperienceList
+        experiences={mockExperiences}
+        onReorder={vi.fn()}
+        onAddExperience={vi.fn()}
+        onUpdateExperience={handleUpdateExperience}
+        onDeleteExperience={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    const editBtn = screen.getByRole("button", {
+      name: /Edit Staff Engineer at Acme Corp/i,
+    });
+    await user.click(editBtn);
+
+    const toggleBtn = screen.getByRole("button", { name: /Extended Details/i });
+    await user.click(toggleBtn);
+
+    expect(screen.getByLabelText(/Employment Type/i)).toHaveValue("Full-time");
+    expect(screen.getByLabelText(/Company City/i)).toHaveValue("New York");
+    expect(screen.getByLabelText(/Company State \/ Region/i)).toHaveValue("NY");
+    expect(screen.getByLabelText(/Company Contact Type/i)).toHaveValue("Email");
+    expect(screen.getByLabelText(/Company Contact Value/i)).toHaveValue("hr@acme.corp");
+    expect(screen.getByLabelText(/Hours Per Week/i)).toHaveValue(40);
+    expect(screen.getByLabelText(/Supervisor Name/i)).toHaveValue("Sarah Connor");
+    expect(screen.getByLabelText(/Supervisor Contact/i)).toHaveValue("sarah@acme.corp");
+    expect(screen.getByLabelText(/Duties Summary/i)).toHaveValue(
+      "Leading platform infrastructure and architecture."
+    );
+
+    // Modify supervisor name and hours
+    const supervisorInput = screen.getByLabelText(/Supervisor Name/i);
+    await user.clear(supervisorInput);
+    await user.type(supervisorInput, "John Connor");
+
+    const hoursInput = screen.getByLabelText(/Hours Per Week/i);
+    await user.clear(hoursInput);
+    await user.type(hoursInput, "45");
+
+    const saveBtn = screen.getByRole("button", { name: /Save Experience/i });
+    await user.click(saveBtn);
+
+    expect(handleUpdateExperience).toHaveBeenCalledWith(
+      "exp-11111111-2222-3333-4444-555555555555",
+      expect.objectContaining({
+        company: "Acme Corp",
+        role_title: "Staff Engineer",
+        start_date: "2021-01",
+        end_date: null,
+        is_current: true,
+        location: { city: "San Francisco", region: "CA" },
+        employment_type: "Full-time",
+        company_location: {
+          city: "New York",
+          region: "NY",
+        },
+        company_contact: {
+          type: "Email",
+          value: "hr@acme.corp",
+        },
+        hours_per_week: 45,
+        supervisor_name: "John Connor",
+        supervisor_contact: "sarah@acme.corp",
+        duties_summary: "Leading platform infrastructure and architecture.",
+        skill_ids: ["skill-1", "skill-2"],
+      })
+    );
+  });
+
+  it("clears skills on update and passes skill_ids as empty array", async () => {
+    const user = userEvent.setup();
+    const handleUpdateExperience = vi.fn();
+    render(
+      <ExperienceList
+        experiences={mockExperiences}
+        onReorder={vi.fn()}
+        onAddExperience={vi.fn()}
+        onUpdateExperience={handleUpdateExperience}
+        onDeleteExperience={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    const editBtn = screen.getByRole("button", {
+      name: /Edit Staff Engineer at Acme Corp/i,
+    });
+    await user.click(editBtn);
+
+    const toggleBtn = screen.getByRole("button", { name: /Extended Details/i });
+    await user.click(toggleBtn);
+
+    const skillsInput = screen.getByLabelText(/Skills/i);
+    await user.clear(skillsInput);
+
+    const saveBtn = screen.getByRole("button", { name: /Save Experience/i });
+    await user.click(saveBtn);
+
+    expect(handleUpdateExperience).toHaveBeenCalledWith(
+      "exp-11111111-2222-3333-4444-555555555555",
+      expect.objectContaining({
+        skill_ids: [],
+      })
+    );
+  });
+
+  it("renders availableSkills chips and synchronizes selection via click toggles", async () => {
+    const user = userEvent.setup();
+    const mockSkills: components["schemas"]["Skill"][] = [
+      {
+        id: "skill-1",
+        user_id: "user-1",
+        name: "Go",
+        category: "Languages",
+        proficiency: "Expert",
+        years_experience: 5,
+      },
+      {
+        id: "skill-2",
+        user_id: "user-1",
+        name: "Distributed Systems",
+        category: "Backend",
+        proficiency: "Expert",
+        years_experience: 4,
+      },
+    ];
+
+    render(
+      <ExperienceList
+        experiences={mockExperiences}
+        availableSkills={mockSkills}
+        onReorder={vi.fn()}
+        onAddExperience={vi.fn()}
+        onUpdateExperience={vi.fn()}
+        onDeleteExperience={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    const addExpBtn = screen.getByRole("button", {
+      name: /Add Work Experience/i,
+    });
+    await user.click(addExpBtn);
+
+    const toggleBtn = screen.getByRole("button", { name: /Extended Details/i });
+    await user.click(toggleBtn);
+
+    const skillsInput = screen.getByLabelText(/Skills/i);
+    expect(skillsInput).toHaveValue("");
+
+    const goChip = screen.getByRole("button", { name: "Go" });
+    const distChip = screen.getByRole("button", { name: "Distributed Systems" });
+
+    expect(goChip).toHaveAttribute("aria-pressed", "false");
+    expect(distChip).toHaveAttribute("aria-pressed", "false");
+
+    // Click Go -> should select Go
+    await user.click(goChip);
+    expect(skillsInput).toHaveValue("skill-1");
+    expect(goChip).toHaveAttribute("aria-pressed", "true");
+
+    // Click Distributed Systems -> should append
+    await user.click(distChip);
+    expect(skillsInput).toHaveValue("skill-1, skill-2");
+    expect(distChip).toHaveAttribute("aria-pressed", "true");
+
+    // Click Go again -> should remove Go
+    await user.click(goChip);
+    expect(skillsInput).toHaveValue("skill-2");
+    expect(goChip).toHaveAttribute("aria-pressed", "false");
+    expect(distChip).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it.each([
+    ["-10", undefined],
+    ["0", undefined],
+    ["169", undefined],
+    ["999", undefined],
+    ["invalid", undefined],
+    ["40", 40],
+    ["1", 1],
+    ["168", 168],
+  ])(
+    "validates hours_per_week boundary input '%s' resolves to %s",
+    async (inputValue, expectedParsed) => {
+      const user = userEvent.setup();
+      const handleAddExperience = vi.fn();
+
+      render(
+        <ExperienceList
+          experiences={mockExperiences}
+          onReorder={vi.fn()}
+          onAddExperience={handleAddExperience}
+          onUpdateExperience={vi.fn()}
+          onDeleteExperience={vi.fn()}
+          onAddFact={vi.fn()}
+          onDeleteFact={vi.fn()}
+        />
+      );
+
+      const addExpBtn = screen.getByRole("button", {
+        name: /Add Work Experience/i,
+      });
+      await user.click(addExpBtn);
+
+      await user.type(screen.getByLabelText(/Company \/ Organization/i), "Boundary Corp");
+      await user.type(screen.getByLabelText(/Role \/ Title/i), "Tester");
+      await user.type(screen.getByLabelText(/Start Date/i), "2023-01");
+
+      const toggleBtn = screen.getByRole("button", { name: /Extended Details/i });
+      await user.click(toggleBtn);
+
+      const hoursInput = screen.getByLabelText(/Hours Per Week/i);
+      await user.clear(hoursInput);
+      await user.type(hoursInput, inputValue);
+
+      const saveBtn = screen.getByRole("button", { name: /Save Experience/i });
+      await user.click(saveBtn);
+
+      expect(handleAddExperience).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hours_per_week: expectedParsed,
+        })
+      );
+    }
+  );
 
   it("passes axe-core accessibility audit", async () => {
     const { container } = render(
