@@ -66,13 +66,47 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
   const [customCategories, setCustomCategories] = React.useState<string[]>([]);
   const [usageFilter, setUsageFilter] = React.useState<UsageFilter>("all");
 
+  // Consolidate skills from the root list as well as nested in experiences, projects, and facts
+  const consolidatedSkills = React.useMemo(() => {
+    const map = new Map<string, components["schemas"]["Skill"]>();
+    (skills || []).forEach((s) => {
+      if (s.id) map.set(s.id, s);
+    });
+    experiences.forEach((exp) => {
+      exp.skills?.forEach((s) => {
+        if (s.id && !map.has(s.id)) map.set(s.id, s);
+      });
+      exp.facts?.forEach((f) => {
+        f.skills?.forEach((s) => {
+          if (s.id && !map.has(s.id)) map.set(s.id, s);
+        });
+      });
+    });
+    projects.forEach((proj) => {
+      proj.skills?.forEach((s) => {
+        if (s.id && !map.has(s.id)) map.set(s.id, s);
+      });
+      proj.facts?.forEach((f) => {
+        f.skills?.forEach((s) => {
+          if (s.id && !map.has(s.id)) map.set(s.id, s);
+        });
+      });
+    });
+    facts.forEach((f) => {
+      f.skills?.forEach((s) => {
+        if (s.id && !map.has(s.id)) map.set(s.id, s);
+      });
+    });
+    return Array.from(map.values());
+  }, [skills, experiences, projects, facts]);
+
   // Compute bidirectional skill usage counts across experiences, projects, and facts
   const skillUsageMap = React.useMemo(() => {
     const expIDsBySkill = new Map<string, Set<string>>();
     const projIDsBySkill = new Map<string, Set<string>>();
     const factIDsBySkill = new Map<string, Set<string>>();
 
-    skills.forEach((s) => {
+    consolidatedSkills.forEach((s) => {
       expIDsBySkill.set(s.id, new Set<string>());
       projIDsBySkill.set(s.id, new Set<string>());
       factIDsBySkill.set(s.id, new Set<string>());
@@ -144,7 +178,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
     });
 
     const map = new Map<string, SkillUsageStats>();
-    skills.forEach((s) => {
+    consolidatedSkills.forEach((s) => {
       const expCount = expIDsBySkill.get(s.id)?.size || 0;
       const projCount = projIDsBySkill.get(s.id)?.size || 0;
       const factCount = factIDsBySkill.get(s.id)?.size || 0;
@@ -159,24 +193,24 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
     });
 
     return map;
-  }, [skills, experiences, projects, facts]);
+  }, [consolidatedSkills, experiences, projects, facts]);
 
   // Collect all unique categories from skills plus defaults and custom ones
   const allCategories = React.useMemo(() => {
     const set = new Set<string>();
     DEFAULT_CATEGORIES.forEach((c) => set.add(c));
     customCategories.forEach((c) => set.add(c));
-    skills.forEach((s) => {
+    consolidatedSkills.forEach((s) => {
       if (s.category && s.category.trim() !== "") {
         set.add(s.category.trim());
       }
     });
     return Array.from(set);
-  }, [skills, customCategories]);
+  }, [consolidatedSkills, customCategories]);
 
   // Filter skills based on active usage filter
   const filteredSkills = React.useMemo(() => {
-    return skills.filter((s) => {
+    return consolidatedSkills.filter((s) => {
       const stats = skillUsageMap.get(s.id);
       if (!stats) return true;
 
@@ -188,7 +222,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
       }
       return true;
     });
-  }, [skills, skillUsageMap, usageFilter]);
+  }, [consolidatedSkills, skillUsageMap, usageFilter]);
 
   // Group filtered skills by category
   const groupedSkills = React.useMemo(() => {
@@ -235,7 +269,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
     return count;
   }, [skillUsageMap]);
 
-  const totalUnattached = skills.length - totalAttached;
+  const totalUnattached = consolidatedSkills.length - totalAttached;
 
   return (
     <div
@@ -272,7 +306,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
             )}
           >
-            All ({skills.length})
+            All ({consolidatedSkills.length})
           </button>
           <button
             type="button"
@@ -352,7 +386,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                             : "bg-slate-100 border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
                         )}
                       >
-                        <span className="font-semibold">{skill.name}</span>
+                        <span className="font-semibold">{skill.name || skill.id}</span>
 
                         {/* Usage indicators */}
                         {stats && stats.expCount > 0 && (

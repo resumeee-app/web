@@ -213,6 +213,43 @@ describe("SkillsManager", () => {
     expect(screen.getByText("Used in 2 facts")).toBeInTheDocument();
   });
 
+  it("consolidates skills attached to experiences or projects when absent from root skills array", () => {
+    const experienceWithExtraSkill: components["schemas"]["WorkExperience"][] = [
+      {
+        id: "exp-2",
+        user_id: "user-1",
+        company: "Beta Corp",
+        role_title: "Senior Engineer",
+        start_date: "2022-01-01",
+        is_current: true,
+        skills: [
+          {
+            id: "skill-discovered",
+            user_id: "user-1",
+            name: "Kubernetes",
+            category: "Cloud",
+          },
+        ],
+      },
+    ];
+
+    render(
+      <SkillsManager
+        skills={[]}
+        experiences={experienceWithExtraSkill}
+        projects={[]}
+        facts={[]}
+        onAddSkill={vi.fn()}
+        onDeleteSkill={vi.fn()}
+      />
+    );
+
+    // Kubernetes should be consolidated into the view and visible with usage indicator
+    expect(screen.getByText("Kubernetes")).toBeInTheDocument();
+    expect(screen.getByText("Used in 1 experience")).toBeInTheDocument();
+    expect(screen.getByText("All (1)")).toBeInTheDocument();
+  });
+
   it("passes axe-core accessibility audit", async () => {
     const { container } = render(
       <SkillsManager

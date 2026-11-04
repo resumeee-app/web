@@ -172,7 +172,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
     setSupervisorName(exp.supervisor_name || "");
     setSupervisorContact(exp.supervisor_contact || "");
     setDutiesSummary(exp.duties_summary || "");
-    setSkillsInput(exp.skills?.map((s) => s.id).join(", ") || "");
+    setSkillsInput(exp.skills?.map((s) => s.name || s.id).join(", ") || "");
     setShowExtended(false);
     setDialogOpen(true);
   };
@@ -217,7 +217,23 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
         ? parsed
         : undefined;
 
-    const skillIds = parseSkillTokens(skillsInput);
+    const rawSkillTokens = parseSkillTokens(skillsInput);
+    const skillIds: string[] = [];
+    const seenSkillIds = new Set<string>();
+
+    for (const token of rawSkillTokens) {
+      const tokenLower = token.toLowerCase();
+      const matched = skillLookupPool.find(
+        (s) =>
+          s.name.toLowerCase() === tokenLower ||
+          s.id.toLowerCase() === tokenLower
+      );
+      const resolvedId = matched ? matched.id : token;
+      if (!seenSkillIds.has(resolvedId)) {
+        seenSkillIds.add(resolvedId);
+        skillIds.push(resolvedId);
+      }
+    }
 
     const payload: components["schemas"]["CreateExperienceRequest"] = {
       company: company.trim(),
@@ -810,32 +826,47 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                         htmlFor="exp-skills"
                         className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                       >
-                        Skills (IDs, comma-separated)
+                        Skills (comma-separated)
                       </label>
                       <input
                         id="exp-skills"
                         type="text"
-                        placeholder="skill-1, skill-2"
+                        placeholder="e.g. Go, Docker, Kubernetes"
                         value={skillsInput}
                         onChange={(e) => setSkillsInput(e.target.value)}
                         className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                       />
                       {skillLookupPool && skillLookupPool.length > 0 && (() => {
-                        const currentSkillIds = parseSkillTokens(skillsInput);
-                        const selectedSkillIdSet = new Set(currentSkillIds);
+                        const currentSkillTokens = parseSkillTokens(skillsInput);
+                        const isSkillSelected = (s: components["schemas"]["Skill"]) => {
+                          const nameLower = (s.name || "").toLowerCase();
+                          const idLower = (s.id || "").toLowerCase();
+                          return currentSkillTokens.some(
+                            (tok) =>
+                              (nameLower !== "" && tok.toLowerCase() === nameLower) ||
+                              (idLower !== "" && tok.toLowerCase() === idLower)
+                          );
+                        };
 
                         return (
                           <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Available skill tags">
                             {skillLookupPool.map((s) => {
-                              const isSelected = selectedSkillIdSet.has(s.id);
+                              const isSelected = isSkillSelected(s);
+                              const displayName = s.name || s.id;
                               return (
                                 <button
                                   key={s.id}
                                   type="button"
                                   onClick={() => {
+                                    const nameLower = (s.name || "").toLowerCase();
+                                    const idLower = (s.id || "").toLowerCase();
                                     const next = isSelected
-                                      ? currentSkillIds.filter((id) => id !== s.id)
-                                      : [...currentSkillIds, s.id];
+                                      ? currentSkillTokens.filter(
+                                          (tok) =>
+                                            (nameLower === "" || tok.toLowerCase() !== nameLower) &&
+                                            (idLower === "" || tok.toLowerCase() !== idLower)
+                                        )
+                                      : [...currentSkillTokens, displayName];
                                     setSkillsInput(next.join(", "));
                                   }}
                                   className={cn(
@@ -846,7 +877,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                                   )}
                                   aria-pressed={isSelected}
                                 >
-                                  {s.name || s.id}
+                                  {displayName}
                                 </button>
                               );
                             })}

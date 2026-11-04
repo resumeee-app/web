@@ -560,17 +560,17 @@ describe("ExperienceList", () => {
 
     // Click Go -> should select Go
     await user.click(goChip);
-    expect(skillsInput).toHaveValue("skill-1");
+    expect(skillsInput).toHaveValue("Go");
     expect(goChip).toHaveAttribute("aria-pressed", "true");
 
     // Click Distributed Systems -> should append
     await user.click(distChip);
-    expect(skillsInput).toHaveValue("skill-1, skill-2");
+    expect(skillsInput).toHaveValue("Go, Distributed Systems");
     expect(distChip).toHaveAttribute("aria-pressed", "true");
 
     // Click Go again -> should remove Go
     await user.click(goChip);
-    expect(skillsInput).toHaveValue("skill-2");
+    expect(skillsInput).toHaveValue("Distributed Systems");
     expect(goChip).toHaveAttribute("aria-pressed", "false");
     expect(distChip).toHaveAttribute("aria-pressed", "true");
   });
