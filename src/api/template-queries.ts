@@ -26,6 +26,16 @@ export type CreateTemplateRequest = components["schemas"]["CreateTemplateRequest
 export type UpdateTemplateRequest = components["schemas"]["UpdateTemplateRequest"];
 
 /**
+ * Pre-rendered multi-format resume outputs returned by the Go server template engine.
+ */
+export type RenderOutput = components["schemas"]["RenderOutput"];
+
+/**
+ * Request payload for server-side preview generation of in-progress or stored templates.
+ */
+export type RenderTemplatePreviewRequest = components["schemas"]["RenderTemplatePreviewRequest"];
+
+/**
  * Structured API error response returned by the backend on validation or server errors.
  */
 export type ErrorResponse = components["schemas"]["ErrorResponse"];
@@ -74,6 +84,7 @@ export function isBuiltInTemplate(
 export const templateKeys = {
   all: ["templates"] as const,
   detail: (id: string) => ["templates", id] as const,
+  preview: (id: string) => ["templates", id, "preview"] as const,
 };
 
 /**
@@ -126,6 +137,63 @@ export function useTemplate(id: string | undefined) {
       return data;
     },
     enabled: Boolean(id && id !== "new"),
+  });
+}
+
+/**
+ * TanStack Query hook to retrieve pre-rendered HTML, Markdown, and text outputs for a template set.
+ *
+ * Architectural Role:
+ * Fetches server-rendered outputs from `GET /api/v1/templates/{id}/preview`.
+ *
+ * @param id - The unique identifier of the template set.
+ * @returns TanStack Query result containing the multi-format RenderOutput.
+ */
+export function useTemplatePreview(id: string | undefined) {
+  return useQuery({
+    queryKey: templateKeys.preview(id || ""),
+    queryFn: async (): Promise<RenderOutput> => {
+      if (!id || id === "new") {
+        throw new Error("Invalid template ID");
+      }
+      const { data, error } = await api.GET("/templates/{id}/preview", {
+        params: { path: { id } },
+      });
+      if (error) {
+        throw new Error((error as { error?: { message?: string } })?.error?.message || "Failed to load template preview");
+      }
+      if (!data) {
+        throw new Error("Template preview returned empty output");
+      }
+      return data as RenderOutput;
+    },
+    enabled: Boolean(id && id !== "new"),
+  });
+}
+
+/**
+ * TanStack Mutation hook to render draft Go templates on the server using Go templating and server values.
+ *
+ * Architectural Role:
+ * Submits draft template snippets to `POST /api/v1/templates/preview` for real-time live previewing.
+ *
+ * @returns TanStack Mutation result that compiles and returns rendered outputs from the Go server.
+ */
+export function useRenderTemplatePreview() {
+  return useMutation({
+    mutationFn: async (payload: RenderTemplatePreviewRequest): Promise<RenderOutput> => {
+      const { data, error, response } = await api.POST("/templates/preview", {
+        body: payload,
+      });
+
+      if (error || !data) {
+        throw buildTemplateMutationError(
+          error,
+          `Failed to render template preview (status ${response?.status})`
+        );
+      }
+      return data as RenderOutput;
+    },
   });
 }
 

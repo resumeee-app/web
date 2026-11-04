@@ -25,6 +25,7 @@ import {
   useBranch,
   useBranchVersions,
   useBranchVersion,
+  useBranchVersionPreview,
   useFullProfile,
   getBranchVersionExportUrl,
   type ExportFormat,
@@ -126,6 +127,12 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
     data: activeVersion,
     isLoading: isVersionDetailsLoading,
   } = useBranchVersion(branchId, selectedVersionNumber);
+
+  // Fetch Go server-rendered outputs for the branch version preview
+  const {
+    data: previewOutputs,
+    isLoading: isPreviewLoading,
+  } = useBranchVersionPreview(branchId, selectedVersionNumber);
 
   // Loading state handling
   if (isBranchLoading || isVersionsLoading) {
@@ -276,7 +283,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
 
         {/* Tab 1: Live Rendered Resume Preview */}
         <TabsContent value="preview" className="focus-visible:outline-none">
-          {isVersionDetailsLoading ? (
+          {isVersionDetailsLoading || isPreviewLoading ? (
             <div
               role="status"
               aria-label="Loading version outputs"
@@ -287,9 +294,9 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
             </div>
           ) : (
             <ResumeViewer
-              htmlContent={activeVersion?.html_output || ""}
-              markdownContent={activeVersion?.markdown_output || ""}
-              plainTextContent={activeVersion?.plain_text_output || ""}
+              htmlContent={previewOutputs?.html || activeVersion?.html_output || ""}
+              markdownContent={previewOutputs?.markdown || activeVersion?.markdown_output || ""}
+              plainTextContent={previewOutputs?.plain_text || activeVersion?.plain_text_output || ""}
             />
           )}
         </TabsContent>

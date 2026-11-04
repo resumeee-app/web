@@ -14,6 +14,7 @@ vi.mock("@/api/render-queries", async (importOriginal) => {
     useBranch: vi.fn(),
     useBranchVersions: vi.fn(),
     useBranchVersion: vi.fn(),
+    useBranchVersionPreview: vi.fn(),
     useFullProfile: vi.fn(),
   };
 });
@@ -160,6 +161,18 @@ describe("ResumePreviewPage Component", () => {
     vi.mocked(renderQueries.useBranchVersion).mockReturnValue(
       mockQueryResult<renderQueries.BranchVersion>({
         data: mockVersion1,
+        isLoading: false,
+        isError: false,
+      })
+    );
+
+    vi.mocked(renderQueries.useBranchVersionPreview).mockReturnValue(
+      mockQueryResult<renderQueries.RenderOutput>({
+        data: {
+          html: mockVersion1.html_output || "",
+          markdown: mockVersion1.markdown_output || "",
+          plain_text: mockVersion1.plain_text_output || "",
+        },
         isLoading: false,
         isError: false,
       })

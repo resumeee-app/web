@@ -30,6 +30,11 @@ export type Branch = components["schemas"]["Branch"];
 export type BranchVersion = components["schemas"]["BranchVersion"];
 
 /**
+ * Render output bundle containing HTML, Markdown, and PlainText representations.
+ */
+export type RenderOutput = components["schemas"]["RenderOutput"];
+
+/**
  * Complete Master Profile career graph snapshot including skills, experiences, projects, and facts.
  */
 export type MasterProfileSnapshot = components["schemas"]["MasterProfileSnapshot"];
@@ -47,6 +52,9 @@ export const renderQueryKeys = {
   /** Cache key for a specific branch version payload */
   version: (branchId: string, versionId: string) =>
     ["render", "branch", branchId, "version", versionId] as const,
+  /** Cache key for a specific branch version preview output */
+  branchPreview: (branchId: string, versionId: string) =>
+    ["render", "branch", branchId, "version", versionId, "preview"] as const,
   /** Cache key for the root master profile career snapshot */
   masterProfile: () => ["render", "masterProfile"] as const,
 };
@@ -73,6 +81,25 @@ export function getBranchVersionExportUrl(
   return `${base}/branches/${encodeURIComponent(branchId)}/versions/${encodeURIComponent(
     String(versionNumberOrId)
   )}/export?format=${encodeURIComponent(format)}`;
+}
+
+/**
+ * Constructs the canonical direct-view URL for a rendered branch version preview.
+ *
+ * @param branchId - Unique UUID identifier of the parent resume branch.
+ * @param versionNumberOrId - Sequential version number (e.g. 1) or version UUID.
+ * @param format - Desired preview format: 'html', 'markdown', or 'text'. Defaults to 'html'.
+ * @returns Fully qualified relative URL for previewing the rendered artifact directly.
+ */
+export function getBranchVersionPreviewUrl(
+  branchId: string,
+  versionNumberOrId: string | number,
+  format: "html" | "markdown" | "text" = "html"
+): string {
+  const base = API_BASE_URL.replace(/\/$/, "");
+  return `${base}/branches/${encodeURIComponent(branchId)}/versions/${encodeURIComponent(
+    String(versionNumberOrId)
+  )}/preview?format=${encodeURIComponent(format)}`;
 }
 
 /**
@@ -179,5 +206,36 @@ export function useFullProfile(): UseQueryResult<MasterProfileSnapshot, Error> {
       }
       return data;
     },
+  });
+}
+
+/**
+ * Query hook fetching rendered output (HTML, Markdown, PlainText) for a branch version using Go templating.
+ *
+ * @param branchId - Unique UUID of the parent resume branch.
+ * @param versionNumberOrId - Sequential version number (e.g. 1) or version UUID.
+ * @returns UseQueryResult containing the RenderOutput record.
+ */
+export function useBranchVersionPreview(
+  branchId: string,
+  versionNumberOrId: string | number | undefined
+): UseQueryResult<RenderOutput, Error> {
+  const v = versionNumberOrId !== undefined ? String(versionNumberOrId) : "";
+  return useQuery({
+    queryKey: renderQueryKeys.branchPreview(branchId, v),
+    queryFn: async () => {
+      const { data, error } = await api.GET("/branches/{id}/versions/{v}/preview", {
+        params: { path: { id: branchId, v } },
+      });
+      if (error || !data) {
+        const errorMsg =
+          typeof error === "object" && error !== null && "message" in error
+            ? String((error as { message?: string }).message)
+            : "Failed to load branch version preview";
+        throw new Error(errorMsg);
+      }
+      return data as RenderOutput;
+    },
+    enabled: Boolean(branchId && v),
   });
 }

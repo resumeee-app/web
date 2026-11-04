@@ -6,8 +6,10 @@ import {
   useBranch,
   useBranchVersions,
   useBranchVersion,
+  useBranchVersionPreview,
   useFullProfile,
   getBranchVersionExportUrl,
+  getBranchVersionPreviewUrl,
 } from "./render-queries";
 import { api } from "./client";
 
@@ -56,6 +58,21 @@ describe("render-queries API hooks", () => {
 
       const urlMarkdown = getBranchVersionExportUrl("branch-123", "v2", "markdown");
       expect(urlMarkdown).toBe("/api/v1/branches/branch-123/versions/v2/export?format=markdown");
+    });
+  });
+
+  describe("getBranchVersionPreviewUrl", () => {
+    it("constructs valid preview URL with default html format", () => {
+      const url = getBranchVersionPreviewUrl("branch-123", "v1");
+      expect(url).toBe("/api/v1/branches/branch-123/versions/v1/preview?format=html");
+    });
+
+    it("constructs preview URL with specified format", () => {
+      const urlText = getBranchVersionPreviewUrl("branch-123", "v2", "text");
+      expect(urlText).toBe("/api/v1/branches/branch-123/versions/v2/preview?format=text");
+
+      const urlMarkdown = getBranchVersionPreviewUrl("branch-123", "v2", "markdown");
+      expect(urlMarkdown).toBe("/api/v1/branches/branch-123/versions/v2/preview?format=markdown");
     });
   });
 
@@ -170,6 +187,29 @@ describe("render-queries API hooks", () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toEqual(mockSnapshot);
       expect(api.GET).toHaveBeenCalledWith("/profile/full", {});
+    });
+  });
+
+  describe("useBranchVersionPreview", () => {
+    it("fetches rendered resume output for a specific branch version", async () => {
+      const mockRender = {
+        html: "<h1>Branch Resume</h1>",
+        markdown: "# Branch Resume",
+        plain_text: "Branch Resume",
+      };
+
+      vi.mocked(api.GET).mockResolvedValueOnce(mockApiResponse(mockRender));
+
+      const { result } = renderHook(
+        () => useBranchVersionPreview("branch-123", 2),
+        { wrapper: createWrapper() }
+      );
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data).toEqual(mockRender);
+      expect(api.GET).toHaveBeenCalledWith("/branches/{id}/versions/{v}/preview", {
+        params: { path: { id: "branch-123", v: "2" } },
+      });
     });
   });
 });
