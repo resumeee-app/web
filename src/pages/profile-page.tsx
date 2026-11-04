@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ContactForm, type ContactFormData } from "@/components/profile/contact-form";
 import { ExperienceList } from "@/components/profile/experience-list";
 import { ProjectsList } from "@/components/profile/projects-list";
-import { SkillsEditor } from "@/components/profile/skills-editor";
+import { SkillsManager } from "@/components/profile/skills-manager";
 import { EducationList } from "@/components/profile/education-list";
 import { CertificationsList } from "@/components/profile/certifications-list";
 import { UnsavedChangesDialog } from "@/components/profile/unsaved-changes-dialog";
@@ -419,8 +419,11 @@ export const ProfilePage: React.FC = () => {
 
         {/* Tab 3: Skills */}
         <TabsContent value="skills" className="mt-6">
-          <SkillsEditor
+          <SkillsManager
             skills={snapshot.skills || []}
+            experiences={snapshot.experiences || []}
+            projects={snapshot.projects || []}
+            facts={snapshot.facts || []}
             onAddSkill={(skillData) => createSkillMutation.mutate(skillData)}
             onDeleteSkill={(id) => deleteSkillMutation.mutate(id)}
             onAnnouncement={announce}
