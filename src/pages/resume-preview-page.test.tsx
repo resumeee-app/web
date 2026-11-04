@@ -255,6 +255,79 @@ describe("ResumePreviewPage Component", () => {
     expect(renderQueries.useBranchVersion).toHaveBeenCalledWith("b-123", 1);
   });
 
+  it("renders export actions for Plain Text, JSON Resume, and HTML in toolbar with valid endpoint URLs", () => {
+    render(<ResumePreviewPage />, { wrapper: createTestWrapper() });
+
+    const textLink = screen.getByRole("link", { name: /download plain text/i });
+    expect(textLink).toBeInTheDocument();
+    expect(textLink).toHaveAttribute(
+      "href",
+      "/api/v1/branches/b-123/versions/1/export?format=text"
+    );
+
+    const jsonLink = screen.getByRole("link", { name: /export json resume/i });
+    expect(jsonLink).toBeInTheDocument();
+    expect(jsonLink).toHaveAttribute(
+      "href",
+      "/api/v1/branches/b-123/versions/1/export?format=jsonresume"
+    );
+
+    const htmlLink = screen.getByRole("link", { name: /download html/i });
+    expect(htmlLink).toBeInTheDocument();
+    expect(htmlLink).toHaveAttribute(
+      "href",
+      "/api/v1/branches/b-123/versions/1/export?format=html"
+    );
+
+    expect(screen.queryByRole("button", { name: /print to pdf/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /copy plain text/i })).not.toBeInTheDocument();
+  });
+
+  it("safely handles Tailoring Diff tab for master profile branch without crashing", () => {
+    const masterBranch: renderQueries.Branch = {
+      id: "b-master",
+      user_id: "u-1",
+      name: "Master Profile (Default)",
+      target_role: "",
+      target_company: "",
+      template_set_id: "tmpl-1",
+      active_version_id: "v-master",
+    };
+
+    const masterVersion: renderQueries.BranchVersion = {
+      id: "v-master",
+      branch_id: "b-master",
+      version_number: 1,
+      status: "completed",
+      source_type: "manual_edit",
+      tailored_content: {
+        full_name: "Jane Doe",
+        headline: "Generalist Software Engineer",
+        summary: "General software engineer.",
+        skill_groups: [],
+        experiences: [],
+      },
+    };
+
+    vi.mocked(renderQueries.useBranch).mockReturnValue(
+      mockQueryResult<renderQueries.Branch>({ data: masterBranch })
+    );
+    vi.mocked(renderQueries.useBranchVersions).mockReturnValue(
+      mockQueryResult<renderQueries.BranchVersion[]>({ data: [masterVersion] })
+    );
+    vi.mocked(renderQueries.useBranchVersion).mockReturnValue(
+      mockQueryResult<renderQueries.BranchVersion>({ data: masterVersion })
+    );
+
+    render(<ResumePreviewPage />, {
+      wrapper: createTestWrapper(["/branches/b-master/preview?tab=diff"]),
+    });
+
+    expect(
+      screen.getByRole("region", { name: /tailored resume diff viewer/i })
+    ).toBeInTheDocument();
+  });
+
   it("displays loading state when data is being fetched", () => {
     vi.mocked(renderQueries.useBranch).mockReturnValue(
       mockQueryResult<renderQueries.Branch>({

@@ -21,7 +21,7 @@
  */
 
 import * as React from "react";
-import { GitCompare, PlusCircle, MinusCircle, Sparkles, Check } from "lucide-react";
+import { GitCompare, PlusCircle, MinusCircle, Sparkles, Check, Info } from "lucide-react";
 import type { BranchVersion, MasterProfileSnapshot } from "@/api/render-queries";
 
 /**
@@ -36,6 +36,33 @@ export interface DiffViewerProps {
   previousVersions?: BranchVersion[];
   /** Optional additional CSS class names */
   className?: string;
+}
+
+/**
+ * Helper extracting bullet text safely regardless of whether backend serialized as `bullets` or `bullet_points`.
+ *
+ * @param item - Raw bullet object or string
+ * @returns Clean string text
+ */
+function extractBulletText(item: unknown): string {
+  if (typeof item === "string") return item;
+  if (typeof item === "object" && item !== null && "text" in item) {
+    return String((item as { text?: unknown }).text ?? "");
+  }
+  return "";
+}
+
+/**
+ * Safely extracts bullet points array from an experience entity regardless of
+ * whether the backend serialized as `bullets` or `bullet_points`.
+ *
+ * @param exp - Experience entity containing bullet points or bullets
+ * @returns Array of bullet point objects or strings
+ */
+function getExperienceBullets(exp: unknown): unknown[] {
+  if (typeof exp !== "object" || exp === null) return [];
+  const candidate = exp as { bullet_points?: unknown[]; bullets?: unknown[] };
+  return candidate.bullet_points ?? candidate.bullets ?? [];
 }
 
 /**
@@ -73,8 +100,8 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   }
 
   // Other versions available for comparison (exclude current version)
-  const candidateVersions = previousVersions.filter(
-    (v) => v.id !== currentVersion?.id && v.status === "completed" && v.tailored_content
+  const candidateVersions = (previousVersions ?? []).filter(
+    (v) => v && v.id !== currentVersion?.id && v.status === "completed" && v.tailored_content
   );
 
   const isComparingMaster = baselineId === "master";
@@ -89,12 +116,38 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
     ? masterProfile?.profile?.summary || ""
     : baselineVersion?.tailored_content?.summary || "";
 
+  // Defensively extract skill groups
+  const skillGroups = tailored.skill_groups ?? [];
+
+  // Defensively extract experiences
+  const experiences = tailored.experiences ?? [];
+
+  const isMasterProjection =
+    Boolean(typeof currentVersion?.id === "string" && currentVersion.id.startsWith("ver-default-")) ||
+    (currentVersion as { source_type?: string })?.source_type === "master_profile";
+
   return (
     <div
       role="region"
       aria-label="Tailored resume diff viewer"
       className={`flex flex-col gap-6 ${className}`}
     >
+      {/* Informational banner when viewing Master Profile direct projection */}
+      {isMasterProjection && (
+        <div
+          role="note"
+          aria-label="Master Profile Direct Projection Note"
+          className="flex items-start gap-3 p-3.5 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-900 dark:text-blue-200"
+        >
+          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" aria-hidden="true" />
+          <div>
+            <span className="font-semibold">Master Profile Direct Projection:</span> This version
+            mirrors your canonical master profile facts with 100% fidelity. All statements below reflect
+            canonical facts without LLM modifications.
+          </div>
+        </div>
+      )}
+
       {/* Header & Baseline Selector Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
         <div className="flex items-center gap-2">
@@ -152,10 +205,10 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               Tailored (v{currentVersion?.version_number ?? 1})
             </span>
             <p className="text-sm font-semibold text-emerald-950 dark:text-emerald-100 mb-2">
-              {tailored.headline}
+              {tailored.headline || "No headline set"}
             </p>
             <p className="text-xs text-emerald-900 dark:text-emerald-200 leading-relaxed">
-              {tailored.summary}
+              {tailored.summary || "No summary set"}
             </p>
           </div>
         </div>
@@ -167,21 +220,27 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           Targeted & Highlighted Skills
         </h3>
 
-        <div className="flex flex-wrap gap-2">
-          {tailored.skill_groups.flatMap((group) =>
-            group.skills.map((skill) => (
-              <span
-                key={`${group.category}-${skill}`}
-                data-skill-badge="highlighted"
-                className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-950/60 text-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-800 rounded-full shadow-xs"
-              >
-                <Sparkles className="h-3 w-3 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                <span>{skill}</span>
-                <span className="text-[10px] text-blue-600 dark:text-blue-400">({group.category})</span>
-              </span>
-            ))
-          )}
-        </div>
+        {skillGroups.length === 0 ? (
+          <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+            No targeted skills recorded for this version.
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {skillGroups.flatMap((group) =>
+              (group?.skills ?? []).map((skill) => (
+                <span
+                  key={`${group.category}-${skill}`}
+                  data-skill-badge="highlighted"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-950/60 text-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-800 rounded-full shadow-xs"
+                >
+                  <Sparkles className="h-3 w-3 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                  <span>{skill}</span>
+                  <span className="text-[10px] text-blue-600 dark:text-blue-400">({group.category})</span>
+                </span>
+              ))
+            )}
+          </div>
+        )}
       </section>
 
       {/* Experience Bullet Points Diff */}
@@ -190,99 +249,128 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           Experience Bullet Points & Impact Comparison
         </h3>
 
-        <div className="space-y-6">
-          {tailored.experiences.map((exp) => {
-            // Find baseline master experience or baseline version experience
-            const masterExp = masterProfile?.experiences?.find(
-              (m) => m.id === exp.source_entity_id || m.company === exp.company
-            );
-            const baselineVersionExp = baselineVersion?.tailored_content?.experiences?.find(
-              (b) => b.source_entity_id === exp.source_entity_id || b.company === exp.company
-            );
+        {experiences.length === 0 ? (
+          <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+            No experiences recorded for this version.
+          </p>
+        ) : (
+          <div className="space-y-6">
+            {experiences.map((exp) => {
+              // Find baseline master experience or baseline version experience
+              const masterExp = masterProfile?.experiences?.find(
+                (m) => m && (m.id === exp.source_entity_id || m.company === exp.company)
+              );
+              const baselineVersionExp = baselineVersion?.tailored_content?.experiences?.find(
+                (b) => b && (b.source_entity_id === exp.source_entity_id || b.company === exp.company)
+              );
 
-            // Collect baseline statements
-            const baselineStatements: string[] = isComparingMaster
-              ? masterExp?.facts?.map((f) => f.statement) || []
-              : baselineVersionExp?.bullet_points?.map((b) => b.text) || [];
+              // Collect baseline statements defensively
+              const masterFacts =
+                masterExp?.facts ??
+                masterProfile?.facts?.filter(
+                  (f) =>
+                    f &&
+                    (f.owner_id === exp.source_entity_id || (masterExp?.id && f.owner_id === masterExp.id))
+                ) ??
+                [];
 
-            // Bullets in current tailored version
-            const currentBullets = exp.bullet_points.map((b) => b.text);
+              const baselineBulletsList = getExperienceBullets(baselineVersionExp);
 
-            // Compute omitted baseline statements
-            const omittedStatements = baselineStatements.filter(
-              (stmt) => !currentBullets.some((c) => c.toLowerCase().trim() === stmt.toLowerCase().trim())
-            );
+              const baselineStatements: string[] = isComparingMaster
+                ? masterFacts.map((f) => f.statement || "")
+                : baselineBulletsList.map(extractBulletText).filter(Boolean);
 
-            return (
-              <div key={exp.source_entity_id || exp.company} className="border-t border-slate-100 dark:border-slate-800 pt-4 first:border-t-0 first:pt-0">
-                <div className="flex items-baseline justify-between mb-2">
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                    {exp.role_title} <span className="font-normal text-slate-500 dark:text-slate-400">at</span> {exp.company}
-                  </h4>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{exp.start_date}</span>
+              // Bullets in current tailored version (handling both bullet_points and bullets)
+              const currentBulletsList = getExperienceBullets(exp);
+              const currentBullets = currentBulletsList.map(extractBulletText).filter(Boolean);
+
+              // Compute omitted baseline statements
+              const omittedStatements = baselineStatements.filter(
+                (stmt) => !currentBullets.some((c) => c.toLowerCase().trim() === stmt.toLowerCase().trim())
+              );
+
+              const hasNoBullets = currentBullets.length === 0 && omittedStatements.length === 0;
+
+              return (
+                <div
+                  key={exp.source_entity_id || exp.company}
+                  className="border-t border-slate-100 dark:border-slate-800 pt-4 first:border-t-0 first:pt-0"
+                >
+                  <div className="flex items-baseline justify-between mb-2">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      {exp.role_title} <span className="font-normal text-slate-500 dark:text-slate-400">at</span> {exp.company}
+                    </h4>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{exp.start_date}</span>
+                  </div>
+
+                  {hasNoBullets ? (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 italic py-1">
+                      No bullet points recorded for this experience.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2 mt-3 list-none p-0">
+                      {/* Current Tailored Bullets (Additions or Unchanged) */}
+                      {currentBullets.map((bulletText, idx) => {
+                        const isIdenticalToBaseline = baselineStatements.some(
+                          (stmt) => stmt.toLowerCase().trim() === bulletText.toLowerCase().trim()
+                        );
+                        const diffType = isIdenticalToBaseline ? "unchanged" : "addition";
+
+                        return (
+                          <li
+                            key={idx}
+                            data-diff-type={diffType}
+                            className={`p-3 rounded-md border text-xs leading-relaxed flex items-start gap-2.5 transition-colors ${
+                              diffType === "addition"
+                                ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800 font-medium"
+                                : "bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700"
+                            }`}
+                          >
+                            {diffType === "addition" ? (
+                              <PlusCircle
+                                className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"
+                                aria-hidden="true"
+                              />
+                            ) : (
+                              <Check
+                                className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5"
+                                aria-hidden="true"
+                              />
+                            )}
+                            <div>
+                              <span className="sr-only">
+                                {diffType === "addition" ? "Added: " : "Unchanged: "}
+                              </span>
+                              <span>{bulletText}</span>
+                            </div>
+                          </li>
+                        );
+                      })}
+
+                      {/* Omitted Baseline Facts / Statements (Deletions) */}
+                      {omittedStatements.map((stmt, idx) => (
+                        <li
+                          key={`omitted-${idx}`}
+                          data-diff-type="deletion"
+                          className="p-3 rounded-md border border-red-200 dark:border-red-900/60 bg-red-50/50 dark:bg-red-950/30 text-red-900 dark:text-red-300 line-through text-xs leading-relaxed flex items-start gap-2.5"
+                        >
+                          <MinusCircle
+                            className="h-4 w-4 text-red-500 dark:text-red-400 shrink-0 mt-0.5"
+                            aria-hidden="true"
+                          />
+                          <div>
+                            <span className="sr-only">Omitted: </span>
+                            <span>{stmt}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-
-                <ul className="space-y-2 mt-3 list-none p-0">
-                  {/* Current Tailored Bullets (Additions or Unchanged) */}
-                  {exp.bullet_points.map((bullet, idx) => {
-                    const isIdenticalToBaseline = baselineStatements.some(
-                      (stmt) => stmt.toLowerCase().trim() === bullet.text.toLowerCase().trim()
-                    );
-                    const diffType = isIdenticalToBaseline ? "unchanged" : "addition";
-
-                    return (
-                      <li
-                        key={idx}
-                        data-diff-type={diffType}
-                        className={`p-3 rounded-md border text-xs leading-relaxed flex items-start gap-2.5 transition-colors ${
-                          diffType === "addition"
-                            ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800 font-medium"
-                            : "bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700"
-                        }`}
-                      >
-                        {diffType === "addition" ? (
-                          <PlusCircle
-                            className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <Check
-                            className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5"
-                            aria-hidden="true"
-                          />
-                        )}
-                        <div>
-                          <span className="sr-only">
-                            {diffType === "addition" ? "Added: " : "Unchanged: "}
-                          </span>
-                          <span>{bullet.text}</span>
-                        </div>
-                      </li>
-                    );
-                  })}
-
-                  {/* Omitted Baseline Facts / Statements (Deletions) */}
-                  {omittedStatements.map((stmt, idx) => (
-                    <li
-                      key={`omitted-${idx}`}
-                      data-diff-type="deletion"
-                      className="p-3 rounded-md border border-red-200 dark:border-red-900/60 bg-red-50/50 dark:bg-red-950/30 text-red-900 dark:text-red-300 line-through text-xs leading-relaxed flex items-start gap-2.5"
-                    >
-                      <MinusCircle
-                        className="h-4 w-4 text-red-500 dark:text-red-400 shrink-0 mt-0.5"
-                        aria-hidden="true"
-                      />
-                      <div>
-                        <span className="sr-only">Omitted: </span>
-                        <span>{stmt}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </section>
     </div>
   );

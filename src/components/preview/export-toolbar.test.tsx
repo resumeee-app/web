@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/react";
 import { axe } from "vitest-axe";
 import { ExportToolbar } from "./export-toolbar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 describe("ExportToolbar Component", () => {
   const defaultProps = {
-    plainText: "Jane Doe\nStaff Software Engineer\n\nExperience:\n- Built distributed systems",
     htmlDownloadUrl: "/api/v1/branches/b-1/versions/1/export?format=html",
+    textDownloadUrl: "/api/v1/branches/b-1/versions/1/export?format=text",
+    jsonResumeDownloadUrl: "/api/v1/branches/b-1/versions/1/export?format=jsonresume",
     branchName: "Stripe - Staff Backend Engineer",
     versionNumber: 1,
   };
@@ -21,50 +21,36 @@ describe("ExportToolbar Component", () => {
     return render(<TooltipProvider>{ui}</TooltipProvider>);
   }
 
-  it("renders export toolbar with accessible buttons", () => {
+  it("renders export toolbar with accessible download buttons", () => {
     renderWithProviders(<ExportToolbar {...defaultProps} />);
 
     expect(screen.getByRole("toolbar", { name: /resume export actions/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /print to pdf/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /copy plain text/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /download plain text/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /export json resume/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /download html/i })).toBeInTheDocument();
   });
 
-  it("triggers window.print when Print to PDF button is clicked", async () => {
-    const user = userEvent.setup();
-    const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
-
+  it("does not render Print to PDF or Copy Plain Text actions (deleted per spec)", () => {
     renderWithProviders(<ExportToolbar {...defaultProps} />);
 
-    const printBtn = screen.getByRole("button", { name: /print to pdf/i });
-    await user.click(printBtn);
-
-    expect(printSpy).toHaveBeenCalledTimes(1);
-    printSpy.mockRestore();
+    expect(screen.queryByRole("button", { name: /print to pdf/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /copy plain text/i })).not.toBeInTheDocument();
   });
 
-  it("copies plain text to system clipboard and displays toast feedback", async () => {
-    const user = userEvent.setup();
-    const writeTextMock = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "clipboard", {
-      value: {
-        writeText: writeTextMock,
-      },
-      writable: true,
-      configurable: true,
-    });
-
+  it("provides valid download link and filename for Plain Text export", () => {
     renderWithProviders(<ExportToolbar {...defaultProps} />);
 
-    const copyBtn = screen.getByRole("button", { name: /copy plain text/i });
-    await user.click(copyBtn);
+    const textLink = screen.getByRole("link", { name: /download plain text/i });
+    expect(textLink).toHaveAttribute("href", defaultProps.textDownloadUrl);
+    expect(textLink).toHaveAttribute("download", "resume-Stripe---Staff-Backend-Engineer-v1.txt");
+  });
 
-    expect(writeTextMock).toHaveBeenCalledWith(defaultProps.plainText);
+  it("provides valid download link and filename for JSON Resume export", () => {
+    renderWithProviders(<ExportToolbar {...defaultProps} />);
 
-    // Confirmation toast / live region feedback should appear
-    await waitFor(() => {
-      expect(screen.getByRole("status")).toHaveTextContent(/copied to clipboard/i);
-    });
+    const jsonLink = screen.getByRole("link", { name: /export json resume/i });
+    expect(jsonLink).toHaveAttribute("href", defaultProps.jsonResumeDownloadUrl);
+    expect(jsonLink).toHaveAttribute("download", "resume-Stripe---Staff-Backend-Engineer-v1.json");
   });
 
   it("provides valid download link and download filename for HTML export", () => {

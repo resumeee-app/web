@@ -189,6 +189,108 @@ describe("DiffViewer Component", () => {
     expect(unchangedBullet.closest("[data-diff-type]")).toHaveAttribute("data-diff-type", "unchanged");
   });
 
+  it("safely handles master branch version with bullets property instead of bullet_points without crashing", () => {
+    // Master branch version generated from SnapshotToTailoredContent may serialize "bullets"
+    const masterBranchVersion = {
+      id: "v-master",
+      branch_id: "b-master",
+      version_number: 1,
+      status: "completed" as const,
+      tailored_content: {
+        full_name: "Jane Doe",
+        headline: "Generalist Software Engineer",
+        summary: "Experienced software engineer working on web backends.",
+        skill_groups: [
+          {
+            category: "Backend",
+            skills: ["Go", "Python"],
+          },
+        ],
+        experiences: [
+          {
+            source_entity_id: "exp-1",
+            company: "Acme Corp",
+            role_title: "Senior Developer",
+            start_date: "2022-01",
+            // Backend JSON may emit bullets rather than bullet_points
+            bullets: [
+              {
+                text: "Maintained legacy monolithic services.",
+                source_fact_ids: ["f-1"],
+              },
+            ],
+          },
+        ],
+      },
+    } as unknown as BranchVersion;
+
+    render(
+      <DiffViewer
+        currentVersion={masterBranchVersion}
+        masterProfile={mockMasterProfile}
+        previousVersions={[masterBranchVersion]}
+      />
+    );
+
+    expect(screen.getByRole("region", { name: /tailored resume diff viewer/i })).toBeInTheDocument();
+    expect(screen.getByText("Maintained legacy monolithic services.")).toBeInTheDocument();
+  });
+
+  it("safely handles missing or undefined arrays on tailored content and master profile", () => {
+    const sparseVersion = {
+      id: "v-sparse",
+      branch_id: "b-1",
+      version_number: 1,
+      status: "completed" as const,
+      tailored_content: {
+        full_name: "Jane Doe",
+        headline: "Generalist Software Engineer",
+        summary: "Summary text",
+        skill_groups: undefined,
+        experiences: [
+          {
+            source_entity_id: "exp-empty",
+            company: "Startup Inc",
+            role_title: "Lead",
+            start_date: "2023-01",
+            bullet_points: undefined,
+          },
+        ],
+      },
+    } as unknown as BranchVersion;
+
+    const sparseMasterProfile: MasterProfileSnapshot = {
+      master_revision: 1,
+      exported_at: "2026-11-01T00:00:00Z",
+      profile: {
+        id: "p-sparse",
+        user_id: "u-1",
+        full_name: "Jane Doe",
+        headline: "",
+        summary: "",
+        default_provider: "anthropic",
+        default_model: "claude-3-5-sonnet-20241022",
+        master_revision: 1,
+        created_at: "2026-01-01T00:00:00Z",
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+      skills: undefined,
+      experiences: undefined,
+      facts: undefined,
+    };
+
+    render(
+      <DiffViewer
+        currentVersion={sparseVersion}
+        masterProfile={sparseMasterProfile}
+        previousVersions={[]}
+      />
+    );
+
+    expect(screen.getByRole("region", { name: /tailored resume diff viewer/i })).toBeInTheDocument();
+    expect(screen.getByText(/Startup Inc/)).toBeInTheDocument();
+  });
+
   it("displays empty state when version tailored content is absent", () => {
     const emptyVersion: BranchVersion = {
       id: "v-empty",

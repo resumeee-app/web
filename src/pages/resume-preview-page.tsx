@@ -3,10 +3,10 @@
  * @description Live Resume Preview, Diff Viewer & ATS Export Page.
  *
  * Provides a dual-pane tabbed view toggling between a live sandboxed
- * rendered resume preview (Letter/A4, 75%/100%/fit zoom, HTML/plain-text)
+ * rendered resume preview (Letter/A4, HTML/Markdown/plain-text)
  * and a visual tailored diff viewer highlighting additions, omissions,
  * and prioritized skills. Integrates the ATS Export Engine toolbar
- * for clean window.print() PDF export, clipboard copying, and HTML downloading.
+ * for direct downloads of HTML, Markdown, Plain Text, and standard JSON Resume.
  *
  * Accessibility / WAI-ARIA Considerations:
  * - Implements Radix UI Tabs with roving tabindex and keyboard navigation.
@@ -27,8 +27,8 @@ import {
   useBranchVersion,
   useFullProfile,
   getBranchVersionExportUrl,
+  type ExportFormat,
 } from "@/api/render-queries";
-import "@/components/preview/print-stylesheet.css";
 
 /**
  * Props for ResumePreviewPage component.
@@ -170,14 +170,22 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
     );
   }
 
-  const exportUrl = selectedVersionNumber !== undefined
-    ? getBranchVersionExportUrl(branchId, selectedVersionNumber, "html")
-    : "#";
+  /**
+   * Constructs the export download URL for a specified format, or '#' if no version is selected.
+   *
+   * @param format - Export format ('html' | 'markdown' | 'text' | 'jsonresume')
+   * @returns Fully qualified relative URL or fallback anchor
+   */
+  const getExportUrl = (format: ExportFormat): string => {
+    return selectedVersionNumber !== undefined
+      ? getBranchVersionExportUrl(branchId, selectedVersionNumber, format)
+      : "#";
+  };
 
   return (
     <main className={`container mx-auto px-4 py-6 max-w-7xl ${className}`}>
       {/* Navigation Breadcrumb / Return Link */}
-      <nav aria-label="Breadcrumb" className="mb-4 no-print">
+      <nav aria-label="Breadcrumb" className="mb-4">
         <Link
           to="/"
           className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
@@ -188,7 +196,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
       </nav>
 
       {/* Top Header Section: Title, Target Details, Version Picker, Export Toolbar */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-200 dark:border-slate-800 mb-6 no-print">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-200 dark:border-slate-800 mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             {branch.name}
@@ -242,8 +250,9 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
 
           {/* ATS Export Toolbar */}
           <ExportToolbar
-            plainText={activeVersion?.plain_text_output || ""}
-            htmlDownloadUrl={exportUrl}
+            htmlDownloadUrl={getExportUrl("html")}
+            textDownloadUrl={getExportUrl("text")}
+            jsonResumeDownloadUrl={getExportUrl("jsonresume")}
             branchName={branch.name}
             versionNumber={selectedVersionNumber ?? 1}
           />
@@ -256,7 +265,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="mb-4 no-print" aria-label="Resume preview tabs">
+        <TabsList className="mb-4" aria-label="Resume preview tabs">
           <TabsTrigger value="preview" className="text-sm font-medium">
             Rendered Resume
           </TabsTrigger>
@@ -279,6 +288,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
           ) : (
             <ResumeViewer
               htmlContent={activeVersion?.html_output || ""}
+              markdownContent={activeVersion?.markdown_output || ""}
               plainTextContent={activeVersion?.plain_text_output || ""}
             />
           )}
