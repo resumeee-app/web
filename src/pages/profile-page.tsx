@@ -398,6 +398,7 @@ export const ProfilePage: React.FC = () => {
 
           <ProjectsList
             projects={snapshot.projects || []}
+            availableSkills={snapshot.skills || []}
             onAddProject={(projData) => createProjMutation.mutate(projData)}
             onUpdateProject={(id, projData) =>
               updateProjMutation.mutate({ id, data: projData })

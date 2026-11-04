@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Plus, Trash2, Edit2, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isValidHttpUrl } from "@/lib/url";
 import { Button } from "@/components/ui/button";
@@ -14,11 +14,39 @@ import { ShortIdBadge } from "./short-id-badge";
 import type { components } from "@/api/schema";
 
 /**
+ * Parses a comma-separated string of skill tokens into a trimmed, non-empty, deduplicated array.
+ * Preserves the original token casing of the first occurrence while deduplicating case-insensitively.
+ *
+ * @param input - Raw comma-separated string of skills
+ * @returns Deduplicated array of trimmed skill tokens
+ */
+export function parseSkillTokens(input: string): string[] {
+  if (!input) {
+    return [];
+  }
+  const seen = new Set<string>();
+  const tokens: string[] = [];
+  for (const raw of input.split(",")) {
+    const trimmed = raw.trim();
+    if (trimmed) {
+      const lower = trimmed.toLowerCase();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        tokens.push(trimmed);
+      }
+    }
+  }
+  return tokens;
+}
+
+/**
  * Props for the ProjectsList component.
  */
 export interface ProjectsListProps {
   /** Array of projects from the canonical profile snapshot */
   projects: components["schemas"]["Project"][];
+  /** Optional list of available skills from canonical profile for tag selection */
+  availableSkills?: components["schemas"]["Skill"][];
   /** Callback to create a new project record */
   onAddProject: (data: components["schemas"]["CreateProjectRequest"]) => void;
   /** Callback to update an existing project record */
@@ -42,9 +70,10 @@ export interface ProjectsListProps {
  * Accessible list view and modal management component for Technical Projects.
  *
  * Implements:
- * - List of featured projects with role, external URL, summary, and ShortID badges.
+ * - List of featured projects with role, date range, external URL, skills badges, summary, and ShortID badges.
  * - Nested list of quantifiable markdown highlights (Facts) with add and delete actions.
  * - Radix UI Dialog primitive for creating and editing project records.
+ * - Collapsible "Extended Details" section for optional Start Date, End Date, and Skills tags.
  * - Screen-reader announcements for dynamic additions and removals conforming to WCAG 2.1 AA.
  *
  * @param props - ProjectsListProps
@@ -52,6 +81,7 @@ export interface ProjectsListProps {
  */
 export const ProjectsList: React.FC<ProjectsListProps> = ({
   projects,
+  availableSkills,
   onAddProject,
   onUpdateProject,
   onDeleteProject,
@@ -71,9 +101,27 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
   const [startDate, setStartDate] = React.useState("");
   const [endDate, setEndDate] = React.useState("");
   const [summary, setSummary] = React.useState("");
+  const [skillsInput, setSkillsInput] = React.useState("");
+  const [extendedOpen, setExtendedOpen] = React.useState(false);
 
   // Per-project bullet input drafts
   const [bulletDrafts, setBulletDrafts] = React.useState<Record<string, string>>({});
+
+  // Active project being edited (for preserving canonical skill IDs)
+  const editingProject = React.useMemo(
+    () => projects.find((p) => p.id === editingId),
+    [projects, editingId]
+  );
+
+  // Memoized parsed skill tokens and fast lookup set for quick-add badges
+  const activeSkillTokens = React.useMemo(
+    () => parseSkillTokens(skillsInput),
+    [skillsInput]
+  );
+  const activeSkillSet = React.useMemo(
+    () => new Set(activeSkillTokens.map((t) => t.toLowerCase())),
+    [activeSkillTokens]
+  );
 
   const handleOpenAdd = () => {
     setEditingId(null);
@@ -84,6 +132,8 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
     setStartDate("");
     setEndDate("");
     setSummary("");
+    setSkillsInput("");
+    setExtendedOpen(false);
     setDialogOpen(true);
   };
 
@@ -96,6 +146,18 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
     setStartDate(proj.start_date || "");
     setEndDate(proj.end_date || "");
     setSummary(proj.summary || "");
+    setSkillsInput(
+      proj.skills && proj.skills.length > 0
+        ? proj.skills.map((s) => s.name || s.id).join(", ")
+        : ""
+    );
+    setExtendedOpen(
+      Boolean(
+        proj.start_date ||
+          proj.end_date ||
+          (proj.skills && proj.skills.length > 0)
+      )
+    );
     setDialogOpen(true);
   };
 
@@ -109,6 +171,30 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
     }
     setUrlError(null);
 
+    const rawSkillTokens = parseSkillTokens(skillsInput);
+
+    const skillLookupPool = [
+      ...(availableSkills || []),
+      ...(editingProject?.skills || []),
+    ];
+
+    const skillIds: string[] = [];
+    const seen = new Set<string>();
+
+    for (const token of rawSkillTokens) {
+      const tokenLower = token.toLowerCase();
+      const matched = skillLookupPool.find(
+        (s) =>
+          s.name.toLowerCase() === tokenLower ||
+          s.id.toLowerCase() === tokenLower
+      );
+      const resolvedId = matched ? matched.id : token;
+      if (!seen.has(resolvedId)) {
+        seen.add(resolvedId);
+        skillIds.push(resolvedId);
+      }
+    }
+
     const payload: components["schemas"]["CreateProjectRequest"] = {
       name: name.trim(),
       role: role.trim() || undefined,
@@ -116,6 +202,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
       start_date: startDate.trim() || undefined,
       end_date: endDate.trim() || null,
       summary: summary.trim() || undefined,
+      ...(editingId || skillIds.length > 0 ? { skill_ids: skillIds } : {}),
     };
 
     if (editingId) {
@@ -195,6 +282,27 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                       <span>{proj.url}</span>
                       <ExternalLink className="h-3 w-3" aria-hidden="true" />
                     </a>
+                  )}
+                  {(proj.start_date || proj.end_date) && (
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                      <span>
+                        {proj.start_date
+                          ? `${proj.start_date} — ${proj.end_date || "Present"}`
+                          : proj.end_date}
+                      </span>
+                    </div>
+                  )}
+                  {proj.skills && proj.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1" aria-label="Project skills">
+                      {proj.skills.map((skill) => (
+                        <span
+                          key={skill.id}
+                          className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300"
+                        >
+                          {skill.name}
+                        </span>
+                      ))}
+                    </div>
                   )}
                   {proj.summary && (
                     <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{proj.summary}</p>
@@ -391,6 +499,122 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                   onChange={(e) => setSummary(e.target.value)}
                   className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
+              </div>
+
+              {/* Collapsible Extended Details */}
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setExtendedOpen((prev) => !prev)}
+                  aria-expanded={extendedOpen}
+                  aria-controls="project-extended-details"
+                  className="flex w-full items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md py-1"
+                >
+                  <span>Extended Details</span>
+                  {extendedOpen ? (
+                    <ChevronUp className="h-4 w-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                  )}
+                </button>
+
+                {extendedOpen && (
+                  <div id="project-extended-details" className="mt-3 space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label
+                          htmlFor="proj-start-date"
+                          className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                        >
+                          Start Date
+                        </label>
+                        <input
+                          id="proj-start-date"
+                          type="text"
+                          placeholder="YYYY-MM (e.g. 2023-01)"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="proj-end-date"
+                          className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                        >
+                          End Date
+                        </label>
+                        <input
+                          id="proj-end-date"
+                          type="text"
+                          placeholder="YYYY-MM or blank if ongoing"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="proj-skills"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                      >
+                        Skills
+                      </label>
+                      <input
+                        id="proj-skills"
+                        type="text"
+                        placeholder="Comma-separated skill names or IDs (e.g. Go, Rust, React)"
+                        value={skillsInput}
+                        onChange={(e) => setSkillsInput(e.target.value)}
+                        className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      />
+                      {availableSkills && availableSkills.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5 items-center" aria-label="Available skills to add">
+                          <span className="text-xs text-slate-500 dark:text-slate-400">Quick add:</span>
+                          {availableSkills.map((s) => {
+                            const nameLower = s.name.toLowerCase();
+                            const idLower = s.id.toLowerCase();
+                            const isSelected =
+                              activeSkillSet.has(nameLower) ||
+                              activeSkillSet.has(idLower);
+
+                            return (
+                              <button
+                                key={s.id}
+                                type="button"
+                                onClick={() => {
+                                  let nextTokens: string[];
+                                  if (isSelected) {
+                                    nextTokens = activeSkillTokens.filter(
+                                      (t) =>
+                                        t.toLowerCase() !== nameLower &&
+                                        t.toLowerCase() !== idLower
+                                    );
+                                  } else {
+                                    nextTokens = [...activeSkillTokens, s.name];
+                                  }
+                                  setSkillsInput(nextTokens.join(", "));
+                                }}
+                                className={cn(
+                                  "rounded-full px-2 py-0.5 text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                                  isSelected
+                                    ? "bg-indigo-50 border-indigo-200 text-indigo-800 dark:bg-indigo-950/60 dark:border-indigo-800 dark:text-indigo-300"
+                                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
+                                )}
+                                aria-pressed={isSelected}
+                              >
+                                {isSelected ? "✓ " : "+ "}
+                                {s.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <DialogFooter>
