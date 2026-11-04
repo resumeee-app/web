@@ -6,6 +6,7 @@ import {
   presetsQueryKey,
   presetQueryKey,
   templateSetsQueryKey,
+  modelsQueryKey,
   extractApiErrorMessage,
   usePresetsQuery,
   usePresetQuery,
@@ -13,6 +14,7 @@ import {
   useUpdatePresetMutation,
   useDeletePresetMutation,
   useTemplateSetsQuery,
+  useAvailableModelsQuery,
 } from "./preset-queries";
 import { api } from "./client";
 
@@ -39,6 +41,7 @@ describe("Preset Queries & Mutations", () => {
     expect(presetsQueryKey).toEqual(["presets"]);
     expect(presetQueryKey("p-1")).toEqual(["presets", "p-1"]);
     expect(templateSetsQueryKey).toEqual(["template-sets"]);
+    expect(modelsQueryKey).toEqual(["models"]);
   });
 
   it("usePresetsQuery returns data when api succeeds", async () => {
@@ -366,6 +369,46 @@ describe("Preset Queries & Mutations", () => {
       await waitFor(() => expect(result.current.isError).toBe(true));
       expect(result.current.error?.message).toBe(
         "Template service unreachable"
+      );
+    });
+
+    it("useAvailableModelsQuery returns list of models on success", async () => {
+      const mockModels = [
+        {
+          provider: "gemini",
+          model: "gemini-3.8-flash",
+          display_name: "Google Gemini — gemini-3.8-flash",
+          is_default: true,
+        },
+      ];
+      vi.spyOn(api, "GET").mockResolvedValueOnce({
+        data: mockModels,
+        error: undefined,
+        response: new Response(JSON.stringify(mockModels), { status: 200 }),
+      } as unknown as Awaited<ReturnType<typeof api.GET>>);
+
+      const { result } = renderHook(() => useAvailableModelsQuery(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data).toEqual(mockModels);
+    });
+
+    it("useAvailableModelsQuery throws error when api fails", async () => {
+      vi.spyOn(api, "GET").mockResolvedValueOnce({
+        data: undefined,
+        error: { message: "Models service unreachable" },
+        response: new Response(null, { status: 503 }),
+      } as unknown as Awaited<ReturnType<typeof api.GET>>);
+
+      const { result } = renderHook(() => useAvailableModelsQuery(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => expect(result.current.isError).toBe(true));
+      expect(result.current.error?.message).toBe(
+        "Models service unreachable"
       );
     });
   });

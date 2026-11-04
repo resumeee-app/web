@@ -105,6 +105,11 @@ export const PresetCard: React.FC<PresetCardProps> = ({
               <span>{preset.model_override}</span>
             </span>
           )}
+          {preset.reasoning_level && (
+            <span className="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-xs text-slate-600 dark:text-slate-400">
+              <span>Reasoning: {preset.reasoning_level}</span>
+            </span>
+          )}
         </div>
       </div>
 

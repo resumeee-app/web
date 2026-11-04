@@ -19,6 +19,9 @@ export type UpdatePresetRequest = components["schemas"]["UpdatePresetRequest"];
 /** Database-stored template set entity from OpenAPI schema */
 export type TemplateSet = components["schemas"]["TemplateSet"];
 
+/** Configured LLM model option entity from OpenAPI schema */
+export type ModelOption = components["schemas"]["ModelOption"];
+
 /** TanStack Query cache key for all presets */
 export const presetsQueryKey = ["presets"] as const;
 
@@ -30,6 +33,9 @@ export const presetQueryKey = (id: string) => ["presets", id] as const;
 
 /** TanStack Query cache key for all available template sets */
 export const templateSetsQueryKey = ["template-sets"] as const;
+
+/** TanStack Query cache key for all available LLM models */
+export const modelsQueryKey = ["models"] as const;
 
 /**
  * Safely extracts a descriptive error message from an unknown API error payload or returns a fallback message.
@@ -219,6 +225,31 @@ export function useTemplateSetsQuery(
       if (error) {
         throw new Error(
           extractApiErrorMessage(error, "Failed to fetch template sets")
+        );
+      }
+      return data ?? [];
+    },
+    ...options,
+  });
+}
+
+/**
+ * Hook to list available configured LLM models from `/api/v1/models`.
+ * Returns only models from active providers with configured credentials.
+ *
+ * @param options Optional TanStack useQuery configuration overrides
+ * @returns Query result containing the list of available model options
+ */
+export function useAvailableModelsQuery(
+  options?: Omit<UseQueryOptions<ModelOption[], Error>, "queryKey" | "queryFn">
+) {
+  return useQuery<ModelOption[], Error>({
+    queryKey: modelsQueryKey,
+    queryFn: async () => {
+      const { data, error } = await api.GET("/models");
+      if (error) {
+        throw new Error(
+          extractApiErrorMessage(error, "Failed to fetch available models")
         );
       }
       return data ?? [];

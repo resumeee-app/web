@@ -26,6 +26,7 @@ const customPreset: Preset = {
   template_set_id: "builtin-standard-clean",
   provider_override: "gemini",
   model_override: "gemini-4-argon",
+  reasoning_level: "high",
   include_admin_fields: true,
   is_built_in: false,
 };
@@ -88,6 +89,7 @@ describe("PresetCard Component", () => {
     expect(screen.getByText("Custom")).toBeInTheDocument();
     expect(screen.getByText("Admin Fields")).toBeInTheDocument();
     expect(screen.getByText(/gemini-4-argon/i)).toBeInTheDocument();
+    expect(screen.getByText(/reasoning: high/i)).toBeInTheDocument();
 
     // Edit link exists
     const editLink = screen.getByRole("link", { name: /edit/i });

@@ -1046,6 +1046,11 @@ export interface components {
             template_set_id: string;
             provider_override?: string;
             model_override?: string;
+            /**
+             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
+             * @enum {string}
+             */
+            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             include_admin_fields?: boolean;
             /** @description Whether this is a system-provided built-in preset */
             readonly is_built_in?: boolean;
@@ -1061,6 +1066,11 @@ export interface components {
             template_set_id: string;
             provider_override?: string;
             model_override?: string;
+            /**
+             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
+             * @enum {string}
+             */
+            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             include_admin_fields?: boolean;
         };
         UpdatePresetRequest: {
@@ -1070,6 +1080,11 @@ export interface components {
             template_set_id?: string;
             provider_override?: string;
             model_override?: string;
+            /**
+             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
+             * @enum {string}
+             */
+            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             include_admin_fields?: boolean;
         };
         TemplateSet: {
