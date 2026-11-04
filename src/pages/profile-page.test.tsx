@@ -100,7 +100,15 @@ const mockFullSnapshot: components["schemas"]["MasterProfileSnapshot"] = {
   exported_at: "2026-11-01T00:00:00Z",
 };
 
-function renderProfilePage() {
+function renderProfilePage(snapshot?: components["schemas"]["MasterProfileSnapshot"]) {
+  if (snapshot) {
+    vi.mocked(api.GET).mockResolvedValueOnce({
+      data: snapshot,
+      error: undefined,
+      response: new Response(),
+    } as unknown as Awaited<ReturnType<typeof api.GET>>);
+  }
+
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -535,6 +543,150 @@ describe("ProfilePage", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Database connection failed")).toBeInTheDocument();
+    });
+  });
+
+  it("renders Import PDF Resume button in header actions and opens import dialog", async () => {
+    const user = userEvent.setup();
+    renderProfilePage();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Full Name/i)).toBeInTheDocument();
+    });
+
+    const importPdfBtn = screen.getByRole("button", { name: /import pdf resume/i });
+    expect(importPdfBtn).toBeInTheDocument();
+
+    await user.click(importPdfBtn);
+
+    expect(
+      screen.getByRole("heading", { name: /import pdf resume/i })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/select pdf resume file/i)).toBeInTheDocument();
+  });
+
+  it("renders onboarding callout when career graph is empty and allows opening PDF import dialog", async () => {
+    const user = userEvent.setup();
+    const emptySnapshot: components["schemas"]["MasterProfileSnapshot"] = {
+      profile: {
+        id: "profile-new",
+        user_id: "user-new",
+        full_name: "",
+        headline: "",
+        default_provider: "gemini",
+        default_model: "gemini-3.8-flash",
+        master_revision: 0,
+      },
+      master_revision: 0,
+      skills: [],
+      experiences: [],
+      projects: [],
+      education: [],
+      certifications: [],
+      facts: [],
+      exported_at: "2026-11-01T00:00:00Z",
+    };
+
+    renderProfilePage(emptySnapshot);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/kickstart your master profile/i)
+      ).toBeInTheDocument();
+    });
+
+    const onboardingImportBtn = screen.getByRole("button", {
+      name: /import from pdf resume/i,
+    });
+    expect(onboardingImportBtn).toBeInTheDocument();
+
+    await user.click(onboardingImportBtn);
+
+    expect(
+      screen.getByRole("heading", { name: /import pdf resume/i })
+    ).toBeInTheDocument();
+  });
+
+  it("reconciles dirty state and updates contact draft when PDF resume is successfully committed", async () => {
+    const user = userEvent.setup();
+    renderProfilePage();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Full Name/i)).toBeInTheDocument();
+    });
+
+    // Make form dirty
+    const nameInput = screen.getByLabelText(/Full Name/i);
+    await user.clear(nameInput);
+    await user.type(nameInput, "Alan M. Turing (Draft)");
+
+    expect(screen.getByText("Unsaved Changes")).toBeInTheDocument();
+
+    const mockCommittedProfile: components["schemas"]["MasterProfileSnapshot"] = {
+      ...mockFullSnapshot,
+      profile: {
+        ...mockFullSnapshot.profile,
+        full_name: "Margaret Hamilton",
+        headline: "Apollo Software Engineering Director",
+        email: "margaret@mit.edu",
+      },
+    };
+
+    vi.mocked(api.POST).mockImplementation(async (path) => {
+      if (path === "/profile/pdf/parse") {
+        return {
+          data: {
+            basics: {
+              name: "Margaret Hamilton",
+              label: "Apollo Software Engineering Director",
+              email: "margaret@mit.edu",
+            },
+          } as unknown as Record<string, never>,
+          error: undefined,
+          response: new Response(),
+        };
+      }
+      if (path === "/profile/pdf/commit") {
+        vi.mocked(api.GET).mockResolvedValue({
+          data: mockCommittedProfile,
+          error: undefined,
+          response: new Response(),
+        } as unknown as Awaited<ReturnType<typeof api.GET>>);
+
+        return {
+          data: mockCommittedProfile as unknown as Record<string, never>,
+          error: undefined,
+          response: new Response(),
+        };
+      }
+      return { data: undefined, error: undefined, response: new Response() };
+    });
+
+    // Click Import PDF Resume
+    const importBtn = screen.getByRole("button", { name: /import pdf resume/i });
+    await user.click(importBtn);
+
+    // Upload & Parse
+    const fileInput = screen.getByLabelText(/select pdf resume file/i);
+    const validFile = new File(["%PDF-1.4 mock content"], "margaret.pdf", {
+      type: "application/pdf",
+    });
+    await user.upload(fileInput, validFile);
+
+    await user.click(screen.getByRole("button", { name: /parse & stage with llm/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Margaret Hamilton")).toBeInTheDocument();
+    });
+
+    // Commit
+    await user.click(screen.getByRole("button", { name: /commit to master profile/i }));
+
+    // Verify dialog closes and contact draft is updated to committed profile and not dirty
+    await waitFor(() => {
+      expect(screen.queryByRole("heading", { name: /review extracted resume draft/i })).not.toBeInTheDocument();
+      expect(screen.queryByText("Unsaved Changes")).not.toBeInTheDocument();
+      expect(screen.getByLabelText(/Full Name/i)).toHaveValue("Margaret Hamilton");
     });
   });
 

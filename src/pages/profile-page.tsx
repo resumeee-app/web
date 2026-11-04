@@ -1,5 +1,5 @@
 import * as React from "react";
-import { User, Briefcase, GraduationCap, Wrench, Save, RotateCcw } from "lucide-react";
+import { User, Briefcase, GraduationCap, Wrench, Save, RotateCcw, FileUp } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useBlocker, UNSAFE_DataRouterContext } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { SkillsManager } from "@/components/profile/skills-manager";
 import { EducationList } from "@/components/profile/education-list";
 import { CertificationsList } from "@/components/profile/certifications-list";
 import { UnsavedChangesDialog } from "@/components/profile/unsaved-changes-dialog";
+import { ImportPDFDialog } from "@/components/profile/import-pdf-dialog";
 import {
   PROFILE_FULL_QUERY_KEY,
   useFullProfile,
@@ -122,6 +123,9 @@ export const ProfilePage: React.FC = () => {
 
   // Active tab state
   const [activeTab, setActiveTab] = React.useState("contact");
+
+  // PDF import modal state
+  const [importDialogOpen, setImportDialogOpen] = React.useState(false);
 
   // Dirty state tracking for contact form
   const [contactDraft, setContactDraft] = React.useState<ContactFormData | null>(null);
@@ -274,6 +278,13 @@ export const ProfilePage: React.FC = () => {
     );
   }
 
+  const isCareerGraphEmpty =
+    (!snapshot.profile?.full_name || snapshot.profile.full_name.trim() === "") &&
+    (snapshot.experiences || []).length === 0 &&
+    (snapshot.skills || []).length === 0 &&
+    (snapshot.education || []).length === 0 &&
+    (snapshot.projects || []).length === 0;
+
   return (
     <div className="space-y-6">
       {/* Screen-reader Live Region */}
@@ -299,8 +310,17 @@ export const ProfilePage: React.FC = () => {
           </p>
         </div>
 
-        {/* Global Save / Discard Controls */}
+        {/* Global Action & Contact Controls */}
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setImportDialogOpen(true)}
+            className="gap-1.5"
+          >
+            <FileUp className="h-4 w-4" aria-hidden="true" />
+            <span>Import PDF Resume</span>
+          </Button>
           {isDirty && (
             <Button
               variant="outline"
@@ -325,6 +345,28 @@ export const ProfilePage: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Onboarding Callout for Empty Career Graph */}
+      {isCareerGraphEmpty && (
+        <div className="rounded-lg border border-indigo-200 dark:border-indigo-900 bg-indigo-50/60 dark:bg-indigo-950/40 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold text-indigo-900 dark:text-indigo-200">
+              Kickstart Your Master Profile
+            </h2>
+            <p className="text-sm text-indigo-700 dark:text-indigo-300">
+              Upload an existing PDF resume to automatically populate your career history, skills,
+              and education via LLM extraction, or build it manually below.
+            </p>
+          </div>
+          <Button
+            onClick={() => setImportDialogOpen(true)}
+            className="flex-shrink-0 gap-1.5"
+          >
+            <FileUp className="h-4 w-4" aria-hidden="true" />
+            <span>Import from PDF Resume</span>
+          </Button>
+        </div>
+      )}
 
       {/* Navigation Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -493,6 +535,29 @@ export const ProfilePage: React.FC = () => {
         open={isDialogOpen}
         onConfirm={handleConfirmDiscard}
         onCancel={handleCancelDiscard}
+      />
+
+      {/* PDF Resume Import Dialog */}
+      <ImportPDFDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        hasUnsavedChanges={isDirty}
+        onSuccess={(newSnapshot) => {
+          setIsDirty(false);
+          if (newSnapshot?.profile) {
+            setContactDraft({
+              full_name: newSnapshot.profile.full_name,
+              headline: newSnapshot.profile.headline,
+              summary: newSnapshot.profile.summary,
+              email: newSnapshot.profile.email,
+              phone: newSnapshot.profile.phone,
+              location: newSnapshot.profile.location,
+              links: newSnapshot.profile.profiles,
+            });
+          }
+          announce("Master profile updated with imported PDF resume.");
+        }}
+        onAnnouncement={announce}
       />
     </div>
   );

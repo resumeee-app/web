@@ -576,3 +576,245 @@ export function useDeleteFact(): UseMutationResult<void, Error, string> {
     },
   });
 }
+
+/**
+ * Standard JSON Resume v1.0.0 schema representation used for candidate resume extraction and staging.
+ */
+export interface JSONResume {
+  /** Optional JSON Resume schema URL */
+  $schema?: string;
+  /** Personal contact, title, and identity details */
+  basics: {
+    name: string;
+    label?: string;
+    image?: string;
+    email?: string;
+    phone?: string;
+    url?: string;
+    summary?: string;
+    location?: {
+      address?: string;
+      postalCode?: string;
+      city?: string;
+      countryCode?: string;
+      region?: string;
+    };
+    profiles?: Array<{
+      network?: string;
+      username?: string;
+      url?: string;
+    }>;
+  };
+  /** Employment and work history */
+  work?: Array<{
+    name?: string;
+    company?: string;
+    position?: string;
+    url?: string;
+    startDate?: string;
+    endDate?: string;
+    summary?: string;
+    highlights?: string[];
+    location?: string;
+  }>;
+  /** Volunteer experience entries */
+  volunteer?: Array<{
+    organization?: string;
+    position?: string;
+    url?: string;
+    startDate?: string;
+    endDate?: string;
+    summary?: string;
+    highlights?: string[];
+  }>;
+  /** Academic degrees and education entries */
+  education?: Array<{
+    institution?: string;
+    url?: string;
+    area?: string;
+    studyType?: string;
+    startDate?: string;
+    endDate?: string;
+    score?: string;
+    courses?: string[];
+  }>;
+  /** Awards and honors */
+  awards?: Array<{
+    title?: string;
+    date?: string;
+    awarder?: string;
+    summary?: string;
+  }>;
+  /** Professional certificates */
+  certificates?: Array<{
+    name?: string;
+    date?: string;
+    issuer?: string;
+    url?: string;
+  }>;
+  /** Publications */
+  publications?: Array<{
+    name?: string;
+    publisher?: string;
+    releaseDate?: string;
+    url?: string;
+    summary?: string;
+  }>;
+  /** Categorized skills */
+  skills?: Array<{
+    name?: string;
+    level?: string;
+    keywords?: string[];
+  }>;
+  /** Spoken and written languages */
+  languages?: Array<{
+    language?: string;
+    fluency?: string;
+  }>;
+  /** Interests and hobbies */
+  interests?: Array<{
+    name?: string;
+    keywords?: string[];
+  }>;
+  /** Professional references */
+  references?: Array<{
+    name?: string;
+    reference?: string;
+  }>;
+  /** Projects and technical portfolio items */
+  projects?: Array<{
+    name?: string;
+    description?: string;
+    highlights?: string[];
+    keywords?: string[];
+    startDate?: string;
+    endDate?: string;
+    url?: string;
+    roles?: string[];
+    entity?: string;
+    type?: string;
+  }>;
+  /** Arbitrary metadata */
+  meta?: Record<string, unknown>;
+}
+
+/** Maximum allowed upload file size for candidate PDF resumes (10 megabytes) */
+export const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Validates candidate PDF file boundary invariants prior to network dispatch.
+ * Checks file type, lower-bound non-empty size, and maximum 10MB payload size.
+ *
+ * @param file - Candidate File object to validate.
+ * @returns Human-readable validation error string if invalid, or null if valid.
+ */
+export function validatePDFFile(file: File): string | null {
+  const isPdfExtension = file.name.toLowerCase().endsWith(".pdf");
+  const isPdfMime = file.type === "application/pdf";
+  if (!isPdfExtension && !isPdfMime) {
+    return "Only PDF files are supported";
+  }
+  if (file.size <= 0) {
+    return "The selected PDF file is empty.";
+  }
+  if (file.size > MAX_PDF_SIZE_BYTES) {
+    return "File exceeds maximum allowed size (10MB)";
+  }
+  return null;
+}
+
+/**
+ * Options for parsing a candidate PDF resume file.
+ */
+export interface ParsePDFResumeOptions {
+  /** The binary PDF resume file to upload (maximum 10MB) */
+  file: File;
+  /** Optional LLM provider override */
+  provider?: string;
+  /** Optional LLM model override */
+  model?: string;
+}
+
+/**
+ * Hook to parse an uploaded PDF resume via POST /profile/pdf/parse.
+ * Uploads the file as multipart/form-data with LLM extraction into candidate JSON Resume format.
+ * Enforces client-side file type and 10MB size boundaries prior to network dispatch.
+ *
+ * @returns TanStack UseMutationResult for parsing PDF resume
+ */
+export function useParsePDFResume(): UseMutationResult<
+  JSONResume,
+  Error,
+  ParsePDFResumeOptions
+> {
+  return useMutation({
+    mutationFn: async ({ file, provider, model }: ParsePDFResumeOptions) => {
+      const validationError = validatePDFFile(file);
+      if (validationError) {
+        throw new Error(validationError);
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+      if (provider) {
+        formData.append("provider", provider);
+      }
+      if (model) {
+        formData.append("model", model);
+      }
+
+      const { data, error } = await api.POST("/profile/pdf/parse", {
+        body: formData as unknown as { file: string },
+        headers: {
+          "Content-Type": null as unknown as string,
+        },
+      });
+
+      if (error || !data) {
+        throw new Error(
+          (error as { error?: { message?: string } })?.error?.message ||
+            "Failed to parse PDF resume"
+        );
+      }
+
+      return data as unknown as JSONResume;
+    },
+  });
+}
+
+/**
+ * Hook to commit a reviewed candidate JSON Resume into the Master Profile via POST /profile/pdf/commit.
+ * Ingests the candidate resume graph, updates the Master Profile snapshot, and invalidates TanStack Query cache.
+ *
+ * @returns TanStack UseMutationResult for committing candidate resume
+ */
+export function useCommitPDFResume(): UseMutationResult<
+  components["schemas"]["MasterProfileSnapshot"],
+  Error,
+  JSONResume
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (resume: JSONResume) => {
+      const { data, error } = await api.POST("/profile/pdf/commit", {
+        body: resume as unknown as Record<string, never>,
+      });
+
+      if (error || !data) {
+        throw new Error(
+          (error as { error?: { message?: string } })?.error?.message ||
+            "Failed to commit parsed resume into master profile"
+        );
+      }
+
+      return data;
+    },
+    onSuccess: (snapshot) => {
+      queryClient.setQueryData(PROFILE_FULL_QUERY_KEY, snapshot);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+    },
+  });
+}
