@@ -159,53 +159,31 @@ describe("BranchesPage Integration & Views", () => {
     ).toBeInTheDocument();
   });
 
-  it("toggles between card grid and responsive table views", async () => {
-    const user = userEvent.setup();
+  it("renders branches exclusively in card grid view with no table view toggle option", async () => {
     renderBranchesPage();
 
     await waitFor(() => {
       expect(screen.getByText("Master Profile (Default)")).toBeInTheDocument();
+      expect(
+        screen.getByText("Netflix - Senior Platform Engineer")
+      ).toBeInTheDocument();
     });
 
-    // Click Table View button
-    const tableViewBtn = screen.getByRole("button", { name: /table view/i });
-    await user.click(tableViewBtn);
+    // View mode toggle buttons and group should not exist
+    expect(screen.queryByRole("group", { name: /view presentation mode/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /table view/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /grid view/i })).not.toBeInTheDocument();
 
-    // Verify table structure
-    const table = screen.getByRole("table", {
-      name: /resume branches catalog/i,
-    });
-    expect(table).toBeInTheDocument();
-    expect(
-      screen.getByRole("columnheader", { name: /branch/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("columnheader", { name: /target/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("columnheader", { name: /status/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("columnheader", { name: /actions/i })
-    ).toBeInTheDocument();
-
-    // In table view, default branch badge and actions are rendered
-    expect(screen.getByText("Default Branch")).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", {
-        name: /inspect resume for master profile \(default\)/i,
-      })
-    ).toHaveAttribute("href", "/branches/branch-default-u1/preview");
-    expect(
-      screen.queryByRole("button", {
-        name: /delete branch master profile \(default\)/i,
-      })
-    ).not.toBeInTheDocument();
-
-    // Switch back to Grid View
-    const gridViewBtn = screen.getByRole("button", { name: /grid view/i });
-    await user.click(gridViewBtn);
+    // No table markup should exist
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+
+    // Verify card grid elements are present
+    expect(
+      screen.getByRole("heading", { level: 2, name: /master profile \(default\)/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: /netflix - senior platform engineer/i })
+    ).toBeInTheDocument();
   });
 
   it("filters branches using live search input and handles non-matching queries", async () => {
@@ -353,22 +331,14 @@ describe("BranchesPage Integration & Views", () => {
     });
   });
 
-  it("has zero accessibility violations in grid and table views", async () => {
-    const user = userEvent.setup();
+  it("has zero accessibility violations in card grid view", async () => {
     const { container } = renderBranchesPage();
 
     await waitFor(() => {
       expect(screen.getByText("Master Profile (Default)")).toBeInTheDocument();
     });
 
-    // Axe audit on grid view
-    expect(await axe(container)).toHaveNoViolations();
-
-    // Switch to table view
-    const tableViewBtn = screen.getByRole("button", { name: /table view/i });
-    await user.click(tableViewBtn);
-
-    // Axe audit on table view
+    // Axe audit on card grid view
     expect(await axe(container)).toHaveNoViolations();
   });
 });

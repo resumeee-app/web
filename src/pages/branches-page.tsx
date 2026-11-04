@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { Plus, LayoutGrid, List, Search, AlertCircle } from "lucide-react";
+import { Plus, Search, AlertCircle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BranchList } from "@/components/branches/branch-list";
+import { BranchCard } from "@/components/branches/branch-card";
 import { CreateBranchModal } from "@/components/branches/create-branch-modal";
 import { DeleteBranchDialog } from "@/components/branches/delete-branch-dialog";
 import {
@@ -15,11 +15,6 @@ import {
 } from "@/api/branch-queries";
 
 /**
- * View presentation mode for the branch catalog.
- */
-export type CatalogViewMode = "grid" | "table";
-
-/**
  * BranchesPage Component
  *
  * Primary dashboard view for managing tailored resume branches and the canonical default branch.
@@ -28,18 +23,17 @@ export type CatalogViewMode = "grid" | "table";
  * - Serves as the route entry point for `/branches`.
  * - Composes TanStack Query asynchronous state for branches, presets, and templates.
  * - Handles optimistic creation updates and safe branch deletion guards.
- * - Coordinates view mode toggling (Card Grid vs Responsive Table) and live search filtering.
+ * - Displays branches in a responsive Card Grid with live search filtering.
  *
  * Accessibility & WAI-ARIA Considerations:
  * - Semantic Level 1 heading (`<h1>`) for the page landmark.
  * - Accessible search control with explicitly associated `<label>` (using `sr-only`).
- * - View mode toggle buttons indicate active state via `aria-pressed`.
+ * - Loading indicator uses `role="status"` and accessible label.
  * - Zero axe-core accessibility violations verified in Vitest automated audits.
  *
  * @returns {JSX.Element} The rendered Resume Branches dashboard page.
  */
 export const BranchesPage: React.FC = () => {
-  const [viewMode, setViewMode] = useState<CatalogViewMode>("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
@@ -148,7 +142,7 @@ export const BranchesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Toolbar: Search & View Mode Switcher */}
+      {/* Toolbar: Search */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div className="relative max-w-sm flex-1">
           <label htmlFor="branch-search" className="sr-only">
@@ -165,41 +159,6 @@ export const BranchesPage: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 py-2 pl-9 pr-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
-        </div>
-
-        <div
-          role="group"
-          aria-label="View presentation mode"
-          className="flex items-center rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-1"
-        >
-          <button
-            type="button"
-            onClick={() => setViewMode("grid")}
-            aria-pressed={viewMode === "grid"}
-            aria-label="Grid View"
-            className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-              viewMode === "grid"
-                ? "bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 shadow-sm"
-                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
-            }`}
-          >
-            <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Grid View</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("table")}
-            aria-pressed={viewMode === "table"}
-            aria-label="Table View"
-            className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-              viewMode === "table"
-                ? "bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 shadow-sm"
-                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
-            }`}
-          >
-            <List className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Table View</span>
-          </button>
         </div>
       </div>
 
@@ -218,15 +177,49 @@ export const BranchesPage: React.FC = () => {
       )}
 
       {/* Catalog Listing */}
-      <BranchList
-        branches={filteredBranches}
-        viewMode={viewMode}
-        isLoading={isBranchesLoading}
-        templatesMap={templatesMap}
-        presetsMap={presetsMap}
-        onDeleteBranch={handleDeleteTrigger}
-        onCreateBranchClick={() => setIsCreateOpen(true)}
-      />
+      {isBranchesLoading ? (
+        <div
+          role="status"
+          aria-label="Loading resume branches"
+          className="flex min-h-[300px] items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8"
+        >
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+            <p className="text-sm text-slate-500 dark:text-slate-400">Loading branches...</p>
+          </div>
+        </div>
+      ) : filteredBranches.length === 0 ? (
+        <div className="flex min-h-[350px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 p-12 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
+            <FileText className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <h2 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
+            No branches created yet
+          </h2>
+          <p className="mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
+            Create role-targeted resume branches to tailor your career history for
+            specific positions, companies, or criteria.
+          </p>
+          <div className="mt-6">
+            <Button onClick={() => setIsCreateOpen(true)} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              <span>Create Your First Branch</span>
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredBranches.map((branch) => (
+            <BranchCard
+              key={branch.id}
+              branch={branch}
+              templateName={templatesMap[branch.template_set_id]}
+              presetName={branch.preset_id ? presetsMap[branch.preset_id] : undefined}
+              onDelete={handleDeleteTrigger}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Creation Modal */}
       <CreateBranchModal
