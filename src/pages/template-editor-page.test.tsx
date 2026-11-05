@@ -136,6 +136,64 @@ describe("TemplateEditorPage Component", () => {
     expect(iframe).toHaveAttribute("srcdoc");
   });
 
+  it("renders full-width metadata box for Template Name & Description above the split editor/preview layout when adding a new template", async () => {
+    renderEditor("/templates/new");
+
+    await screen.findByRole("heading", {
+      level: 1,
+      name: /create template set/i,
+    });
+
+    const metadataBox = screen.getByTestId("template-metadata-card");
+    expect(metadataBox).toBeInTheDocument();
+    expect(metadataBox).toHaveClass("w-full");
+
+    const splitContainer = screen.getByTestId("template-split-container");
+    expect(splitContainer).toBeInTheDocument();
+
+    // Metadata box must be outside/above the split container (not nested inside it and preceding it in DOM order)
+    expect(splitContainer.contains(metadataBox)).toBe(false);
+    expect(
+      Boolean(metadataBox.compareDocumentPosition(splitContainer) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true);
+
+    // Verify Name & Description inputs reside inside the 100% full-width metadata box
+    const nameInput = screen.getByLabelText(/template name/i);
+    const descInput = screen.getByLabelText(/description/i);
+    expect(metadataBox.contains(nameInput)).toBe(true);
+    expect(metadataBox.contains(descInput)).toBe(true);
+
+    // Verify split container contains code editor and preview pane
+    expect(splitContainer).toHaveClass("lg:grid-cols-2");
+    expect(splitContainer.querySelector("#html-template-editor")).toBeInTheDocument();
+    expect(splitContainer.querySelector("iframe[title='Template Preview']")).toBeInTheDocument();
+  });
+
+  it("renders full-width metadata box for Template Name & Description above the split editor/preview layout when editing an existing template", async () => {
+    renderEditor("/templates/tmpl-custom-1");
+
+    await screen.findByRole("heading", {
+      level: 1,
+      name: /edit template: custom draft/i,
+    });
+
+    const metadataBox = screen.getByTestId("template-metadata-card");
+    expect(metadataBox).toBeInTheDocument();
+    expect(metadataBox).toHaveClass("w-full");
+
+    const splitContainer = screen.getByTestId("template-split-container");
+    expect(splitContainer).toBeInTheDocument();
+    expect(splitContainer.contains(metadataBox)).toBe(false);
+    expect(
+      Boolean(metadataBox.compareDocumentPosition(splitContainer) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true);
+
+    const nameInput = screen.getByDisplayValue("Custom Draft");
+    const descInput = screen.getByDisplayValue("Custom template description.");
+    expect(metadataBox.contains(nameInput)).toBe(true);
+    expect(metadataBox.contains(descInput)).toBe(true);
+  });
+
   it("enforces immutability: displays warning and disables saving for built-in templates", async () => {
     renderEditor("/templates/builtin-standard-clean");
 

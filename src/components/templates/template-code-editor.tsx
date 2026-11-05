@@ -57,6 +57,27 @@ export interface SyntaxDiagnostic {
 }
 
 /**
+ * Shared base styles applied to all code editor textareas.
+ */
+export const CODE_TEXTAREA_BASE_CLASS =
+  "w-full min-h-[380px] rounded-md border border-slate-300 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 p-3 font-mono text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
+
+/**
+ * Computes the unified class list for a template format textarea.
+ *
+ * @param colorClass - Syntax theme font color class (e.g. text-emerald-400).
+ * @param readOnly - Whether editing is disabled.
+ * @returns Fully merged className string.
+ */
+export function getCodeTextareaClassName(colorClass: string, readOnly?: boolean): string {
+  return cn(
+    CODE_TEXTAREA_BASE_CLASS,
+    colorClass,
+    readOnly && "opacity-80 cursor-not-allowed bg-slate-800 dark:bg-slate-900"
+  );
+}
+
+/**
  * Validates Go template syntax for unclosed tags, unmatched blocks, or unclosed conditions.
  * Inspects actions such as `if`, `range`, `with`, `block`, and `define` and asserts matching `end` tags.
  *
@@ -236,11 +257,8 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
             onChange={(e) => onChange({ htmlTemplate: e.target.value })}
             readOnly={readOnly}
             spellCheck={false}
-            rows={14}
-            className={cn(
-              "w-full rounded-md border border-slate-300 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 p-3 font-mono text-xs text-emerald-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
-              readOnly && "opacity-80 cursor-not-allowed bg-slate-800 dark:bg-slate-900"
-            )}
+            rows={16}
+            className={getCodeTextareaClassName("text-emerald-400", readOnly)}
             placeholder="<!DOCTYPE html><html>...<h1>{{.FullName}}</h1>...</html>"
           />
         </TabsContent>
@@ -256,11 +274,8 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
             onChange={(e) => onChange({ cssStyles: e.target.value })}
             readOnly={readOnly}
             spellCheck={false}
-            rows={14}
-            className={cn(
-              "w-full rounded-md border border-slate-300 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 p-3 font-mono text-xs text-sky-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
-              readOnly && "opacity-80 cursor-not-allowed bg-slate-800 dark:bg-slate-900"
-            )}
+            rows={16}
+            className={getCodeTextareaClassName("text-sky-300", readOnly)}
             placeholder="body { font-family: sans-serif; } .header { color: #2563eb; }"
           />
         </TabsContent>
@@ -276,11 +291,8 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
             onChange={(e) => onChange({ markdownTemplate: e.target.value })}
             readOnly={readOnly}
             spellCheck={false}
-            rows={14}
-            className={cn(
-              "w-full rounded-md border border-slate-300 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 p-3 font-mono text-xs text-amber-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
-              readOnly && "opacity-80 cursor-not-allowed bg-slate-800 dark:bg-slate-900"
-            )}
+            rows={16}
+            className={getCodeTextareaClassName("text-amber-300", readOnly)}
             placeholder="# {{.FullName}}\n## {{.Headline}}\n\n- {{.Email}}"
           />
         </TabsContent>
@@ -296,11 +308,8 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
             onChange={(e) => onChange({ textTemplate: e.target.value })}
             readOnly={readOnly}
             spellCheck={false}
-            rows={14}
-            className={cn(
-              "w-full rounded-md border border-slate-300 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 p-3 font-mono text-xs text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500",
-              readOnly && "opacity-80 cursor-not-allowed bg-slate-800 dark:bg-slate-900"
-            )}
+            rows={16}
+            className={getCodeTextareaClassName("text-slate-100", readOnly)}
             placeholder="{{.FullName}}\n{{.Headline}}\n{{.Email}} | {{.Phone}}"
           />
         </TabsContent>

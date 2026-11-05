@@ -11,7 +11,10 @@
 
 import * as React from "react";
 import { TemplateCodeEditor } from "./template-code-editor";
+import { TemplateMetadataCard } from "./template-metadata-card";
 import { cn } from "@/lib/utils";
+
+export { TemplateMetadataCard, type TemplateMetadataCardProps } from "./template-metadata-card";
 
 /**
  * Data structure representing all editable fields in a template set form.
@@ -51,7 +54,7 @@ export interface TemplateFormProps {
  * Composite form component binding template metadata inputs to the tabbed code editor.
  *
  * Architectural Role:
- * Used as the primary input surface in TemplateEditorPage for building and editing templates.
+ * Used as a composite form component binding full-width metadata and multi-tab template editors.
  *
  * @param props - Component props satisfying TemplateFormProps.
  * @returns JSX element representing the template form.
@@ -64,43 +67,13 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
   className,
 }) => {
   return (
-    <div className={cn("space-y-4", className)}>
-      <div>
-        <label
-          htmlFor="template-name"
-          className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300"
-        >
-          Template Name <span className="text-red-500">*</span>
-        </label>
-        <input
-          id="template-name"
-          type="text"
-          required
-          disabled={readOnly}
-          value={data.name}
-          onChange={(e) => onChange({ name: e.target.value })}
-          placeholder="e.g. Executive Modern Tech Resume"
-          className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-900 disabled:text-slate-500 dark:disabled:text-slate-400 disabled:opacity-75"
-        />
-      </div>
-
-      <div>
-        <label
-          htmlFor="template-description"
-          className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300"
-        >
-          Description
-        </label>
-        <input
-          id="template-description"
-          type="text"
-          disabled={readOnly}
-          value={data.description}
-          onChange={(e) => onChange({ description: e.target.value })}
-          placeholder="Brief summary of layout, font hierarchy, or targeted industry"
-          className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-900 disabled:text-slate-500 dark:disabled:text-slate-400 disabled:opacity-75"
-        />
-      </div>
+    <div className={cn("space-y-4 w-full", className)}>
+      <TemplateMetadataCard
+        name={data.name}
+        description={data.description}
+        onChange={onChange}
+        readOnly={readOnly}
+      />
 
       <div className="pt-2">
         <span className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
@@ -111,14 +84,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
           cssStyles={data.cssStyles}
           markdownTemplate={data.markdownTemplate}
           textTemplate={data.textTemplate}
-          onChange={({ htmlTemplate, cssStyles, markdownTemplate, textTemplate }) => {
-            const updates: Partial<TemplateFormData> = {};
-            if (htmlTemplate !== undefined) updates.htmlTemplate = htmlTemplate;
-            if (cssStyles !== undefined) updates.cssStyles = cssStyles;
-            if (markdownTemplate !== undefined) updates.markdownTemplate = markdownTemplate;
-            if (textTemplate !== undefined) updates.textTemplate = textTemplate;
-            onChange(updates);
-          }}
+          onChange={onChange}
           readOnly={readOnly}
           serverError={serverError}
         />

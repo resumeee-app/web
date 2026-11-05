@@ -35,7 +35,8 @@ import {
   useUpdateTemplate,
   isBuiltInTemplate,
 } from "@/api/template-queries";
-import { TemplateForm } from "@/components/templates/template-form";
+import { TemplateMetadataCard } from "@/components/templates/template-metadata-card";
+import { TemplateCodeEditor } from "@/components/templates/template-code-editor";
 import { TemplatePreviewPane } from "@/components/templates/template-preview-pane";
 
 /**
@@ -327,22 +328,35 @@ export const TemplateEditorPage: React.FC = () => {
           </div>
         )}
 
-        {/* Split Screen Layout: Metadata & Editor on Left, Live Preview on Right */}
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Left Column: Form & Code Editor */}
-          <div className="flex flex-col space-y-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
-            <TemplateForm
-              data={{
-                name,
-                description,
-                htmlTemplate,
-                cssStyles,
-                markdownTemplate,
-                textTemplate,
-              }}
+        {/* Full-width Template Metadata Box (100% width of parent container) */}
+        <TemplateMetadataCard
+          name={name}
+          description={description}
+          onChange={(updates) => {
+            if (updates.name !== undefined) setName(updates.name);
+            if (updates.description !== undefined) setDescription(updates.description);
+            setServerError(null);
+          }}
+          readOnly={isBuiltIn}
+          className="mt-6"
+        />
+
+        {/* Ergonomic Split Screen Layout: Code Editor on Left, Live Preview on Right */}
+        <div
+          data-testid="template-split-container"
+          className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2"
+        >
+          {/* Left Column: Code Editor */}
+          <div className="flex flex-col rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm h-full">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+              Template Definition
+            </span>
+            <TemplateCodeEditor
+              htmlTemplate={htmlTemplate}
+              cssStyles={cssStyles}
+              markdownTemplate={markdownTemplate}
+              textTemplate={textTemplate}
               onChange={(updates) => {
-                if (updates.name !== undefined) setName(updates.name);
-                if (updates.description !== undefined) setDescription(updates.description);
                 if (updates.htmlTemplate !== undefined) setHtmlTemplate(updates.htmlTemplate);
                 if (updates.cssStyles !== undefined) setCssStyles(updates.cssStyles);
                 if (updates.markdownTemplate !== undefined) setMarkdownTemplate(updates.markdownTemplate);
