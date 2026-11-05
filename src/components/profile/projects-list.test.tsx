@@ -438,9 +438,14 @@ describe("ProjectsList", () => {
     const rustChip = screen.getByRole("button", { name: /Rust/i });
     const dockerChip = screen.getByRole("button", { name: /Docker/i });
 
+    expect(k8sChip.textContent).toContain("+");
+    expect(k8sChip.textContent).not.toContain("✓");
+
     // Initial click to add Kubernetes
     await user.click(k8sChip);
     expect(skillsInput.value).toBe("Kubernetes");
+    expect(k8sChip.textContent).toContain("✓");
+    expect(k8sChip.textContent).not.toContain("+");
 
     // Click Rust to add
     await user.click(rustChip);

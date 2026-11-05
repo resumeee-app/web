@@ -11,20 +11,14 @@ import {
   FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { ShortIdBadge } from "./short-id-badge";
+import {
+  SkillSelector,
+  parseSkillTokens,
+  resolveSkillIds,
+} from "./skill-selector";
 import type { components } from "@/api/schema";
 
-/**
- * Helper to split a comma-separated skill string into a normalized array of non-empty tokens.
- *
- * @param input - Raw comma-separated skill tokens.
- * @returns Array of trimmed skill IDs.
- */
-export function parseSkillTokens(input: string): string[] {
-  return input
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
+export { parseSkillTokens };
 
 /**
  * Props for the ExperienceList component.
@@ -220,22 +214,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
         : undefined;
 
     const rawSkillTokens = parseSkillTokens(skillsInput);
-    const skillIds: string[] = [];
-    const seenSkillIds = new Set<string>();
-
-    for (const token of rawSkillTokens) {
-      const tokenLower = token.toLowerCase();
-      const matched = skillLookupPool.find(
-        (s) =>
-          s.name.toLowerCase() === tokenLower ||
-          s.id.toLowerCase() === tokenLower
-      );
-      const resolvedId = matched ? matched.id : token;
-      if (!seenSkillIds.has(resolvedId)) {
-        seenSkillIds.add(resolvedId);
-        skillIds.push(resolvedId);
-      }
-    }
+    const skillIds = resolveSkillIds(rawSkillTokens, skillLookupPool);
 
     const payload: components["schemas"]["CreateExperienceRequest"] = {
       company: company.trim(),
@@ -823,70 +802,13 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                     </div>
 
                     {/* 8. Skills */}
-                    <div>
-                      <label
-                        htmlFor="exp-skills"
-                        className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-                      >
-                        Skills (comma-separated)
-                      </label>
-                      <input
-                        id="exp-skills"
-                        type="text"
-                        placeholder="e.g. Go, Docker, Kubernetes"
-                        value={skillsInput}
-                        onChange={(e) => setSkillsInput(e.target.value)}
-                        className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                      />
-                      {skillLookupPool && skillLookupPool.length > 0 && (() => {
-                        const currentSkillTokens = parseSkillTokens(skillsInput);
-                        const isSkillSelected = (s: components["schemas"]["Skill"]) => {
-                          const nameLower = (s.name || "").toLowerCase();
-                          const idLower = (s.id || "").toLowerCase();
-                          return currentSkillTokens.some(
-                            (tok) =>
-                              (nameLower !== "" && tok.toLowerCase() === nameLower) ||
-                              (idLower !== "" && tok.toLowerCase() === idLower)
-                          );
-                        };
-
-                        return (
-                          <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Available skill tags">
-                            {skillLookupPool.map((s) => {
-                              const isSelected = isSkillSelected(s);
-                              const displayName = s.name || s.id;
-                              return (
-                                <button
-                                  key={s.id}
-                                  type="button"
-                                  onClick={() => {
-                                    const nameLower = (s.name || "").toLowerCase();
-                                    const idLower = (s.id || "").toLowerCase();
-                                    const next = isSelected
-                                      ? currentSkillTokens.filter(
-                                          (tok) =>
-                                            (nameLower === "" || tok.toLowerCase() !== nameLower) &&
-                                            (idLower === "" || tok.toLowerCase() !== idLower)
-                                        )
-                                      : [...currentSkillTokens, displayName];
-                                    setSkillsInput(next.join(", "));
-                                  }}
-                                  className={cn(
-                                    "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border transition-colors",
-                                    isSelected
-                                      ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300"
-                                      : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600"
-                                  )}
-                                  aria-pressed={isSelected}
-                                >
-                                  {displayName}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        );
-                      })()}
-                    </div>
+                    <SkillSelector
+                      id="exp-skills"
+                      label="Skills"
+                      value={skillsInput}
+                      onChange={setSkillsInput}
+                      availableSkills={skillLookupPool}
+                    />
                   </div>
                 )}
               </div>

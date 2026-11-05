@@ -12,33 +12,14 @@ import {
   FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { ShortIdBadge } from "./short-id-badge";
+import {
+  SkillSelector,
+  parseSkillTokens,
+  resolveSkillIds,
+} from "./skill-selector";
 import type { components } from "@/api/schema";
 
-/**
- * Parses a comma-separated string of skill tokens into a trimmed, non-empty, deduplicated array.
- * Preserves the original token casing of the first occurrence while deduplicating case-insensitively.
- *
- * @param input - Raw comma-separated string of skills
- * @returns Deduplicated array of trimmed skill tokens
- */
-export function parseSkillTokens(input: string): string[] {
-  if (!input) {
-    return [];
-  }
-  const seen = new Set<string>();
-  const tokens: string[] = [];
-  for (const raw of input.split(",")) {
-    const trimmed = raw.trim();
-    if (trimmed) {
-      const lower = trimmed.toLowerCase();
-      if (!seen.has(lower)) {
-        seen.add(lower);
-        tokens.push(trimmed);
-      }
-    }
-  }
-  return tokens;
-}
+export { parseSkillTokens };
 
 /**
  * Props for the ProjectsList component.
@@ -115,16 +96,6 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
     [projects, editingId]
   );
 
-  // Memoized parsed skill tokens and fast lookup set for quick-add badges
-  const activeSkillTokens = React.useMemo(
-    () => parseSkillTokens(skillsInput),
-    [skillsInput]
-  );
-  const activeSkillSet = React.useMemo(
-    () => new Set(activeSkillTokens.map((t) => t.toLowerCase())),
-    [activeSkillTokens]
-  );
-
   const handleOpenAdd = () => {
     setEditingId(null);
     setName("");
@@ -174,28 +145,11 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
     setUrlError(null);
 
     const rawSkillTokens = parseSkillTokens(skillsInput);
-
     const skillLookupPool = [
       ...(availableSkills || []),
       ...(editingProject?.skills || []),
     ];
-
-    const skillIds: string[] = [];
-    const seen = new Set<string>();
-
-    for (const token of rawSkillTokens) {
-      const tokenLower = token.toLowerCase();
-      const matched = skillLookupPool.find(
-        (s) =>
-          s.name.toLowerCase() === tokenLower ||
-          s.id.toLowerCase() === tokenLower
-      );
-      const resolvedId = matched ? matched.id : token;
-      if (!seen.has(resolvedId)) {
-        seen.add(resolvedId);
-        skillIds.push(resolvedId);
-      }
-    }
+    const skillIds = resolveSkillIds(rawSkillTokens, skillLookupPool);
 
     const payload: components["schemas"]["CreateProjectRequest"] = {
       name: name.trim(),
@@ -557,64 +511,13 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                       </div>
                     </div>
 
-                    <div>
-                      <label
-                        htmlFor="proj-skills"
-                        className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-                      >
-                        Skills
-                      </label>
-                      <input
-                        id="proj-skills"
-                        type="text"
-                        placeholder="Comma-separated skill names or IDs (e.g. Go, Rust, React)"
-                        value={skillsInput}
-                        onChange={(e) => setSkillsInput(e.target.value)}
-                        className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                      />
-                      {availableSkills && availableSkills.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5 items-center" aria-label="Available skills to add">
-                          <span className="text-xs text-slate-500 dark:text-slate-400">Quick add:</span>
-                          {availableSkills.map((s) => {
-                            const nameLower = s.name.toLowerCase();
-                            const idLower = s.id.toLowerCase();
-                            const isSelected =
-                              activeSkillSet.has(nameLower) ||
-                              activeSkillSet.has(idLower);
-
-                            return (
-                              <button
-                                key={s.id}
-                                type="button"
-                                onClick={() => {
-                                  let nextTokens: string[];
-                                  if (isSelected) {
-                                    nextTokens = activeSkillTokens.filter(
-                                      (t) =>
-                                        t.toLowerCase() !== nameLower &&
-                                        t.toLowerCase() !== idLower
-                                    );
-                                  } else {
-                                    nextTokens = [...activeSkillTokens, s.name];
-                                  }
-                                  setSkillsInput(nextTokens.join(", "));
-                                }}
-                                className={cn(
-                                  "rounded-full px-2 py-0.5 text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                                  isSelected
-                                    ? "bg-indigo-50 border-indigo-200 text-indigo-800 dark:bg-indigo-950/60 dark:border-indigo-800 dark:text-indigo-300"
-                                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
-                                )}
-                                aria-pressed={isSelected}
-                              >
-                                {isSelected ? "✓ " : "+ "}
-                                {s.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
+                    <SkillSelector
+                      id="proj-skills"
+                      label="Skills"
+                      value={skillsInput}
+                      onChange={setSkillsInput}
+                      availableSkills={availableSkills}
+                    />
                   </div>
                 )}
               </div>

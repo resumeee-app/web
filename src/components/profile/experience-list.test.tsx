@@ -551,28 +551,37 @@ describe("ExperienceList", () => {
 
     const skillsInput = screen.getByLabelText(/Skills/i);
     expect(skillsInput).toHaveValue("");
+    expect(screen.getByText(/Quick add:/i)).toBeInTheDocument();
 
     const goChip = screen.getByRole("button", { name: "Go" });
     const distChip = screen.getByRole("button", { name: "Distributed Systems" });
 
     expect(goChip).toHaveAttribute("aria-pressed", "false");
     expect(distChip).toHaveAttribute("aria-pressed", "false");
+    expect(goChip.textContent).toContain("+");
+    expect(goChip.textContent).not.toContain("✓");
 
     // Click Go -> should select Go
     await user.click(goChip);
     expect(skillsInput).toHaveValue("Go");
     expect(goChip).toHaveAttribute("aria-pressed", "true");
+    expect(goChip.textContent).toContain("✓");
+    expect(goChip.textContent).not.toContain("+");
 
     // Click Distributed Systems -> should append
     await user.click(distChip);
     expect(skillsInput).toHaveValue("Go, Distributed Systems");
     expect(distChip).toHaveAttribute("aria-pressed", "true");
+    expect(distChip.textContent).toContain("✓");
+    expect(distChip.textContent).not.toContain("+");
 
     // Click Go again -> should remove Go
     await user.click(goChip);
     expect(skillsInput).toHaveValue("Distributed Systems");
     expect(goChip).toHaveAttribute("aria-pressed", "false");
     expect(distChip).toHaveAttribute("aria-pressed", "true");
+    expect(goChip.textContent).toContain("+");
+    expect(goChip.textContent).not.toContain("✓");
   });
 
   it.each([
