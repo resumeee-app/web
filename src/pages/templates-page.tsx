@@ -25,7 +25,6 @@ import {
   User,
   AlertCircle,
   Loader2,
-  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,7 +43,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogClose,
 } from "@/components/ui/dialog";
 import {
   useTemplates,
@@ -305,20 +303,11 @@ export const TemplatesPage: React.FC = () => {
         onOpenChange={(open) => !open && setPreviewTemplate(null)}
       >
         <DialogContent className="max-w-4xl h-[85vh] flex flex-col p-6">
-          <DialogHeader className="flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle>{previewTemplate?.name}</DialogTitle>
-                <DialogDescription>
-                  {previewTemplate?.description || "Previewing resume formatting with sample data."}
-                </DialogDescription>
-              </div>
-              <DialogClose asChild>
-                <Button variant="ghost" size="icon" aria-label="Close Preview">
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </Button>
-              </DialogClose>
-            </div>
+          <DialogHeader className="flex-shrink-0 pr-8">
+            <DialogTitle>{previewTemplate?.name}</DialogTitle>
+            <DialogDescription>
+              {previewTemplate?.description || "Previewing resume formatting with sample data."}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="flex-1 mt-4 overflow-hidden">

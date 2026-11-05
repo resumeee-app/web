@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -239,6 +239,39 @@ describe("TemplatesPage Component", () => {
     const sandboxAttr = iframe?.getAttribute("sandbox") || "";
     expect(sandboxAttr).not.toContain("allow-scripts");
     expect(iframe).toHaveAttribute("srcdoc");
+  });
+
+  it("renders exactly one close button (X) in the template quick preview modal and closes on click", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<TemplatesPage />);
+
+    await screen.findByText("Standard Clean");
+
+    const previewBtn = screen.getByRole("button", {
+      name: /preview standard clean/i,
+    });
+    await user.click(previewBtn);
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+
+    // Query all close buttons inside the dialog
+    const closeButtons = within(dialog).getAllByRole("button", {
+      name: /close/i,
+    });
+
+    // Invariant: Exactly one close button should be rendered in the preview modal
+    expect(closeButtons).toHaveLength(1);
+    const closeButton = closeButtons[0];
+    expect(closeButton).toBeDefined();
+    if (!closeButton) {
+      throw new Error("Expected close button to be defined");
+    }
+    expect(closeButton).toHaveAccessibleName("Close");
+
+    // Clicking the single close button dismisses the modal
+    await user.click(closeButton);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("passes automated axe accessibility audit with 0 violations", async () => {
