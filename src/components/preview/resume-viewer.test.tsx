@@ -63,9 +63,8 @@ describe("ResumeViewer Component", () => {
     expect(plainTextElement).toHaveTextContent("Built large-scale applications");
   });
 
-  it("supports page layout toggle (Letter vs A4) and resizes both width and height", async () => {
-    const user = userEvent.setup();
-    render(
+  it("renders resume-page-paper occupying 100% width with no margins and hoisted one level above", () => {
+    const { container } = render(
       <ResumeViewer
         htmlContent={mockHtml}
         markdownContent={mockMarkdown}
@@ -74,25 +73,34 @@ describe("ResumeViewer Component", () => {
     );
 
     const pagePaper = screen.getByTestId("resume-page-paper");
-    // Initially Letter layout: width 816px, height 1056px
-    expect(pagePaper).toHaveAttribute("data-layout", "letter");
-    expect(pagePaper.className).toMatch(/w-\[816px\]/);
-    expect(pagePaper.className).toMatch(/min-h-\[1056px\]/);
+    expect(pagePaper).toBeInTheDocument();
+    expect(pagePaper).toHaveClass("w-full");
+    // Verified 100% width and no fixed paper width or artificial page boundary constraints
+    expect(pagePaper.className).not.toMatch(/w-\[816px\]/);
+    expect(pagePaper.className).not.toMatch(/w-\[794px\]/);
+    expect(pagePaper.className).not.toMatch(/min-h-\[1056px\]/);
+    expect(pagePaper.className).not.toMatch(/min-h-\[1123px\]/);
+    // Verified no margin classes on page paper
+    expect(pagePaper.className).not.toMatch(/\bm-\d|\bm[xytb]-\d/);
+    // Verified hoisted one level above directly under the root container (no intervening padded canvas wrapper)
+    expect(pagePaper.parentElement).toBe(container.firstChild);
+  });
 
-    // Switch to A4 layout: width 794px, height 1123px
-    const layoutA4 = screen.getByRole("button", { name: /switch to a4 layout/i });
-    await user.click(layoutA4);
+  it("does not render layout sizing controls or fixed page boundary guides (removed per spec #143)", () => {
+    render(
+      <ResumeViewer
+        htmlContent={mockHtml}
+        markdownContent={mockMarkdown}
+        plainTextContent={mockPlainText}
+      />
+    );
 
-    expect(pagePaper).toHaveAttribute("data-layout", "a4");
-    expect(pagePaper.className).toMatch(/w-\[794px\]/);
-    expect(pagePaper.className).toMatch(/min-h-\[1123px\]/);
-
-    // Switch back to Letter
-    const layoutLetter = screen.getByRole("button", { name: /switch to letter layout/i });
-    await user.click(layoutLetter);
-    expect(pagePaper).toHaveAttribute("data-layout", "letter");
-    expect(pagePaper.className).toMatch(/w-\[816px\]/);
-    expect(pagePaper.className).toMatch(/min-h-\[1056px\]/);
+    expect(screen.queryByRole("button", { name: /switch to a4 layout/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /switch to letter layout/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/layout:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/page boundary:/i)).not.toBeInTheDocument();
+    const pagePaper = screen.getByTestId("resume-page-paper");
+    expect(pagePaper).not.toHaveAttribute("data-layout");
   });
 
   it("does not render zoom controls (deleted per spec)", () => {
