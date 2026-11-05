@@ -10,9 +10,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+/**
+ * HomePage Component
+ *
+ * Landing and overview page for resume management, showcasing active and archived branches.
+ * Includes quick-action creation dialog with responsive sizing up to at least 720px.
+ *
+ * @returns The rendered home page view.
+ */
 export const HomePage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -36,7 +45,7 @@ export const HomePage: React.FC = () => {
               <span>Create Resume</span>
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className={FORM_DIALOG_CONTENT_CLASS}>
             <DialogHeader>
               <DialogTitle>Create New Resume Branch</DialogTitle>
               <DialogDescription>

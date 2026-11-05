@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { ShortIdBadge } from "./short-id-badge";
 import type { components } from "@/api/schema";
@@ -44,6 +45,7 @@ export interface EducationListProps {
  * Accessible list view and modal management component for Education credentials.
  * Implements WAI-ARIA 1.2 dialog and labeling conventions with compact ShortID badges,
  * collapsible "Extended Details" for optional Location and Facts, and inline bullet management.
+ * Features an accessible dialog responsively sized to at least 720px on viewports >= 640px.
  *
  * @param props - EducationListProps
  * @returns Accessible education manager element.
@@ -383,7 +385,7 @@ export const EducationList: React.FC<EducationListProps> = ({
 
       {/* Add / Edit Education Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className={FORM_DIALOG_CONTENT_CLASS}>
           <form onSubmit={handleSaveDialog}>
             <DialogHeader>
               <DialogTitle>

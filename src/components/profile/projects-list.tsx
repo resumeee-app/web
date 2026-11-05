@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { ShortIdBadge } from "./short-id-badge";
 import type { components } from "@/api/schema";
@@ -72,7 +73,8 @@ export interface ProjectsListProps {
  * Implements:
  * - List of featured projects with role, date range, external URL, skills badges, summary, and ShortID badges.
  * - Nested list of quantifiable markdown highlights (Facts) with add and delete actions.
- * - Radix UI Dialog primitive for creating and editing project records.
+ * - Radix UI Dialog primitive for creating and editing project records,
+ *   responsively sized to at least 720px on viewports >= 640px with vertical overflow handling.
  * - Collapsible "Extended Details" section for optional Start Date, End Date, and Skills tags.
  * - Screen-reader announcements for dynamic additions and removals conforming to WCAG 2.1 AA.
  *
@@ -410,7 +412,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
 
       {/* Add / Edit Project Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className={FORM_DIALOG_CONTENT_CLASS}>
           <form onSubmit={handleSaveDialog}>
             <DialogHeader>
               <DialogTitle>

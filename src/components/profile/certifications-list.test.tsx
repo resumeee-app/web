@@ -185,4 +185,25 @@ describe("CertificationsList", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("renders certification modal with at least 720px width and mobile responsive sizing", async () => {
+    const user = userEvent.setup();
+    render(
+      <CertificationsList
+        certifications={mockCertifications}
+        onAddCertification={vi.fn()}
+        onUpdateCertification={vi.fn()}
+        onDeleteCertification={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Add Certification/i }));
+
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveClass("sm:max-w-[720px]");
+    expect(dialog).not.toHaveClass("max-w-md");
+    expect(dialog).toHaveClass("w-full");
+    expect(dialog).toHaveClass("max-h-[90vh]");
+    expect(dialog).toHaveClass("overflow-y-auto");
+  });
 });

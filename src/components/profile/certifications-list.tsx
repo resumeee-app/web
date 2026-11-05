@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { ShortIdBadge } from "./short-id-badge";
 import type { components } from "@/api/schema";
@@ -39,6 +40,10 @@ export interface CertificationsListProps {
 /**
  * Accessible list view and modal management component for Professional Certifications.
  * Allows users to add, edit, and remove certifications with compact ShortID badges and verification links.
+ * Features an accessible dialog responsively sized to at least 720px on viewports >= 640px.
+ *
+ * @param props - CertificationsListProps
+ * @returns Accessible certifications manager element.
  */
 export const CertificationsList: React.FC<CertificationsListProps> = ({
   certifications,
@@ -197,7 +202,7 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
 
       {/* Add / Edit Certification Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className={FORM_DIALOG_CONTENT_CLASS}>
           <form onSubmit={handleSaveDialog}>
             <DialogHeader>
               <DialogTitle>

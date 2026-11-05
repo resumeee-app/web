@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { ShortIdBadge } from "./short-id-badge";
 import type { components } from "@/api/schema";
@@ -64,7 +65,8 @@ export interface ExperienceListProps {
  * - Collapsible "Extended Details" section for administrative, government, and visa fields:
  *   employment type, company location, company contact, hours per week, supervisor details,
  *   duties summary, and linked skills.
- * - Radix UI Dialog primitive for creating and editing work experience records.
+ * - Radix UI Dialog primitive for creating and editing work experience records,
+ *   responsively sized to at least 720px on viewports >= 640px with vertical overflow handling.
  * - Screen-reader announcements for dynamic additions, removals, and reordering.
  *
  * @param props - ExperienceListProps
@@ -498,7 +500,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
 
       {/* Add / Edit Experience Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className={FORM_DIALOG_CONTENT_CLASS}>
           <form noValidate onSubmit={handleSaveDialog}>
             <DialogHeader>
               <DialogTitle>

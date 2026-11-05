@@ -71,6 +71,26 @@ describe("CreateBranchModal Component", () => {
     expect(screen.getByLabelText(/template set \*/i)).toBeInTheDocument();
   });
 
+  it("renders with at least 720px width and mobile responsive sizing classes", () => {
+    render(
+      <CreateBranchModal
+        open={true}
+        onOpenChange={vi.fn()}
+        existingBranches={existingBranches}
+        presets={presets}
+        templates={templates}
+        onSubmit={vi.fn()}
+      />
+    );
+
+    const dialog = screen.getByRole("dialog", { name: /create new resume branch/i });
+    expect(dialog).toHaveClass("sm:max-w-[720px]");
+    expect(dialog).not.toHaveClass("sm:max-w-xl");
+    expect(dialog).toHaveClass("w-full");
+    expect(dialog).toHaveClass("max-h-[90vh]");
+    expect(dialog).toHaveClass("overflow-y-auto");
+  });
+
   it("validates required name field before submission", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();

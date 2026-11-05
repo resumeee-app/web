@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type {
@@ -60,6 +61,7 @@ export interface CreateBranchModalProps {
  * - Performs client-side validation to ensure branch names are non-empty and unique.
  * - Automatically cascades preset defaults: selecting a preset with an associated template
  *   auto-populates the template selector.
+ * - Sized responsively to at least 720px on desktop and tablet viewports while preserving mobile fluidity.
  *
  * Accessibility & WAI-ARIA Considerations:
  * - Uses Radix UI Dialog primitives (`role="dialog"`).
@@ -163,7 +165,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className={FORM_DIALOG_CONTENT_CLASS}>
         <DialogHeader>
           <DialogTitle>Create New Resume Branch</DialogTitle>
           <DialogDescription>

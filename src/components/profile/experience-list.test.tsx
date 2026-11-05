@@ -645,4 +645,29 @@ describe("ExperienceList", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("renders experience modal with at least 720px width and mobile responsive sizing", async () => {
+    const user = userEvent.setup();
+    render(
+      <ExperienceList
+        experiences={mockExperiences}
+        onReorder={vi.fn()}
+        onAddExperience={vi.fn()}
+        onUpdateExperience={vi.fn()}
+        onDeleteExperience={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    const addExpBtn = screen.getByRole("button", { name: /Add Work Experience/i });
+    await user.click(addExpBtn);
+
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveClass("sm:max-w-[720px]");
+    expect(dialog).not.toHaveClass("max-w-md");
+    expect(dialog).toHaveClass("w-full");
+    expect(dialog).toHaveClass("max-h-[90vh]");
+    expect(dialog).toHaveClass("overflow-y-auto");
+  });
 });

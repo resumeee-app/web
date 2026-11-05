@@ -3,11 +3,41 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/**
+ * Shared Tailwind CSS classes for standard entity and branch creation form dialogs.
+ * Ensures modals expand to at least 720px on viewports >= 640px while maintaining
+ * vertical scrolling constraints and fluid responsiveness on mobile devices.
+ */
+export const FORM_DIALOG_CONTENT_CLASS =
+  "sm:max-w-[720px] max-h-[90vh] overflow-y-auto";
+
+/**
+ * Root Dialog component providing WAI-ARIA accessible modal dialog state and context.
+ */
 export const Dialog = DialogPrimitive.Root;
+
+/**
+ * Interactive button or element that opens the associated Dialog.
+ */
 export const DialogTrigger = DialogPrimitive.Trigger;
+
+/**
+ * Portals dialog overlay and content to document body root.
+ */
 export const DialogPortal = DialogPrimitive.Portal;
+
+/**
+ * Accessible button to dismiss and close the active Dialog.
+ */
 export const DialogClose = DialogPrimitive.Close;
 
+/**
+ * Semi-transparent backdrop overlay rendered behind dialog content.
+ *
+ * @param props - Component attributes including optional className.
+ * @param ref - Forwarded HTMLDivElement ref.
+ * @returns Rendered overlay element.
+ */
 export const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
@@ -24,6 +54,14 @@ export const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+/**
+ * Primary modal container rendering dialog content with accessible focus trapping,
+ * backdrop blur, animation transitions, and dismiss button.
+ *
+ * @param props - Component attributes including className and children.
+ * @param ref - Forwarded HTMLDivElement ref.
+ * @returns Rendered modal dialog content element.
+ */
 export const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
@@ -52,6 +90,12 @@ export const DialogContent = React.forwardRef<
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
+/**
+ * Header wrapper for modal title and description elements.
+ *
+ * @param props - Component attributes including className.
+ * @returns Rendered header element.
+ */
 export const DialogHeader = ({
   className,
   ...props
@@ -66,6 +110,12 @@ export const DialogHeader = ({
 );
 DialogHeader.displayName = "DialogHeader";
 
+/**
+ * Footer container for modal action buttons (e.g. submit, cancel).
+ *
+ * @param props - Component attributes including className.
+ * @returns Rendered footer element.
+ */
 export const DialogFooter = ({
   className,
   ...props
@@ -80,6 +130,13 @@ export const DialogFooter = ({
 );
 DialogFooter.displayName = "DialogFooter";
 
+/**
+ * Semantic accessible title for the modal dialog (`aria-labelledby`).
+ *
+ * @param props - Component attributes including className.
+ * @param ref - Forwarded HTMLHeadingElement ref.
+ * @returns Rendered dialog title element.
+ */
 export const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
@@ -95,6 +152,13 @@ export const DialogTitle = React.forwardRef<
 ));
 DialogTitle.displayName = DialogPrimitive.Title.displayName;
 
+/**
+ * Accessible description text for the dialog (`aria-describedby`).
+ *
+ * @param props - Component attributes including className.
+ * @param ref - Forwarded HTMLParagraphElement ref.
+ * @returns Rendered dialog description element.
+ */
 export const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>

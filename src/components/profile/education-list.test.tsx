@@ -551,4 +551,28 @@ describe("EducationList", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("renders education modal with at least 720px width and mobile responsive sizing", async () => {
+    const user = userEvent.setup();
+    render(
+      <EducationList
+        education={mockEducation}
+        onAddEducation={vi.fn()}
+        onUpdateEducation={vi.fn()}
+        onDeleteEducation={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Add Education/i }));
+
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveClass("sm:max-w-[720px]");
+    expect(dialog).not.toHaveClass("max-w-md");
+    expect(dialog).not.toHaveClass("sm:max-w-lg");
+    expect(dialog).toHaveClass("w-full");
+    expect(dialog).toHaveClass("max-h-[90vh]");
+    expect(dialog).toHaveClass("overflow-y-auto");
+  });
 });

@@ -513,4 +513,27 @@ describe("ProjectsList", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("renders project modal with at least 720px width and mobile responsive sizing", async () => {
+    const user = userEvent.setup();
+    render(
+      <ProjectsList
+        projects={mockProjects}
+        onAddProject={vi.fn()}
+        onUpdateProject={vi.fn()}
+        onDeleteProject={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Add Project/i }));
+
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveClass("sm:max-w-[720px]");
+    expect(dialog).not.toHaveClass("max-w-md");
+    expect(dialog).toHaveClass("w-full");
+    expect(dialog).toHaveClass("max-h-[90vh]");
+    expect(dialog).toHaveClass("overflow-y-auto");
+  });
 });
