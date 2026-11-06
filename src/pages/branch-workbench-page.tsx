@@ -31,6 +31,7 @@ import { GenerationProgress } from "@/components/workbench/generation-progress";
 import { VersionTimeline } from "@/components/workbench/version-timeline";
 import { GapAnalysisCard, type GapItem } from "@/components/workbench/gap-analysis-card";
 import { BranchContextEditor } from "@/components/workbench/branch-context-editor";
+import { PromptPreviewCard } from "@/components/workbench/prompt-preview-card";
 
 /**
  * Toast state tracking notifications triggered by asynchronous operations.
@@ -279,12 +280,23 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     }
   };
 
+  // Live draft context from context editor for reactive prompt previews
+  const [draftContext, setDraftContext] = React.useState<{
+    target_role?: string;
+    target_company?: string;
+    target_requirements?: string;
+    branch_instructions?: string;
+  } | null>(null);
+
   const handleSaveContext = async (data: {
+    target_role?: string;
+    target_company?: string;
     target_requirements: string;
     branch_instructions: string;
   }) => {
     try {
       await updateMutation.mutateAsync(data);
+      setDraftContext(null);
       setToast({
         open: true,
         title: "Context Saved",
@@ -466,12 +478,21 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
             </div>
           </section>
         ) : (
-          <BranchContextEditor
-            targetRequirements={branch.target_requirements}
-            branchInstructions={branch.branch_instructions}
-            isSaving={updateMutation.isPending}
-            onSave={handleSaveContext}
-          />
+          <>
+            <BranchContextEditor
+              targetRole={branch.target_role}
+              targetCompany={branch.target_company}
+              targetRequirements={branch.target_requirements}
+              branchInstructions={branch.branch_instructions}
+              isSaving={updateMutation.isPending}
+              onSave={handleSaveContext}
+              onDraftChange={setDraftContext}
+            />
+            <PromptPreviewCard
+              branch={branch}
+              draftOverrides={draftContext}
+            />
+          </>
         )}
 
         {/* Active Generation Progress Indicator */}

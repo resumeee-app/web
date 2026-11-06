@@ -40,6 +40,8 @@ export const workbenchKeys = {
   versions: (id: string) => [...workbenchKeys.all, "versions", id] as const,
   presets: () => [...workbenchKeys.all, "presets"] as const,
   templates: () => [...workbenchKeys.all, "templates"] as const,
+  promptPreview: (id: string, overrides?: PromptPreviewRequest) =>
+    [...workbenchKeys.all, "prompt-preview", id, overrides ?? {}] as const,
 };
 
 /**
@@ -284,5 +286,68 @@ export function useSyncBranch(branchId: string) {
         queryKey: workbenchKeys.versions(branchId),
       });
     },
+  });
+}
+
+/**
+ * PromptPreviewResponse represents the assembled system and user prompt strings.
+ */
+export type PromptPreviewResponse =
+  components["schemas"]["PromptPreviewResponse"];
+
+/**
+ * PromptPreviewRequest represents optional draft overrides for previewing prompt compilation.
+ */
+export type PromptPreviewRequest =
+  components["schemas"]["PromptPreviewRequest"];
+
+/**
+ * Fetches the compiled system and user prompt strings without invoking the LLM.
+ *
+ * @param branchId - Unique UUID of the branch.
+ * @param overrides - Optional draft overrides to preview unpersisted changes.
+ */
+export async function fetchPromptPreview(
+  branchId: string,
+  overrides?: PromptPreviewRequest
+): Promise<PromptPreviewResponse> {
+  if (overrides && Object.keys(overrides).length > 0) {
+    const { data, error } = await api.POST("/branches/{id}/prompt-preview", {
+      params: { path: { id: branchId } },
+      body: overrides,
+    });
+    if (error || !data) {
+      throw new Error(
+        extractApiErrorMessage(error, "Failed to fetch prompt preview")
+      );
+    }
+    return data;
+  }
+
+  const { data, error } = await api.GET("/branches/{id}/prompt-preview", {
+    params: { path: { id: branchId } },
+  });
+
+  if (error || !data) {
+    throw new Error(
+      extractApiErrorMessage(error, "Failed to fetch prompt preview")
+    );
+  }
+
+  return data;
+}
+
+/**
+ * Hook to retrieve the compiled prompt draft for a branch.
+ */
+export function usePromptPreview(
+  branchId: string,
+  overrides?: PromptPreviewRequest,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: workbenchKeys.promptPreview(branchId, overrides),
+    queryFn: () => fetchPromptPreview(branchId, overrides),
+    enabled: options?.enabled ?? Boolean(branchId),
   });
 }

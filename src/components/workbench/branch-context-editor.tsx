@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
  * Props for the BranchContextEditor component.
  */
 export interface BranchContextEditorProps {
+  /** Target role title from the branch. */
+  targetRole?: string | null;
+  /** Target company name from the branch. */
+  targetCompany?: string | null;
   /** Target requirements / job description text from the branch. */
   targetRequirements?: string | null;
   /** Custom LLM instructions or constraints specific to this branch. */
@@ -14,9 +18,18 @@ export interface BranchContextEditorProps {
   isSaving?: boolean;
   /** Callback invoked when the user saves the context. */
   onSave: (data: {
+    target_role?: string;
+    target_company?: string;
     target_requirements: string;
     branch_instructions: string;
   }) => Promise<void> | void;
+  /** Callback fired whenever draft context inputs change to enable reactive prompt previews. */
+  onDraftChange?: (data: {
+    target_role?: string;
+    target_company?: string;
+    target_requirements?: string;
+    branch_instructions?: string;
+  } | null) => void;
   /** Whether the editor starts expanded by default. Defaults to false. */
   defaultExpanded?: boolean;
 }
@@ -33,13 +46,18 @@ export interface BranchContextEditorProps {
  * - Save button provides `aria-busy` when save mutation is in flight.
  */
 export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
+  targetRole,
+  targetCompany,
   targetRequirements = "",
   branchInstructions = "",
   isSaving = false,
   onSave,
+  onDraftChange,
   defaultExpanded = false,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
+  const [role, setRole] = React.useState(targetRole || "");
+  const [company, setCompany] = React.useState(targetCompany || "");
   const [requirements, setRequirements] = React.useState(
     targetRequirements || ""
   );
@@ -52,6 +70,14 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
 
   // Synchronize state when upstream branch props change
   React.useEffect(() => {
+    setRole(targetRole || "");
+  }, [targetRole]);
+
+  React.useEffect(() => {
+    setCompany(targetCompany || "");
+  }, [targetCompany]);
+
+  React.useEffect(() => {
     setRequirements(targetRequirements || "");
   }, [targetRequirements]);
 
@@ -59,17 +85,53 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
     setInstructions(branchInstructions || "");
   }, [branchInstructions]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await onSave({
-      target_requirements: requirements,
-      branch_instructions: instructions,
-    });
-  };
-
   const hasChanges =
+    role !== (targetRole || "") ||
+    company !== (targetCompany || "") ||
     requirements !== (targetRequirements || "") ||
     instructions !== (branchInstructions || "");
+
+  const isFirstRender = React.useRef(true);
+
+  // Notify listeners of live draft changes when dirty, or null when clean
+  React.useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (!hasChanges) {
+        return;
+      }
+    }
+    if (hasChanges) {
+      onDraftChange?.({
+        target_role: role,
+        target_company: company,
+        target_requirements: requirements,
+        branch_instructions: instructions,
+      });
+    } else {
+      onDraftChange?.(null);
+    }
+  }, [hasChanges, role, company, requirements, instructions, onDraftChange]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload: {
+      target_role?: string;
+      target_company?: string;
+      target_requirements: string;
+      branch_instructions: string;
+    } = {
+      target_requirements: requirements,
+      branch_instructions: instructions,
+    };
+    if (role !== (targetRole || "")) {
+      payload.target_role = role;
+    }
+    if (company !== (targetCompany || "")) {
+      payload.target_company = company;
+    }
+    await onSave(payload);
+  };
 
   return (
     <section
@@ -114,6 +176,46 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
           onSubmit={handleSubmit}
           className="mt-6 space-y-4 border-t border-slate-100 dark:border-slate-800 pt-4"
         >
+          {(targetRole !== undefined || targetCompany !== undefined) && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="target-role-input"
+                  className="block text-sm font-semibold text-slate-800 dark:text-slate-200"
+                >
+                  Target Role
+                </label>
+                <input
+                  id="target-role-input"
+                  type="text"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  disabled={isSaving}
+                  placeholder="e.g., Staff Distributed Systems Engineer"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-50 dark:disabled:bg-slate-900"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="target-company-input"
+                  className="block text-sm font-semibold text-slate-800 dark:text-slate-200"
+                >
+                  Target Company
+                </label>
+                <input
+                  id="target-company-input"
+                  type="text"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  disabled={isSaving}
+                  placeholder="e.g., Stripe"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-50 dark:disabled:bg-slate-900"
+                />
+              </div>
+            </div>
+          )}
+
           <div>
             <label
               htmlFor="target-requirements-input"

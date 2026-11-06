@@ -691,6 +691,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/branches/{id}/prompt-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Preview prompt draft for a branch
+         * @description Renders the assembled system and user prompt templates against the candidate's current master profile and branch target requirements without calling the LLM.
+         */
+        get: operations["getPromptPreview"];
+        put?: never;
+        /**
+         * Preview prompt draft with transient modifications
+         * @description Renders the assembled system and user prompt templates incorporating optional transient draft overrides (target role, company, requirements, branch instructions) without calling the LLM or persisting changes to the branch.
+         */
+        post: operations["previewPrompt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/branches/sync": {
         parameters: {
             query?: never;
@@ -1287,6 +1314,28 @@ export interface components {
             pinned_entity_ids?: string[];
             excluded_entity_ids?: string[];
             active_version_id?: string;
+        };
+        PromptPreviewResponse: {
+            /** @description Rendered system prompt containing grounding rules and provenance constraints. */
+            system_prompt: string;
+            /** @description Rendered user prompt containing writing rules, target requirements, and serialized profile data. */
+            user_prompt: string;
+        };
+        PromptPreviewRequest: {
+            /** @description Optional override for the target role. */
+            target_role?: string;
+            /** @description Optional override for the target company. */
+            target_company?: string;
+            /** @description Optional override for target requirements / job description. */
+            target_requirements?: string;
+            /** @description Optional override for custom branch instructions. */
+            branch_instructions?: string;
+            /** @description Optional override for formatting preset ID. */
+            preset_id?: string | null;
+            /** @description Optional override for pinned entity IDs. */
+            pinned_entity_ids?: string[];
+            /** @description Optional override for excluded entity IDs. */
+            excluded_entity_ids?: string[];
         };
         TailoredBullet: {
             text: string;
@@ -3127,6 +3176,61 @@ export interface operations {
                     "application/json": components["schemas"]["GapReport"];
                 };
             };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getPromptPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rendered prompt draft preview */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptPreviewResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    previewPrompt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PromptPreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Rendered prompt draft preview */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptPreviewResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             500: components["responses"]["InternalError"];
         };

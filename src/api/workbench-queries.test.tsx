@@ -11,8 +11,10 @@ import {
   updateBranch,
   updateBranchActiveVersion,
   syncBranch,
+  fetchPromptPreview,
   useBranch,
   useUpdateBranch,
+  usePromptPreview,
 } from "./workbench-queries";
 import type { components } from "./schema";
 
@@ -295,6 +297,83 @@ describe("workbench-queries", () => {
         params: { path: { id: "b-1" } },
         body: { preset_id: "preset-custom" },
       });
+    });
+
+    it("fetchPromptPreview calls GET /branches/{id}/prompt-preview", async () => {
+      const mockPreview = {
+        system_prompt: "System rules",
+        user_prompt: "User context",
+      };
+
+      vi.spyOn(api, "GET").mockResolvedValueOnce({
+        data: mockPreview,
+        error: undefined,
+        response: new Response(),
+      } as never);
+
+      const res = await fetchPromptPreview("b-1");
+      expect(api.GET).toHaveBeenCalledWith("/branches/{id}/prompt-preview", {
+        params: { path: { id: "b-1" } },
+      });
+      expect(res.system_prompt).toBe("System rules");
+    });
+
+    it("usePromptPreview fetches prompt preview via GET when overrides are empty", async () => {
+      const { Wrapper } = createTestWrapper();
+
+      const mockPreview = {
+        system_prompt: "System rules",
+        user_prompt: "User context",
+      };
+
+      vi.spyOn(api, "GET").mockResolvedValueOnce({
+        data: mockPreview,
+        error: undefined,
+        response: new Response(),
+      } as never);
+
+      const { result } = renderHook(() => usePromptPreview("b-1"), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(api.GET).toHaveBeenCalledWith("/branches/{id}/prompt-preview", {
+        params: { path: { id: "b-1" } },
+      });
+      expect(result.current.data?.system_prompt).toBe("System rules");
+    });
+
+    it("usePromptPreview fetches prompt preview via POST when overrides are present", async () => {
+      const { Wrapper } = createTestWrapper();
+
+      const mockPreview = {
+        system_prompt: "System rules",
+        user_prompt: "Overridden user context",
+      };
+
+      vi.spyOn(api, "POST").mockResolvedValueOnce({
+        data: mockPreview,
+        error: undefined,
+        response: new Response(),
+      } as never);
+
+      const overrides = { target_role: "Staff Engineer" };
+      const { result } = renderHook(() => usePromptPreview("b-1", overrides), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(api.POST).toHaveBeenCalledWith("/branches/{id}/prompt-preview", {
+        params: { path: { id: "b-1" } },
+        body: overrides,
+      });
+      expect(result.current.data?.user_prompt).toBe("Overridden user context");
     });
   });
 });

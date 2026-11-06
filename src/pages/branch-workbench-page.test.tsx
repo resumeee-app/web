@@ -524,6 +524,71 @@ describe("BranchWorkbenchPage", () => {
     });
   });
 
+  it("renders collapsible prompt preview and fetches prompt draft upon expanding", async () => {
+    const user = userEvent.setup();
+    const { Wrapper } = createTestWrapper();
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({ data: mockBranch, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({ data: mockVersions, error: undefined }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/prompt-preview") {
+        return Promise.resolve({
+          data: {
+            system_prompt: "You are Resumeee AI. Anti-Hallucination rules.",
+            user_prompt: "Target Role: Staff Infrastructure Engineer",
+          },
+          error: undefined,
+        }) as never;
+      }
+      return Promise.resolve({ data: [], error: undefined }) as never;
+    });
+
+    vi.spyOn(api, "POST").mockImplementation((path: string) => {
+      if (path === "/branches/{id}/prompt-preview") {
+        return Promise.resolve({
+          data: {
+            system_prompt: "You are Resumeee AI. Anti-Hallucination rules.",
+            user_prompt: "Target Role: Staff Infrastructure Engineer",
+          },
+          error: undefined,
+        }) as never;
+      }
+      return Promise.resolve({ data: {}, error: undefined }) as never;
+    });
+
+    render(<BranchWorkbenchPage pollIntervalMs={30} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: "Senior Distributed Systems Engineer" })
+      ).toBeInTheDocument();
+    });
+
+    const inspectBtn = screen.getByRole("button", {
+      name: /inspect llm prompt/i,
+    });
+    expect(inspectBtn).toBeInTheDocument();
+    expect(inspectBtn).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(inspectBtn);
+
+    expect(inspectBtn).toHaveAttribute("aria-expanded", "true");
+    await waitFor(() => {
+      expect(screen.getByText(/anti-hallucination rules/i)).toBeInTheDocument();
+      expect(screen.getByText(/target role: staff infrastructure engineer/i)).toBeInTheDocument();
+    });
+  });
+
   it("renders 404 branch not found boundary with return link when branch loading fails", async () => {
     vi.spyOn(api, "GET").mockImplementation((path: string) => {
       if (path === "/branches/{id}") {

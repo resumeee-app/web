@@ -90,6 +90,52 @@ describe("BranchContextEditor", () => {
     expect(saveButton).toHaveAttribute("aria-busy", "true");
   });
 
+  it("allows editing target role and company and triggers onDraftChange", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    const onDraftChange = vi.fn();
+
+    render(
+      <BranchContextEditor
+        defaultExpanded={true}
+        targetRole="Software Engineer"
+        targetCompany="Stripe"
+        targetRequirements="Go backend"
+        branchInstructions="Concise"
+        onSave={onSave}
+        onDraftChange={onDraftChange}
+      />
+    );
+
+    const roleInput = screen.getByLabelText(/target role/i);
+    const companyInput = screen.getByLabelText(/target company/i);
+
+    expect(roleInput).toHaveValue("Software Engineer");
+    expect(companyInput).toHaveValue("Stripe");
+    // Ensure onDraftChange does NOT fire on mount when clean
+    expect(onDraftChange).not.toHaveBeenCalled();
+
+    await user.clear(roleInput);
+    await user.type(roleInput, "Staff SRE");
+
+    await user.clear(companyInput);
+    await user.type(companyInput, "Acme");
+
+    expect(onDraftChange).toHaveBeenCalled();
+
+    const saveButton = screen.getByRole("button", {
+      name: /save context/i,
+    });
+    await user.click(saveButton);
+
+    expect(onSave).toHaveBeenCalledWith({
+      target_role: "Staff SRE",
+      target_company: "Acme",
+      target_requirements: "Go backend",
+      branch_instructions: "Concise",
+    });
+  });
+
   it("passes accessibility audit with 0 violations", async () => {
     const { container } = render(
       <BranchContextEditor
