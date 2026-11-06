@@ -7,6 +7,7 @@ import React from "react";
 import {
   TemplatePreviewPane,
   buildPreformattedPreviewDocument,
+  stripScriptTags,
 } from "./template-preview-pane";
 import { validateGoTemplateSyntax } from "./template-code-editor";
 import { api } from "@/api/client";
@@ -211,6 +212,78 @@ describe("TemplatePreviewPane Component", () => {
     const srcDoc = iframe.getAttribute("srcdoc") || "";
     expect(srcDoc).toContain("Cached Template Title");
     expect(srcDoc).not.toContain("No HTML output available");
+  });
+
+  it("strips JSON-LD script tags and executable scripts from HTML preview via stripScriptTags", () => {
+    const rawHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <script type="application/ld+json">
+  {"@context": "https://schema.org", "@type": "Person", "name": "Jane Doe"}
+  </script>
+  <style>body { color: #1e293b; }</style>
+</head>
+<body>
+  <h1>Jane Doe</h1>
+  <script>alert('xss');</script>
+  <p>Software Engineer</p>
+  <script src="/evil.js"></script>
+</body>
+</html>`;
+
+    const cleaned = stripScriptTags(rawHtml);
+    expect(cleaned).not.toContain("<script");
+    expect(cleaned).not.toContain("</script>");
+    expect(cleaned).not.toContain("application/ld+json");
+    expect(cleaned).not.toContain("alert('xss')");
+    expect(cleaned).not.toContain("/evil.js");
+    expect(cleaned).toContain("<h1>Jane Doe</h1>");
+    expect(cleaned).toContain("<p>Software Engineer</p>");
+    expect(cleaned).toContain("<style>body { color: #1e293b; }</style>");
+  });
+
+  it("strips script tags from previewDocument inside sandboxed iframe without breaking layout", () => {
+    const wrapper = createWrapper();
+    const templateWithScripts = {
+      html: `<!DOCTYPE html>
+<html>
+<head>
+  <title>Jane Doe - Resume</title>
+  <script type="application/ld+json">
+  {"@context": "https://schema.org", "@type": "Person"}
+  </script>
+  <style>h1 { font-size: 24px; }</style>
+</head>
+<body>
+  <h1>Jane Doe</h1>
+  <script>console.log("blocked");</script>
+  <p>Senior Staff Architect</p>
+</body>
+</html>`,
+      markdown: "# Jane Doe",
+      plain_text: "Jane Doe",
+    };
+
+    render(
+      <TemplatePreviewPane
+        initialRenderOutput={templateWithScripts}
+      />,
+      { wrapper }
+    );
+
+    const iframe = screen.getByTitle("Template Preview");
+    expect(iframe).toBeInTheDocument();
+    expect(iframe).toHaveAttribute("sandbox", "");
+    expect(iframe.getAttribute("sandbox")).not.toContain("allow-scripts");
+
+    const srcDoc = iframe.getAttribute("srcdoc") || "";
+    expect(srcDoc).not.toContain("<script");
+    expect(srcDoc).not.toContain("</script>");
+    expect(srcDoc).not.toContain("application/ld+json");
+    expect(srcDoc).not.toContain("console.log");
+    expect(srcDoc).toContain("<h1>Jane Doe</h1>");
+    expect(srcDoc).toContain("<p>Senior Staff Architect</p>");
+    expect(srcDoc).toContain("<style>h1 { font-size: 24px; }</style>");
   });
 
   it("renders empty state placeholder when rendered output contains empty HTML", () => {

@@ -68,6 +68,25 @@ export function escapeHtml(str: string): string {
 }
 
 /**
+ * Safely strips any `<script>` tags (including JSON-LD data islands, inline scripts,
+ * and external script references) from HTML before rendering inside a sandboxed iframe.
+ *
+ * This prevents Chromium from logging blocked script execution warnings or aborting
+ * document presentation inside strictly sandboxed iframes (`sandbox=""`).
+ *
+ * @param html - The raw HTML string.
+ * @returns Sanitized HTML string with all script tags removed.
+ */
+export function stripScriptTags(html: string): string {
+  if (!html) {
+    return "";
+  }
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, "")
+    .replace(/<script\b[^>]*\/?>/gi, "");
+}
+
+/**
  * Builds a sanitized, preformatted HTML document wrapper for Markdown or Plain Text preview.
  *
  * @param title - The HTML document title.
@@ -227,11 +246,15 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
 </html>`;
       }
 
-      if (htmlBody.toLowerCase().includes("<html")) {
-        if (customStyles && !htmlBody.includes(customStyles)) {
-          return htmlBody.replace("</head>", `${customStyles}</head>`);
+      // Strip any <script> tags (e.g. JSON-LD structured data or inline scripts)
+      // to guarantee safe rendering inside strictly sandboxed iframes without script blocks.
+      const sanitizedBody = stripScriptTags(htmlBody);
+
+      if (sanitizedBody.toLowerCase().includes("<html")) {
+        if (customStyles && !sanitizedBody.includes(customStyles)) {
+          return sanitizedBody.replace("</head>", `${customStyles}</head>`);
         }
-        return htmlBody;
+        return sanitizedBody;
       }
 
       return `<!DOCTYPE html>
@@ -247,7 +270,7 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
   ${customStyles}
 </head>
 <body>
-  ${htmlBody}
+  ${sanitizedBody}
 </body>
 </html>`;
     }

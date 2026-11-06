@@ -30,6 +30,26 @@ describe("ResumeViewer Component", () => {
     expect(iframe.getAttribute("sandbox")).not.toMatch(/allow-scripts/);
   });
 
+  it("strips script tags from htmlContent before rendering in sandboxed iframe", () => {
+    const htmlWithScripts = `<!DOCTYPE html><html><head><script type="application/ld+json">{"@context":"https://schema.org"}</script><style>p { color: blue; }</style></head><body><h1>Jane Doe</h1><script>alert('bad');</script><p>Summary</p></body></html>`;
+
+    render(
+      <ResumeViewer
+        htmlContent={htmlWithScripts}
+      />
+    );
+
+    const iframe = screen.getByTitle("Rendered Resume Preview");
+    expect(iframe).toBeInTheDocument();
+    const srcDoc = iframe.getAttribute("srcdoc") || "";
+    expect(srcDoc).not.toContain("<script");
+    expect(srcDoc).not.toContain("</script>");
+    expect(srcDoc).not.toContain("application/ld+json");
+    expect(srcDoc).not.toContain("alert('bad')");
+    expect(srcDoc).toContain("<h1>Jane Doe</h1>");
+    expect(srcDoc).toContain("<style>p { color: blue; }</style>");
+  });
+
   it("toggles between HTML, Markdown, and Plain Text views", async () => {
     const user = userEvent.setup();
     render(

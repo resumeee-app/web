@@ -17,6 +17,7 @@
 
 import * as React from "react";
 import { FileText, Code2, FileCode } from "lucide-react";
+import { stripScriptTags } from "@/components/templates/template-preview-pane";
 
 /**
  * Display mode toggle for resume preview: visual HTML iframe vs Markdown vs raw plain text.
@@ -50,6 +51,7 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
   className = "",
 }) => {
   const [viewMode, setViewMode] = React.useState<ResumeViewMode>("html");
+  const sanitizedHtml = React.useMemo(() => stripScriptTags(htmlContent), [htmlContent]);
 
   const hasContent = Boolean(htmlContent || markdownContent || plainTextContent);
 
@@ -134,7 +136,7 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
           {viewMode === "html" ? (
             <iframe
               title="Rendered Resume Preview"
-              srcDoc={htmlContent}
+              srcDoc={sanitizedHtml}
               sandbox=""
               className="w-full h-full min-h-[600px] border-0"
             />
