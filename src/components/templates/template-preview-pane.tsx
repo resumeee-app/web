@@ -128,15 +128,16 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
   const [internalFormat, setInternalFormat] = React.useState<"html" | "markdown" | "text">("html");
   const activeFormat = controlledFormat ?? internalFormat;
 
-  const [renderedOutput, setRenderedOutput] = React.useState<RenderOutput | null>(
+  const [draftRenderedOutput, setDraftRenderedOutput] = React.useState<RenderOutput | null>(
     initialRenderOutput ?? null
   );
   const [serverError, setServerError] = React.useState<string | null>(null);
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
   // Sync initialRenderOutput if provided or updated
   React.useEffect(() => {
     if (initialRenderOutput) {
-      setRenderedOutput(initialRenderOutput);
+      setDraftRenderedOutput(initialRenderOutput);
     }
   }, [initialRenderOutput]);
 
@@ -155,17 +156,12 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
   );
 
   React.useEffect(() => {
-    if (savedOutput) {
-      setRenderedOutput(savedOutput);
-      setServerError(null);
-    }
-  }, [savedOutput]);
-
-  React.useEffect(() => {
     if (savedError) {
       setServerError(savedError.message);
+    } else if (savedOutput) {
+      setServerError(null);
     }
-  }, [savedError]);
+  }, [savedError, savedOutput]);
 
   // Mutation for draft templates (split-screen editor)
   const { mutate: renderPreviewMutation, isPending: isRenderPending } = useRenderTemplatePreview();
@@ -186,7 +182,7 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
       },
       {
         onSuccess: (data) => {
-          setRenderedOutput(data);
+          setDraftRenderedOutput(data);
           setServerError(null);
         },
         onError: (err) => {
@@ -204,6 +200,11 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
     textTemplate,
     renderPreviewMutation,
   ]);
+
+  // Synchronously derive rendered output so cached queries immediately display without intermediate empty flashes
+  const renderedOutput = hasDraftInputs
+    ? (draftRenderedOutput ?? initialRenderOutput ?? null)
+    : (savedOutput ?? draftRenderedOutput ?? initialRenderOutput ?? null);
 
   const handleFormatClick = (fmt: "html" | "markdown" | "text") => {
     if (onFormatChange) {
@@ -269,7 +270,14 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
     );
   }, [activeFormat, renderedOutput, cssStyles]);
 
-  const isLoading = isSavedLoading || isRenderPending;
+  // Ensure iframe element property matches previewDocument when remounted or updated
+  React.useEffect(() => {
+    if (iframeRef.current && previewDocument) {
+      iframeRef.current.srcdoc = previewDocument;
+    }
+  }, [previewDocument]);
+
+  const isLoading = (hasDraftInputs ? isRenderPending : isSavedLoading) || isDebouncing;
 
   return (
     <div
@@ -335,6 +343,8 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
       {/* Sandboxed iframe container - strictly sandbox="" (no allow-scripts), srcdoc only */}
       <div className="relative flex-1 bg-white dark:bg-slate-950 p-2">
         <iframe
+          key={templateId || "draft"}
+          ref={iframeRef}
           srcDoc={previewDocument}
           sandbox=""
           title="Template Preview"

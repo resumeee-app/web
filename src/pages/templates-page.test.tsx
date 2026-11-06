@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -50,12 +50,21 @@ const mockTemplates: TemplateSet[] = [
   },
 ];
 
+const mockPreviewOutput = {
+  html: "<h1>Standard Clean Live Preview</h1><p>Software Engineer</p>",
+  markdown: "# Standard Clean Live Preview",
+  plain_text: "Standard Clean Live Preview",
+};
+
 // Mock API client
 vi.mock("@/api/client", () => ({
   api: {
     GET: vi.fn((path: string) => {
       if (path === "/templates") {
         return Promise.resolve({ data: mockTemplates, error: null, response: { status: 200 } });
+      }
+      if (path === "/templates/{id}/preview") {
+        return Promise.resolve({ data: mockPreviewOutput, error: null, response: { status: 200 } });
       }
       return Promise.resolve({ data: null, error: { error: { message: "Not found" } }, response: { status: 404 } });
     }),
@@ -272,6 +281,44 @@ describe("TemplatesPage Component", () => {
     // Clicking the single close button dismisses the modal
     await user.click(closeButton);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("opens preview modal, closes it, and re-opens preview verifying template renders in both instances", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<TemplatesPage />);
+
+    await screen.findByText("Standard Clean");
+
+    // 1. First preview open
+    const previewBtn = screen.getByRole("button", {
+      name: /preview standard clean/i,
+    });
+    await user.click(previewBtn);
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+
+    const iframe = screen.getByTitle("Template Preview");
+    await waitFor(() => {
+      expect(iframe.getAttribute("srcdoc")).toContain("Standard Clean Live Preview");
+    });
+
+    // 2. Close the modal
+    const closeButton = within(dialog).getByRole("button", { name: /close/i });
+    await user.click(closeButton);
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    // 3. Second preview open on the same template
+    await user.click(previewBtn);
+    const dialog2 = await screen.findByRole("dialog");
+    expect(dialog2).toBeInTheDocument();
+
+    const iframe2 = within(dialog2).getByTitle("Template Preview");
+    await waitFor(() => {
+      expect(iframe2.getAttribute("srcdoc")).toContain("Standard Clean Live Preview");
+    });
   });
 
   it("passes automated axe accessibility audit with 0 violations", async () => {

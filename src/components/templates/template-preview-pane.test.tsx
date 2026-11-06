@@ -188,6 +188,31 @@ describe("TemplatePreviewPane Component", () => {
     });
   });
 
+  it("immediately renders cached saved template preview on remount without blank flash", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
+    queryClient.setQueryData(["templates", "cached-tmpl-999", "preview"], {
+      html: "<h1>Cached Template Title</h1>",
+      markdown: "# Cached Template Title",
+      plain_text: "Cached Template Title",
+    });
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    // Initial render should immediately contain cached HTML without waiting for useEffect
+    render(<TemplatePreviewPane templateId="cached-tmpl-999" />, { wrapper });
+
+    const iframe = screen.getByTitle("Template Preview");
+    const srcDoc = iframe.getAttribute("srcdoc") || "";
+    expect(srcDoc).toContain("Cached Template Title");
+    expect(srcDoc).not.toContain("No HTML output available");
+  });
+
   it("renders empty state placeholder when rendered output contains empty HTML", () => {
     const wrapper = createWrapper();
     render(

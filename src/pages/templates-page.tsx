@@ -313,6 +313,7 @@ export const TemplatesPage: React.FC = () => {
           <div className="flex-1 mt-4 overflow-hidden">
             {previewTemplate && (
               <TemplatePreviewPane
+                key={previewTemplate.id}
                 templateId={previewTemplate.id}
                 className="h-full"
               />
