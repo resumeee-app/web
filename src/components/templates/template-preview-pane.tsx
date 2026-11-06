@@ -365,14 +365,44 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
 
       {/* Sandboxed iframe container - strictly sandbox="" (no allow-scripts), srcdoc only */}
       <div className="relative flex-1 bg-white dark:bg-slate-950 p-2">
-        <iframe
-          key={templateId || "draft"}
-          ref={iframeRef}
-          srcDoc={previewDocument}
-          sandbox=""
-          title="Template Preview"
-          className="h-full w-full min-h-[380px] rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-inner"
-        />
+        {isLoading && !renderedOutput ? (
+          <div
+            data-testid="template-preview-loading"
+            role="status"
+            aria-live="polite"
+            className="flex h-full min-h-[380px] flex-col items-center justify-center rounded border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-8 text-center"
+          >
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+            <p className="mt-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+              Loading template preview...
+            </p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Rendering template formats and styles on server
+            </p>
+          </div>
+        ) : !renderedOutput ? (
+          <div
+            data-testid="template-preview-empty"
+            className="flex h-full min-h-[380px] flex-col items-center justify-center rounded border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-8 text-center"
+          >
+            <FileText className="h-8 w-8 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+            <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+              No template preview available
+            </p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Select or configure template source to preview.
+            </p>
+          </div>
+        ) : (
+          <iframe
+            key={templateId || "draft"}
+            ref={iframeRef}
+            srcDoc={previewDocument}
+            sandbox=""
+            title="Template Preview"
+            className="h-full w-full min-h-[380px] rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-inner"
+          />
+        )}
       </div>
     </div>
   );

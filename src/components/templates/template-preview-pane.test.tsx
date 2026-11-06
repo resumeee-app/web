@@ -164,6 +164,66 @@ describe("TemplatePreviewPane Component", () => {
     });
   });
 
+  it("defers iframe mounting and displays loading skeleton while preview query is in flight", async () => {
+    let resolveGet: (value: unknown) => void = () => {};
+    const pendingPromise = new Promise((resolve) => {
+      resolveGet = resolve;
+    });
+
+    vi.mocked(api.GET).mockReturnValueOnce(
+      pendingPromise as unknown as ReturnType<typeof api.GET>
+    );
+
+    const wrapper = createWrapper();
+    render(<TemplatePreviewPane templateId="test-tmpl-deferred" />, { wrapper });
+
+    // While query is in flight: loading skeleton is rendered, iframe is NOT mounted
+    expect(screen.getByTestId("template-preview-loading")).toBeInTheDocument();
+    expect(screen.getByText("Loading template preview...")).toBeInTheDocument();
+    expect(screen.queryByTitle("Template Preview")).toBeNull();
+
+    // Resolve query
+    resolveGet({
+      data: {
+        html: "<h1>Deferred Loaded Header</h1>",
+        markdown: "# Deferred Loaded Header",
+        plain_text: "Deferred Loaded Header",
+      },
+      error: undefined,
+      response: new Response(null, { status: 200 }),
+    });
+
+    // After resolution: loading skeleton is unmounted, iframe is mounted with rendered content
+    await waitFor(() => {
+      const iframe = screen.getByTitle("Template Preview");
+      expect(iframe).toBeInTheDocument();
+      expect(iframe.getAttribute("srcdoc")).toContain("Deferred Loaded Header");
+    });
+    expect(screen.queryByTestId("template-preview-loading")).toBeNull();
+  });
+
+  it("displays clean empty state and does not mount iframe when no rendered output is available and not loading", () => {
+    const wrapper = createWrapper();
+    render(<TemplatePreviewPane />, { wrapper });
+
+    expect(screen.getByTestId("template-preview-empty")).toBeInTheDocument();
+    expect(screen.getByText("No template preview available")).toBeInTheDocument();
+    expect(screen.queryByTitle("Template Preview")).toBeNull();
+  });
+
+  it("passes automated axe accessibility audit during loading state with 0 violations", async () => {
+    vi.mocked(api.GET).mockReturnValueOnce(
+      new Promise(() => {}) as unknown as ReturnType<typeof api.GET>
+    );
+
+    const wrapper = createWrapper();
+    const { container } = render(<TemplatePreviewPane templateId="loading-axe-test" />, { wrapper });
+
+    expect(screen.getByTestId("template-preview-loading")).toBeInTheDocument();
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+
   it("fetches preview via useTemplatePreview when templateId is provided without inline templates", async () => {
     vi.mocked(api.GET).mockResolvedValueOnce({
       data: {
