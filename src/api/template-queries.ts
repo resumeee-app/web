@@ -168,6 +168,7 @@ export function useTemplatePreview(id: string | undefined) {
       return data as RenderOutput;
     },
     enabled: Boolean(id && id !== "new"),
+    staleTime: 5 * 60 * 1000,
   });
 }
 

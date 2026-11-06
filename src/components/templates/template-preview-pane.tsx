@@ -293,9 +293,9 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
     );
   }, [activeFormat, renderedOutput, cssStyles]);
 
-  // Ensure iframe element property matches previewDocument when remounted or updated
+  // Ensure iframe element property matches previewDocument when updated, avoiding redundant writes that abort navigation
   React.useEffect(() => {
-    if (iframeRef.current && previewDocument) {
+    if (iframeRef.current && previewDocument && iframeRef.current.srcdoc !== previewDocument) {
       iframeRef.current.srcdoc = previewDocument;
     }
   }, [previewDocument]);
