@@ -733,11 +733,98 @@ export interface ParsePDFResumeOptions {
   provider?: string;
   /** Optional LLM model override */
   model?: string;
+  /** Optional AbortSignal to cancel in-flight network dispatch and polling loops */
+  signal?: AbortSignal;
+}
+
+/**
+ * Fetches the execution lifecycle status and candidate result of an asynchronous PDF parse job.
+ *
+ * @param jobId - Unique PDF parse job identifier
+ * @param signal - Optional AbortSignal to cancel in-flight HTTP request
+ * @returns Candidate PDFParseJob record
+ */
+export async function fetchPDFParseJob(
+  jobId: string,
+  signal?: AbortSignal
+): Promise<components["schemas"]["PDFParseJob"]> {
+  const { data, error } = await api.GET("/profile/pdf/jobs/{id}", {
+    params: {
+      path: { id: jobId },
+    },
+    signal,
+  });
+
+  if (error || !data) {
+    throw new Error(
+      (error as { error?: { message?: string } })?.error?.message ||
+        "Failed to fetch PDF parse job status"
+    );
+  }
+
+  return data;
+}
+
+/**
+ * Polls an asynchronous PDF parse job until completion or failure.
+ *
+ * @param jobId - Job ID to poll
+ * @param pollIntervalMs - Polling interval in milliseconds (defaults to 1000ms)
+ * @param signal - Optional AbortSignal to cancel polling loop early
+ * @returns Completed JSONResume
+ */
+export async function pollPDFParseJobUntilFinished(
+  jobId: string,
+  pollIntervalMs = 1000,
+  signal?: AbortSignal
+): Promise<JSONResume> {
+  const maxAttempts = 600; // 10 minutes maximum polling boundary
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (signal?.aborted) {
+      throw new DOMException("The operation was aborted", "AbortError");
+    }
+
+    const job = await fetchPDFParseJob(jobId, signal);
+    if (job.status === "completed") {
+      if (!job.result) {
+        throw new Error("PDF parse job completed without candidate resume data");
+      }
+      return job.result as unknown as JSONResume;
+    }
+    if (job.status === "failed") {
+      throw new Error(job.error_message || "PDF parsing failed");
+    }
+
+    if (signal?.aborted) {
+      throw new DOMException("The operation was aborted", "AbortError");
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        cleanup();
+        resolve();
+      }, pollIntervalMs);
+
+      const onAbort = () => {
+        cleanup();
+        reject(new DOMException("The operation was aborted", "AbortError"));
+      };
+
+      const cleanup = () => {
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", onAbort);
+      };
+
+      signal?.addEventListener("abort", onAbort, { once: true });
+    });
+  }
+  throw new Error("PDF parsing timed out waiting for extraction completion");
 }
 
 /**
  * Hook to parse an uploaded PDF resume via POST /profile/pdf/parse.
- * Uploads the file as multipart/form-data with LLM extraction into candidate JSON Resume format.
+ * Uploads the file as multipart/form-data. When enqueued asynchronously, polls /profile/pdf/jobs/{id}
+ * until the job reaches "completed" or "failed" status.
  * Enforces client-side file type and 10MB size boundaries prior to network dispatch.
  *
  * @returns TanStack UseMutationResult for parsing PDF resume
@@ -748,10 +835,14 @@ export function useParsePDFResume(): UseMutationResult<
   ParsePDFResumeOptions
 > {
   return useMutation({
-    mutationFn: async ({ file, provider, model }: ParsePDFResumeOptions) => {
+    mutationFn: async ({ file, provider, model, signal }: ParsePDFResumeOptions) => {
       const validationError = validatePDFFile(file);
       if (validationError) {
         throw new Error(validationError);
+      }
+
+      if (signal?.aborted) {
+        throw new DOMException("The operation was aborted", "AbortError");
       }
 
       const formData = new FormData();
@@ -768,6 +859,7 @@ export function useParsePDFResume(): UseMutationResult<
         headers: {
           "Content-Type": null as unknown as string,
         },
+        signal,
       });
 
       if (error || !data) {
@@ -775,6 +867,17 @@ export function useParsePDFResume(): UseMutationResult<
           (error as { error?: { message?: string } })?.error?.message ||
             "Failed to parse PDF resume"
         );
+      }
+
+      // If response is already a full JSONResume (synchronous fallback or test mock)
+      if ("basics" in (data as Record<string, unknown>)) {
+        return data as unknown as JSONResume;
+      }
+
+      // If asynchronous job was queued, poll until completed or failed
+      const jobResponse = data as unknown as components["schemas"]["AsyncPDFJobResponse"];
+      if (jobResponse.job_id) {
+        return await pollPDFParseJobUntilFinished(jobResponse.job_id, 1000, signal);
       }
 
       return data as unknown as JSONResume;

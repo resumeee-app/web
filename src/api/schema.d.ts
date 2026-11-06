@@ -145,6 +145,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/profile/pdf/jobs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get asynchronous PDF parse job status and candidate result
+         * @description Returns the lifecycle state and candidate JSON Resume result of an asynchronous PDF parsing job.
+         */
+        get: operations["getPDFParseJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/profile/pdf/commit": {
         parameters: {
             query?: never;
@@ -1352,6 +1372,41 @@ export interface components {
             /** @example Resume generation job queued */
             message: string;
         };
+        AsyncPDFJobResponse: {
+            /** @example pdf-job-7a3b8c4d-1234-5678-90ab-cdef12345678 */
+            job_id: string;
+            status: components["schemas"]["PDFParseJobStatus"];
+            /** @example PDF parsing job queued */
+            message: string;
+        };
+        /**
+         * @example pending
+         * @enum {string}
+         */
+        PDFParseJobStatus: "pending" | "processing" | "completed" | "failed";
+        PDFParseJob: {
+            /** @example pdf-job-7a3b8c4d-1234-5678-90ab-cdef12345678 */
+            id: string;
+            /** @example default */
+            user_id: string;
+            status: components["schemas"]["PDFParseJobStatus"];
+            /** @example resume.pdf */
+            filename?: string;
+            /** @example google */
+            provider?: string;
+            /** @example gemini-4-argon */
+            model?: string;
+            /** @description Structured JSON Resume extracted by LLM */
+            result?: Record<string, never> | null;
+            /** @description Technical error message if parsing failed */
+            error_message?: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: date-time */
+            completed_at?: string | null;
+        };
         SyncBranchesRequest: {
             /** @description Optional list of branch UUIDs to sync. If omitted, all stale branches are queued. */
             branch_ids?: string[];
@@ -1723,7 +1778,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successfully parsed PDF into candidate JSON Resume */
+            /** @description Successfully parsed PDF into candidate JSON Resume (synchronous mode) */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1732,7 +1787,42 @@ export interface operations {
                     "application/json": Record<string, never>;
                 };
             };
+            /** @description PDF parsing job queued for asynchronous background processing */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AsyncPDFJobResponse"];
+                };
+            };
             400: components["responses"]["BadRequest"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getPDFParseJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique PDF parse job identifier */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description PDF parse job state and result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PDFParseJob"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
             500: components["responses"]["InternalError"];
         };
     };

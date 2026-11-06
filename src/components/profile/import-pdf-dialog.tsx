@@ -76,16 +76,22 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
   const isOpenRef = React.useRef(open);
   const prevOpenRef = React.useRef(open);
   const parseGenRef = React.useRef(0);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
   // Synchronize open state ref
   isOpenRef.current = open;
 
   /**
    * Resets all internal dialog staging state, increments request generation counter to discard
-   * in-flight parse operations, and clears the native DOM file input value.
+   * in-flight parse operations, cancels active network polling via AbortController,
+   * and clears the native DOM file input value.
    */
   const resetState = React.useCallback(() => {
     parseGenRef.current += 1;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
     setStep("upload");
     setSelectedFile(null);
     setCandidateResume(null);
@@ -94,6 +100,16 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  }, []);
+
+  // Cancel any active parse request when unmounting
+  React.useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
   }, []);
 
   // Reset internal state when dialog transitions from open to closed
@@ -149,8 +165,17 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
     if (!selectedFile) return;
 
     const requestGen = ++parseGenRef.current;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
-      const parsed = await parseMutation.mutateAsync({ file: selectedFile });
+      const parsed = await parseMutation.mutateAsync({
+        file: selectedFile,
+        signal: controller.signal,
+      });
 
       // Guard against in-flight race if dialog was closed or cancelled while parsing
       if (!isOpenRef.current || requestGen !== parseGenRef.current) {
@@ -165,8 +190,12 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
         }. Review fields before committing.`
       );
     } catch (err) {
-      // Ignore errors if request was superseded or dialog was closed
-      if (!isOpenRef.current || requestGen !== parseGenRef.current) {
+      // Ignore errors if request was superseded or dialog was closed or aborted
+      if (
+        !isOpenRef.current ||
+        requestGen !== parseGenRef.current ||
+        (err instanceof DOMException && err.name === "AbortError")
+      ) {
         return;
       }
 
@@ -174,6 +203,10 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
         err instanceof Error ? err.message : "Failed to parse PDF resume with LLM.";
       setValidationError(msg);
       onAnnouncement?.(`PDF parse failed: ${msg}`);
+    } finally {
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
     }
   };
 

@@ -8,6 +8,8 @@ import {
   useParsePDFResume,
   useCommitPDFResume,
   validatePDFFile,
+  pollPDFParseJobUntilFinished,
+  fetchPDFParseJob,
   MAX_PDF_SIZE_BYTES,
   PROFILE_FULL_QUERY_KEY,
   type JSONResume,
@@ -236,6 +238,187 @@ describe("profile-queries", () => {
           body: expect.any(FormData),
         })
       );
+    });
+
+    it("polls asynchronous job until completed and returns extracted candidate resume", async () => {
+      vi.mocked(api.POST).mockResolvedValueOnce({
+        data: {
+          job_id: "pdf-job-abc-123",
+          status: "pending",
+          message: "PDF parsing job queued",
+        } as unknown as Record<string, never>,
+        error: undefined,
+        response: new Response(null, { status: 202 }),
+      } as unknown as Awaited<ReturnType<typeof api.POST>>);
+
+      // First poll: processing
+      vi.mocked(api.GET).mockResolvedValueOnce({
+        data: {
+          id: "pdf-job-abc-123",
+          user_id: "default",
+          status: "processing",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.GET>>);
+
+      // Second poll: completed
+      vi.mocked(api.GET).mockResolvedValueOnce({
+        data: {
+          id: "pdf-job-abc-123",
+          user_id: "default",
+          status: "completed",
+          result: mockParsedResume,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.GET>>);
+
+      const { wrapper } = createWrapper();
+      const { result } = renderHook(() => useParsePDFResume(), { wrapper });
+
+      const file = new File(["fake pdf content"], "resume.pdf", {
+        type: "application/pdf",
+      });
+
+      const parsed = await result.current.mutateAsync({ file });
+
+      expect(parsed.basics.name).toBe("Ada Lovelace");
+      expect(api.GET).toHaveBeenCalledWith(
+        "/profile/pdf/jobs/{id}",
+        expect.objectContaining({
+          params: { path: { id: "pdf-job-abc-123" } },
+        })
+      );
+    });
+
+    it("throws error when asynchronous job status is failed", async () => {
+      vi.mocked(api.POST).mockResolvedValueOnce({
+        data: {
+          job_id: "pdf-job-fail-456",
+          status: "pending",
+          message: "PDF parsing job queued",
+        } as unknown as Record<string, never>,
+        error: undefined,
+        response: new Response(null, { status: 202 }),
+      } as unknown as Awaited<ReturnType<typeof api.POST>>);
+
+      vi.mocked(api.GET).mockResolvedValueOnce({
+        data: {
+          id: "pdf-job-fail-456",
+          user_id: "default",
+          status: "failed",
+          error_message: "Corrupted PDF stream syntax",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.GET>>);
+
+      const { wrapper } = createWrapper();
+      const { result } = renderHook(() => useParsePDFResume(), { wrapper });
+
+      const file = new File(["bad pdf"], "resume.pdf", {
+        type: "application/pdf",
+      });
+
+      await expect(result.current.mutateAsync({ file })).rejects.toThrow(
+        "Corrupted PDF stream syntax"
+      );
+    });
+
+    it("aborts parsing immediately if AbortSignal is already cancelled", async () => {
+      const { wrapper } = createWrapper();
+      const { result } = renderHook(() => useParsePDFResume(), { wrapper });
+
+      const file = new File(["valid pdf content"], "resume.pdf", {
+        type: "application/pdf",
+      });
+
+      const controller = new AbortController();
+      controller.abort();
+
+      await expect(
+        result.current.mutateAsync({ file, signal: controller.signal })
+      ).rejects.toThrow(/aborted/i);
+
+      expect(api.POST).not.toHaveBeenCalled();
+    });
+
+    it("aborts polling loop when AbortSignal fires during interval", async () => {
+      vi.mocked(api.POST).mockResolvedValueOnce({
+        data: {
+          job_id: "pdf-job-abort-789",
+          status: "pending",
+          message: "PDF parsing job queued",
+        } as unknown as Record<string, never>,
+        error: undefined,
+        response: new Response(null, { status: 202 }),
+      } as unknown as Awaited<ReturnType<typeof api.POST>>);
+
+      // First poll returns processing
+      vi.mocked(api.GET).mockResolvedValueOnce({
+        data: {
+          id: "pdf-job-abort-789",
+          user_id: "default",
+          status: "processing",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.GET>>);
+
+      const { wrapper } = createWrapper();
+      const { result } = renderHook(() => useParsePDFResume(), { wrapper });
+
+      const file = new File(["pdf content"], "resume.pdf", {
+        type: "application/pdf",
+      });
+
+      const controller = new AbortController();
+      // Abort after 50ms (during polling wait interval)
+      setTimeout(() => controller.abort(), 50);
+
+      await expect(
+        result.current.mutateAsync({ file, signal: controller.signal })
+      ).rejects.toThrow(/aborted/i);
+    });
+
+    it("fetchPDFParseJob passes AbortSignal to GET call", async () => {
+      vi.mocked(api.GET).mockResolvedValueOnce({
+        data: {
+          id: "pdf-job-fetch-1",
+          user_id: "default",
+          status: "pending",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.GET>>);
+
+      const controller = new AbortController();
+      const job = await fetchPDFParseJob("pdf-job-fetch-1", controller.signal);
+      expect(job.id).toBe("pdf-job-fetch-1");
+      expect(api.GET).toHaveBeenCalledWith("/profile/pdf/jobs/{id}", {
+        params: { path: { id: "pdf-job-fetch-1" } },
+        signal: controller.signal,
+      });
+    });
+
+    it("pollPDFParseJobUntilFinished rejects immediately when signal is aborted", async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      await expect(
+        pollPDFParseJobUntilFinished("pdf-job-fetch-1", 10, controller.signal)
+      ).rejects.toThrow(/aborted/i);
     });
 
     it("rejects 0-byte files client-side without network request", async () => {
