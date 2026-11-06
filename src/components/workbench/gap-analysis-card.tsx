@@ -6,10 +6,28 @@ import {
   AlertCircle,
   Lightbulb,
   CheckCircle2,
+  PlusCircle,
+  EyeOff,
+  RotateCcw,
+  MessageSquareQuote,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "./badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import type { components } from "@/api/schema";
+
+/**
+ * GapItem represents an identified gap or missing qualification.
+ */
+export type GapItem = components["schemas"]["GapItem"];
 
 /**
  * GapReport represents the ATS match analysis, identified qualification gaps,
@@ -27,25 +45,55 @@ export interface GapAnalysisCardProps {
   versionNumber?: number;
   /** Whether the panel starts expanded by default. Defaults to false. */
   defaultExpanded?: boolean;
+  /** Callback invoked when a user submits a quick-add fact to their master profile. */
+  onQuickAddFact?: (gap: GapItem, factText: string) => Promise<void> | void;
+  /** Callback invoked when a user marks a gap as dismissed (false positive) or restores it. */
+  onDismissGap?: (gap: GapItem, dismissed: boolean) => void;
 }
 
 /**
  * GapAnalysisCard renders an accessible, expandable audit panel displaying the
- * LLM-computed job requirement match score, identified qualification gaps,
- * importance levels, and strategic recommendations for a tailored resume version.
+ * job requirement match score, identified qualification gaps,
+ * importance levels, interactive gap resolution, and strategic recommendations.
  *
  * Accessibility / WAI-ARIA Considerations:
  * - Uses semantic `<section>` landmark with `aria-labelledby`.
  * - Disclosure button utilizes `aria-expanded` and `aria-controls` referencing the collapsible content panel.
  * - Match score meter provides `role="meter"` with explicit `aria-valuenow`, `aria-valuemin`, and `aria-valuemax`.
- * - Importance badges distinguish critical vs. suggested gaps using high-contrast color tokens and accessible text.
+ * - Interactive dialogs use Radix UI focus traps and accessible heading descriptions.
  */
 export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
   gapReport,
   versionNumber,
   defaultExpanded = false,
+  onQuickAddFact,
+  onDismissGap,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
+  const [dismissedMap, setDismissedMap] = React.useState<Record<string, boolean>>({});
+  const [talkingPointMap, setTalkingPointMap] = React.useState<Record<string, boolean>>({});
+  const [activeQuickAddGap, setActiveQuickAddGap] = React.useState<GapItem | null>(null);
+  const [quickAddFactText, setQuickAddFactText] = React.useState("");
+  const [isSubmittingQuickAdd, setIsSubmittingQuickAdd] = React.useState(false);
+  const [quickAddSuccess, setQuickAddSuccess] = React.useState(false);
+
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Clear pending timers on unmount
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  // Reset local interactive state when version changes
+  React.useEffect(() => {
+    setDismissedMap({});
+    setTalkingPointMap({});
+  }, [versionNumber]);
+
   const panelId = React.useId();
   const headingId = React.useId();
 
@@ -69,139 +117,305 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
     );
   }
 
-  const { match_score, identified_gaps, strategic_recommendations } = gapReport;
-  const clampedScore = Math.max(0, Math.min(100, match_score));
+  // Support both schema variations during migration:
+  const rawGaps = gapReport.missing_requirements ?? gapReport.identified_gaps ?? [];
+  const allGaps: GapItem[] = rawGaps.map((g) => ({
+    ...g,
+    missing_area: g.missing_area || "General Domain",
+    recommended_action: g.recommended_action || g.clarifying_prompt || "",
+  }));
+
+  const recommendations = gapReport.strategic_recommendations ?? [];
+  const rawScore = gapReport.match_score;
+  const hasScore = typeof rawScore === "number" && !Number.isNaN(rawScore);
+
+  // Recalculate live display score if user dismissed some gaps:
+  const activeGaps = allGaps.filter((g) => !dismissedMap[g.requirement]);
+  let displayScore: number | null = null;
+
+  if (hasScore) {
+    const dismissedCount = allGaps.length - activeGaps.length;
+    if (dismissedCount > 0) {
+      let deductions = 0;
+      for (const g of activeGaps) {
+        if (g.importance === "critical") deductions += 15;
+        else if (g.importance === "preferred") deductions += 7;
+        else if (g.importance === "nice_to_have") deductions += 3;
+        else deductions += 5;
+      }
+      displayScore = Math.max(0, Math.min(100, Math.round((100 - deductions) * 10) / 10));
+    } else {
+      displayScore = Math.max(0, Math.min(100, rawScore));
+    }
+  }
+
+  const handleToggleDismiss = (gap: GapItem) => {
+    const nextState = !dismissedMap[gap.requirement];
+    setDismissedMap((prev) => ({
+      ...prev,
+      [gap.requirement]: nextState,
+    }));
+    onDismissGap?.(gap, nextState);
+  };
+
+  const handleToggleTalkingPoint = (req: string) => {
+    setTalkingPointMap((prev) => ({
+      ...prev,
+      [req]: !prev[req],
+    }));
+  };
+
+  const handleOpenQuickAdd = (gap: GapItem) => {
+    setActiveQuickAddGap(gap);
+    setQuickAddFactText(gap.clarifying_prompt || gap.recommended_action || `Verified experience with ${gap.requirement}`);
+    setQuickAddSuccess(false);
+  };
+
+  const handleSaveFact = async () => {
+    if (!activeQuickAddGap || !quickAddFactText.trim()) return;
+    setIsSubmittingQuickAdd(true);
+    try {
+      if (onQuickAddFact) {
+        await onQuickAddFact(activeQuickAddGap, quickAddFactText.trim());
+      }
+      setQuickAddSuccess(true);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      timerRef.current = setTimeout(() => {
+        setActiveQuickAddGap(null);
+        setQuickAddSuccess(false);
+      }, 750);
+    } catch {
+      // Keep modal open on error
+    } finally {
+      setIsSubmittingQuickAdd(false);
+    }
+  };
 
   return (
-    <section
-      aria-labelledby={headingId}
-      className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
-    >
-      {/* Header and Toggle */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
-            <Target className="h-6 w-6" aria-hidden="true" />
-          </div>
-          <div>
-            <h2
-              id={headingId}
-              className="text-lg font-bold text-slate-900 dark:text-slate-100"
-            >
-              ATS Match & Gap Analysis
-              {versionNumber ? ` (v${versionNumber})` : ""}
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Evaluated against target role requirements and industry benchmarks.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Match Score Indicator */}
-          <div className="flex items-center gap-2">
-            <div
-              role="meter"
-              aria-label="ATS Match Score"
-              aria-valuenow={clampedScore}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              className="relative h-3 w-28 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
-            >
-              <div
-                className={`h-full transition-all duration-500 ${
-                  clampedScore >= 80
-                    ? "bg-emerald-500"
-                    : clampedScore >= 60
-                    ? "bg-amber-500"
-                    : "bg-rose-500"
-                }`}
-                style={{ width: `${clampedScore}%` }}
-              />
+    <>
+      <section
+        aria-labelledby={headingId}
+        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
+      >
+        {/* Header and Toggle */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+              <Target className="h-6 w-6" aria-hidden="true" />
             </div>
-            <span className="text-base font-bold text-slate-900 dark:text-slate-100">
-              {clampedScore.toFixed(1)}%
-            </span>
+            <div>
+              <h2
+                id={headingId}
+                className="text-lg font-bold text-slate-900 dark:text-slate-100"
+              >
+                ATS Match & Gap Analysis
+                {versionNumber ? ` (v${versionNumber})` : ""}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {gapReport.overall_match_summary ||
+                  "Evaluated against target role requirements and industry benchmarks."}
+              </p>
+            </div>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsExpanded((prev) => !prev)}
-            aria-expanded={isExpanded}
-            aria-controls={panelId}
-            aria-label="Toggle gap analysis report"
-            className="flex items-center gap-1.5"
-          >
-            <span>{isExpanded ? "Collapse" : "Expand Report"}</span>
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <ChevronDown className="h-4 w-4" aria-hidden="true" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Expandable Report Panel */}
-      {isExpanded && (
-        <div id={panelId} className="mt-6 space-y-6 border-t border-slate-100 dark:border-slate-800 pt-6">
-          {/* Identified Gaps */}
-          <div>
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
-              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-              <span>Identified Qualification Gaps ({identified_gaps.length})</span>
-            </h3>
-
-            {identified_gaps.length === 0 ? (
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                No critical qualification gaps detected for this version.
-              </p>
-            ) : (
-              <div className="mt-3 grid gap-3">
-                {identified_gaps.map((gap, index) => (
+          <div className="flex items-center gap-4">
+            {/* Match Score Indicator (defensively rendered) */}
+            {displayScore !== null ? (
+              <div className="flex items-center gap-2">
+                <div
+                  role="meter"
+                  aria-label="ATS Match Score"
+                  aria-valuenow={displayScore}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  className="relative h-3 w-28 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+                >
                   <div
-                    key={index}
-                    className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 p-3 text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-semibold text-slate-900 dark:text-slate-100">
-                        {gap.requirement}
-                      </span>
-                      <Badge
-                        variant={
-                          gap.importance === "critical"
-                            ? "destructive"
-                            : "warning"
-                        }
-                      >
-                        {gap.importance}
-                      </Badge>
-                    </div>
-
-                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                      <span className="font-medium text-slate-700 dark:text-slate-300">Area:</span>{" "}
-                      {gap.missing_area}
-                    </p>
-
-                    {gap.recommended_action && (
-                      <div className="mt-2 flex items-start gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                        <CheckCircle2
-                          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400"
-                          aria-hidden="true"
-                        />
-                        <span>{gap.recommended_action}</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                    className={`h-full transition-all duration-500 ${
+                      displayScore >= 80
+                        ? "bg-emerald-500"
+                        : displayScore >= 60
+                        ? "bg-amber-500"
+                        : "bg-rose-500"
+                    }`}
+                    style={{ width: `${displayScore}%` }}
+                  />
+                </div>
+                <span className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  {displayScore.toFixed(1)}%
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                  Match Analysis
+                </Badge>
               </div>
             )}
-          </div>
 
-          {/* Strategic Recommendations */}
-          {strategic_recommendations &&
-            strategic_recommendations.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsExpanded((prev) => !prev)}
+              aria-expanded={isExpanded}
+              aria-controls={panelId}
+              aria-label="Toggle gap analysis report"
+              className="flex items-center gap-1.5"
+            >
+              <span>{isExpanded ? "Collapse" : "Expand Report"}</span>
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <ChevronDown className="h-4 w-4" aria-hidden="true" />
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Expandable Report Panel */}
+        {isExpanded && (
+          <div id={panelId} className="mt-6 space-y-6 border-t border-slate-100 dark:border-slate-800 pt-6">
+            {/* Identified Gaps */}
+            <div>
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                <span>Identified Qualification Gaps ({allGaps.length})</span>
+              </h3>
+
+              {allGaps.length === 0 ? (
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                  No critical qualification gaps detected for this version.
+                </p>
+              ) : (
+                <div className="mt-3 grid gap-3">
+                  {allGaps.map((gap) => {
+                    const isDismissed = Boolean(dismissedMap[gap.requirement]);
+                    const showTalkingPoint = Boolean(talkingPointMap[gap.requirement]);
+
+                    return (
+                      <div
+                        key={gap.requirement}
+                        className={`rounded-md border border-slate-200 dark:border-slate-800 p-3 text-sm transition-all ${
+                          isDismissed
+                            ? "bg-slate-100/60 dark:bg-slate-800/20 opacity-70"
+                            : "bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`font-semibold text-slate-900 dark:text-slate-100 ${
+                                isDismissed ? "line-through text-slate-500 dark:text-slate-400" : ""
+                              }`}
+                            >
+                              {gap.requirement}
+                            </span>
+                            {isDismissed && (
+                              <Badge variant="secondary" className="text-[10px]">
+                                Dismissed (False Positive)
+                              </Badge>
+                            )}
+                          </div>
+                          <Badge
+                            variant={
+                              gap.importance === "critical"
+                                ? "destructive"
+                                : gap.importance === "preferred"
+                                ? "warning"
+                                : "secondary"
+                            }
+                          >
+                            {gap.importance}
+                          </Badge>
+                        </div>
+
+                        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                          <span className="font-medium text-slate-700 dark:text-slate-300">Area:</span>{" "}
+                          {gap.missing_area}
+                        </p>
+
+                        {gap.recommended_action && (
+                          <div className="mt-2 flex items-start gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                            <CheckCircle2
+                              className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400"
+                              aria-hidden="true"
+                            />
+                            <span>{gap.recommended_action}</span>
+                          </div>
+                        )}
+
+                        {/* Interactive Resolution Action Bar */}
+                        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/60 dark:border-slate-700/60 pt-2.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenQuickAdd(gap)}
+                            aria-label={`I have this experience: ${gap.requirement}`}
+                            className="h-7 text-xs border-emerald-600/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                          >
+                            <PlusCircle className="mr-1 h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                            <span>I Have This Experience</span>
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleToggleTalkingPoint(gap.requirement)}
+                            aria-label={`Interview talking point for ${gap.requirement}`}
+                            className="h-7 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+                          >
+                            <MessageSquareQuote className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+                            <span>Interview Talking Point</span>
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleToggleDismiss(gap)}
+                            aria-label={
+                              isDismissed
+                                ? `Restore gap: ${gap.requirement}`
+                                : `Dismiss gap as false positive: ${gap.requirement}`
+                            }
+                            className="h-7 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                          >
+                            {isDismissed ? (
+                              <>
+                                <RotateCcw className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+                                <span>Restore</span>
+                              </>
+                            ) : (
+                              <>
+                                <EyeOff className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+                                <span>Dismiss (False Positive)</span>
+                              </>
+                            )}
+                          </Button>
+                        </div>
+
+                        {/* Contextual Interview Talking Point Drawer */}
+                        {showTalkingPoint && (
+                          <div className="mt-2.5 rounded-md border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/40 p-3 text-xs text-indigo-950 dark:text-indigo-200">
+                            <div className="flex items-center gap-1.5 font-semibold text-indigo-700 dark:text-indigo-300">
+                              <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+                              <span>Interview Talking Point: Framing Adjacent Experience</span>
+                            </div>
+                            <p className="mt-1.5 leading-relaxed text-slate-700 dark:text-slate-300">
+                              &ldquo;While I have not directly operated <strong>{gap.requirement}</strong>, I have deep foundational expertise in <strong>{gap.missing_area}</strong>. In past production systems, I successfully designed and reconciled complex state transitions with strict reliability guarantees, allowing me to ramp up on {gap.requirement} rapidly.&rdquo;
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Strategic Recommendations */}
+            {recommendations.length > 0 && (
               <div>
                 <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
                   <Lightbulb
@@ -211,9 +425,9 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                   <span>Strategic Tailoring Recommendations</span>
                 </h3>
                 <ul className="mt-2 space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                  {strategic_recommendations.map((rec, index) => (
+                  {recommendations.map((rec, index) => (
                     <li
-                      key={index}
+                      key={`${index}-${rec.slice(0, 32)}`}
                       className="flex items-start gap-2 rounded-md bg-indigo-50/50 dark:bg-indigo-950/30 p-2 text-xs text-indigo-950 dark:text-indigo-200"
                     >
                       <span className="font-bold text-indigo-600 dark:text-indigo-400">•</span>
@@ -223,8 +437,77 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                 </ul>
               </div>
             )}
-        </div>
-      )}
-    </section>
+          </div>
+        )}
+      </section>
+
+      {/* Quick-Add Experience to Profile Dialog */}
+      <Dialog
+        open={activeQuickAddGap !== null}
+        onOpenChange={(open) => !open && setActiveQuickAddGap(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Verified Experience to Profile</DialogTitle>
+            <DialogDescription>
+              Documenting this experience in your Master Profile ensures it is incorporated during future resume tailoring passes.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div>
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                Target Requirement
+              </span>
+              <p className="mt-0.5 text-sm font-medium text-slate-900 dark:text-slate-100">
+                {activeQuickAddGap?.requirement}
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="quick-add-fact-input"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
+                Verified Fact / Accomplishment Statement
+              </label>
+              <textarea
+                id="quick-add-fact-input"
+                rows={3}
+                value={quickAddFactText}
+                onChange={(e) => setQuickAddFactText(e.target.value)}
+                className="mt-1.5 w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Describe your verified experience, metrics, or achievements..."
+              />
+            </div>
+
+            {quickAddSuccess && (
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                <span>Fact added successfully to profile!</span>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActiveQuickAddGap(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              disabled={isSubmittingQuickAdd || !quickAddFactText.trim()}
+              onClick={handleSaveFact}
+            >
+              {isSubmittingQuickAdd ? "Saving..." : "Add to Master Profile"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

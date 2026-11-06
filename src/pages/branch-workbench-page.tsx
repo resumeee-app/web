@@ -25,10 +25,11 @@ import {
   isTerminalStatus,
   type BranchVersion,
 } from "@/api/generation-queries";
+import { useCreateFact, useFullProfile } from "@/api/profile-queries";
 import { TailorActionBar } from "@/components/workbench/tailor-action-bar";
 import { GenerationProgress } from "@/components/workbench/generation-progress";
 import { VersionTimeline } from "@/components/workbench/version-timeline";
-import { GapAnalysisCard } from "@/components/workbench/gap-analysis-card";
+import { GapAnalysisCard, type GapItem } from "@/components/workbench/gap-analysis-card";
 import { BranchContextEditor } from "@/components/workbench/branch-context-editor";
 
 /**
@@ -121,6 +122,8 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
   const setActiveMutation = useSetActiveVersion(branchId);
   const syncMutation = useSyncBranch(branchId);
   const updateMutation = useUpdateBranch(branchId);
+  const createFactMutation = useCreateFact();
+  const { data: fullProfile } = useFullProfile();
 
   // Synchronize polled version transitions
   React.useEffect(() => {
@@ -309,6 +312,56 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     navigate(`/branches/${branchId}/preview?tab=diff&version=${ver.version_number}`);
   };
 
+  const handleQuickAddFact = async (_gap: GapItem, factText: string) => {
+    try {
+      let ownerId = "";
+      let ownerType: "work_experience" | "project" | "education" = "work_experience";
+
+      if (fullProfile?.experiences && fullProfile.experiences.length > 0 && fullProfile.experiences[0]?.id) {
+        ownerId = fullProfile.experiences[0].id;
+        ownerType = "work_experience";
+      } else if (fullProfile?.projects && fullProfile.projects.length > 0 && fullProfile.projects[0]?.id) {
+        ownerId = fullProfile.projects[0].id;
+        ownerType = "project";
+      } else if (fullProfile?.education && fullProfile.education.length > 0 && fullProfile.education[0]?.id) {
+        ownerId = fullProfile.education[0].id;
+        ownerType = "education";
+      }
+
+      if (!ownerId) {
+        setToast({
+          open: true,
+          title: "No Career Profile Entity",
+          description: "Please add a work experience or project to your master profile before adding facts.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await createFactMutation.mutateAsync({
+        owner_id: ownerId,
+        owner_type: ownerType,
+        statement: factText,
+      });
+
+      setToast({
+        open: true,
+        title: "Experience Recorded",
+        description: `Recorded "${factText.slice(0, 40)}..." to master profile. Re-tailor to reflect in resume.`,
+        variant: "success",
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to record fact to master profile";
+      setToast({
+        open: true,
+        title: "Failed to Record Experience",
+        description: message,
+        variant: "destructive",
+      });
+    }
+  };
+
   // Double-click prevention: button is disabled while mutation is pending or polling in progress
   const isTailoring =
     generateMutation.isPending ||
@@ -432,9 +485,10 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         {/* Gap Analysis Card for Currently Inspected Version */}
         {!branch.is_default && (
           <GapAnalysisCard
-            gapReport={activeVersion?.gap_report}
+            gapReport={activeVersion?.gap_report ?? branch.gap_report}
             versionNumber={activeVersion?.version_number}
             defaultExpanded={true}
+            onQuickAddFact={handleQuickAddFact}
           />
         )}
 

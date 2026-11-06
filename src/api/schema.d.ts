@@ -668,6 +668,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/branches/{id}/gap-analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Perform fast decoupled gap analysis
+         * @description Evaluates candidate fit against branch target requirements returning an explainable gap report and deterministic match score without running full resume tailoring.
+         */
+        post: operations["analyzeBranchGaps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/branches/sync": {
         parameters: {
             query?: never;
@@ -854,7 +877,7 @@ export interface components {
         /** @enum {string} */
         SourceType: "llm_generation" | "manual_edit";
         /** @enum {string} */
-        GapImportance: "critical" | "suggested";
+        GapImportance: "critical" | "preferred" | "nice_to_have" | "suggested";
         Location: {
             address?: string;
             postal_code?: string;
@@ -1228,6 +1251,7 @@ export interface components {
             pinned_entity_ids?: string[];
             excluded_entity_ids?: string[];
             active_version_id?: string | null;
+            gap_report?: components["schemas"]["GapReport"];
             /** Format: int64 */
             last_synced_master_revision?: number;
             /** @description Computed flag indicating whether master profile has advanced past last_synced_master_revision */
@@ -1332,15 +1356,19 @@ export interface components {
         };
         GapItem: {
             requirement: string;
-            missing_area: string;
+            missing_area?: string;
             importance: components["schemas"]["GapImportance"];
+            clarifying_prompt?: string;
             recommended_action?: string;
         };
         GapReport: {
+            overall_match_summary?: string;
             /** @example 87.5 */
-            match_score: number;
-            identified_gaps: components["schemas"]["GapItem"][];
+            match_score?: number | null;
+            missing_requirements?: components["schemas"]["GapItem"][];
+            identified_gaps?: components["schemas"]["GapItem"][];
             strategic_recommendations?: string[];
+            skill_coverage_ratio?: number | null;
         };
         BranchVersion: {
             id: string;
@@ -3076,6 +3104,31 @@ export interface operations {
             404: components["responses"]["NotFound"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["QueueFull"];
+        };
+    };
+    analyzeBranchGaps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Gap analysis completed successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GapReport"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
         };
     };
     syncStaleBranches: {

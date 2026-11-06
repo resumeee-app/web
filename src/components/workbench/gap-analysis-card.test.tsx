@@ -88,4 +88,81 @@ describe("GapAnalysisCard", () => {
     results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("defensively handles backend payload with missing_requirements and no match score without crashing or displaying NaN%", async () => {
+    const user = userEvent.setup();
+    const backendPayload: GapReport = {
+      overall_match_summary: "Strong candidate with slight gaps in cloud orchestration.",
+      match_score: null,
+      missing_requirements: [
+        {
+          requirement: "Prometheus Metric Exporters in Go",
+          importance: "critical",
+          clarifying_prompt: "Have you implemented custom Prometheus collectors in Go?",
+          missing_area: "Observability",
+        },
+      ],
+      strategic_recommendations: ["Emphasize telemetry work."],
+    };
+
+    render(<GapAnalysisCard gapReport={backendPayload} versionNumber={3} />);
+
+    // Must not display NaN
+    expect(screen.queryByText(/NaN/i)).not.toBeInTheDocument();
+
+    const toggleBtn = screen.getByRole("button", {
+      name: /toggle gap analysis report/i,
+    });
+    await user.click(toggleBtn);
+
+    expect(
+      screen.getByText("Prometheus Metric Exporters in Go")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Observability")).toBeInTheDocument();
+  });
+
+  it("supports dismissing a false positive gap and restoring it", async () => {
+    const user = userEvent.setup();
+    render(<GapAnalysisCard gapReport={mockGapReport} versionNumber={2} defaultExpanded={true} />);
+
+    const dismissButtons = screen.getAllByRole("button", { name: /dismiss|false positive/i });
+    expect(dismissButtons.length).toBeGreaterThan(0);
+    const firstDismissBtn = dismissButtons[0];
+    if (!firstDismissBtn) throw new Error("Expected dismiss button to exist");
+
+    await user.click(firstDismissBtn);
+    expect(screen.getByText(/dismissed/i)).toBeInTheDocument();
+
+    // Can restore
+    const restoreBtn = screen.getByRole("button", { name: /restore/i });
+    await user.click(restoreBtn);
+    expect(screen.queryByText(/dismissed/i)).not.toBeInTheDocument();
+  });
+
+  it("reveals interview talking points when requested", async () => {
+    const user = userEvent.setup();
+    render(<GapAnalysisCard gapReport={mockGapReport} versionNumber={2} defaultExpanded={true} />);
+
+    const talkingPointBtns = screen.getAllByRole("button", { name: /talking point/i });
+    expect(talkingPointBtns.length).toBeGreaterThan(0);
+    const firstTalkingPointBtn = talkingPointBtns[0];
+    if (!firstTalkingPointBtn) throw new Error("Expected talking point button to exist");
+
+    await user.click(firstTalkingPointBtn);
+    expect(screen.getByText(/Framing Adjacent Experience/i)).toBeInTheDocument();
+  });
+
+  it("opens quick-add fact modal when clicking 'I Have This Experience'", async () => {
+    const user = userEvent.setup();
+    render(<GapAnalysisCard gapReport={mockGapReport} versionNumber={2} defaultExpanded={true} />);
+
+    const quickAddBtns = screen.getAllByRole("button", { name: /i have this experience|quick-add/i });
+    expect(quickAddBtns.length).toBeGreaterThan(0);
+    const firstQuickAddBtn = quickAddBtns[0];
+    if (!firstQuickAddBtn) throw new Error("Expected quick-add button to exist");
+
+    await user.click(firstQuickAddBtn);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText(/add verified experience to profile/i)).toBeInTheDocument();
+  });
 });

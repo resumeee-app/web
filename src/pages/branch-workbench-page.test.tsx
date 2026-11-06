@@ -738,4 +738,100 @@ describe("BranchWorkbenchPage", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("submits quick-add fact to master profile via POST /facts", async () => {
+    const user = userEvent.setup();
+
+    const mockProfileSnapshot = {
+      profile: { id: "p-1", full_name: "Ada Lovelace" },
+      experiences: [
+        { id: "exp-1", company: "Acme Corp", role_title: "Senior Engineer", facts: [] },
+      ],
+      projects: [],
+      skills: [],
+    };
+
+    let createdFactPayload: unknown = null;
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({ data: mockBranch, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({
+          data: mockVersions,
+          error: undefined,
+        }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      if (path === "/profile/full") {
+        return Promise.resolve({ data: mockProfileSnapshot, error: undefined }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    vi.spyOn(api, "POST").mockImplementation((path: string, options?: { body?: unknown }) => {
+      if (path === "/facts") {
+        createdFactPayload = options?.body;
+        return Promise.resolve({
+          data: {
+            id: "fact-new",
+            owner_id: "exp-1",
+            owner_type: "work_experience",
+            statement: "Operated high-volume Raft clusters with 99.99% availability.",
+          },
+          error: undefined,
+        }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    const { Wrapper } = createTestWrapper();
+    render(<BranchWorkbenchPage />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText("Raft consensus protocol")).toBeInTheDocument();
+    });
+
+    const quickAddBtn = screen.getByRole("button", {
+      name: /i have this experience: raft consensus protocol/i,
+    });
+    await user.click(quickAddBtn);
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+
+    const textarea = screen.getByRole("textbox", {
+      name: /verified fact \/ accomplishment statement/i,
+    });
+    await user.clear(textarea);
+    await user.type(
+      textarea,
+      "Operated high-volume Raft clusters with 99.99% availability."
+    );
+
+    const saveBtn = screen.getByRole("button", {
+      name: /add to master profile/i,
+    });
+    await user.click(saveBtn);
+
+    await waitFor(() => {
+      expect(createdFactPayload).toEqual({
+        owner_id: "exp-1",
+        owner_type: "work_experience",
+        statement: "Operated high-volume Raft clusters with 99.99% availability.",
+      });
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Experience Recorded")
+      ).toBeInTheDocument();
+    });
+  });
 });
