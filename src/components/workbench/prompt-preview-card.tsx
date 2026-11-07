@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "./badge";
+import { isUserAdmin } from "@/api/client";
 import {
   usePromptPreview,
   type PromptPreviewRequest,
@@ -78,6 +79,8 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
     return () => clearTimeout(timer);
   }, [draftOverrides]);
 
+  const isAdmin = isUserAdmin();
+
   const {
     data: promptPreview,
     isLoading,
@@ -86,7 +89,7 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
     refetch,
     isFetching,
   } = usePromptPreview(branch.id, debouncedOverrides, {
-    enabled: isExpanded && Boolean(branch?.id),
+    enabled: isAdmin && isExpanded && Boolean(branch?.id),
   });
 
   const handleCopy = async (text: string, key: string) => {
@@ -103,6 +106,10 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
       // Clipboard write failure fallback
     }
   };
+
+  if (!isAdmin) {
+    return null;
+  }
 
   return (
     <section

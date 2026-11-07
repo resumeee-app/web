@@ -40,6 +40,7 @@ import { VersionTimeline } from "@/components/workbench/version-timeline";
 import { GapAnalysisCard, type GapItem } from "@/components/workbench/gap-analysis-card";
 import { BranchContextEditor } from "@/components/workbench/branch-context-editor";
 import { PromptPreviewCard } from "@/components/workbench/prompt-preview-card";
+import { isUserAdmin } from "@/api/client";
 import { stripScriptTags } from "@/components/templates/template-preview-pane";
 
 /**
@@ -568,10 +569,12 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
               onSave={handleSaveContext}
               onDraftChange={setDraftContext}
             />
-            <PromptPreviewCard
-              branch={branch}
-              draftOverrides={draftContext}
-            />
+            {isUserAdmin() && (
+              <PromptPreviewCard
+                branch={branch}
+                draftOverrides={draftContext}
+              />
+            )}
           </>
         )}
 

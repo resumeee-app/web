@@ -6,7 +6,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { axe } from "vitest-axe";
 import { BranchWorkbenchPage } from "./branch-workbench-page";
-import { api } from "@/api/client";
+import { api, setAuthToken } from "@/api/client";
 import type { Branch, BranchVersion, Preset, TemplateSet } from "@/api/workbench-queries";
 
 function createTestWrapper(initialPath = "/branches/b-123") {
@@ -129,6 +129,7 @@ const mockVersions: BranchVersion[] = [
 describe("BranchWorkbenchPage", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it("renders workbench page with branch metadata, action bar, timeline, and gap analysis", async () => {
@@ -524,7 +525,47 @@ describe("BranchWorkbenchPage", () => {
     });
   });
 
+  it("omits LLM prompt preview section when user is not an administrator", async () => {
+    vi.stubEnv("ADMIN_MODE", "false");
+    vi.stubEnv("VITE_ADMIN_MODE", "false");
+    setAuthToken(null);
+    const { Wrapper } = createTestWrapper();
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({ data: mockBranch, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({ data: mockVersions, error: undefined }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      return Promise.resolve({ data: [], error: undefined }) as never;
+    });
+
+    render(<BranchWorkbenchPage pollIntervalMs={30} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: "Senior Distributed Systems Engineer" })
+      ).toBeInTheDocument();
+    });
+
+    // LLM Prompt Preview section and toggle should NOT be rendered
+    expect(
+      screen.queryByRole("heading", { name: /llm prompt preview/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /inspect llm prompt/i })
+    ).not.toBeInTheDocument();
+  });
+
   it("renders collapsible prompt preview and fetches prompt draft upon expanding", async () => {
+    vi.stubEnv("ADMIN_MODE", "true");
     const user = userEvent.setup();
     const { Wrapper } = createTestWrapper();
 

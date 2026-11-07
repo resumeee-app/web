@@ -5,6 +5,8 @@ import {
   API_BASE_URL,
   extractApiErrorMessage,
   setAuthToken,
+  isAdminMode,
+  isUserAdmin,
 } from "./client";
 
 describe("OpenAPI Client Configuration", () => {
@@ -147,6 +149,121 @@ describe("OpenAPI Client Configuration", () => {
       expect(extractApiErrorMessage(undefined, "Default error")).toBe("Default error");
       expect(extractApiErrorMessage({}, "Default error")).toBe("Default error");
       expect(extractApiErrorMessage({ error: {} }, "Default error")).toBe("Default error");
+    });
+  });
+
+  describe("isAdminMode", () => {
+    it("returns true when ADMIN_MODE is 'true'", () => {
+      vi.stubEnv("ADMIN_MODE", "true");
+      expect(isAdminMode()).toBe(true);
+    });
+
+    it("returns true when VITE_ADMIN_MODE is 'true' and ADMIN_MODE is unset", () => {
+      vi.stubEnv("ADMIN_MODE", "");
+      vi.stubEnv("VITE_ADMIN_MODE", "true");
+      expect(isAdminMode()).toBe(true);
+    });
+
+    it("returns false when ADMIN_MODE is 'false'", () => {
+      vi.stubEnv("ADMIN_MODE", "false");
+      vi.stubEnv("VITE_ADMIN_MODE", "true");
+      expect(isAdminMode()).toBe(false);
+    });
+
+    it("returns false when both are unset", () => {
+      vi.stubEnv("ADMIN_MODE", "");
+      vi.stubEnv("VITE_ADMIN_MODE", "");
+      expect(isAdminMode()).toBe(false);
+    });
+  });
+
+  describe("isUserAdmin", () => {
+    function makeTestJwt(payload: unknown): string {
+      const toBase64Url = (str: string) =>
+        btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      const header = toBase64Url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+      const body = toBase64Url(JSON.stringify(payload));
+      return `${header}.${body}.mock-signature`;
+    }
+
+    it("returns true when isAdminMode is true regardless of token", () => {
+      vi.stubEnv("ADMIN_MODE", "true");
+      setAuthToken(null);
+      expect(isUserAdmin()).toBe(true);
+    });
+
+    it("returns false when ADMIN_MODE is false and no token is present", () => {
+      vi.stubEnv("ADMIN_MODE", "false");
+      setAuthToken(null);
+      expect(isUserAdmin()).toBe(false);
+    });
+
+    it("returns true when token contains boolean admin claim", () => {
+      vi.stubEnv("ADMIN_MODE", "false");
+      setAuthToken(makeTestJwt({ sub: "user-1", admin: true }));
+      expect(isUserAdmin()).toBe(true);
+    });
+
+    it("returns true when token contains role 'admin'", () => {
+      vi.stubEnv("ADMIN_MODE", "false");
+      setAuthToken(makeTestJwt({ sub: "user-2", role: "admin" }));
+      expect(isUserAdmin()).toBe(true);
+    });
+
+    it("handles case-insensitive role claims like 'Admin' and 'ADMIN'", () => {
+      vi.stubEnv("ADMIN_MODE", "false");
+      setAuthToken(makeTestJwt({ sub: "user-admin-title", role: "Admin" }));
+      expect(isUserAdmin()).toBe(true);
+
+      setAuthToken(makeTestJwt({ sub: "user-admin-upper", role: "ADMIN" }));
+      expect(isUserAdmin()).toBe(true);
+
+      setAuthToken(makeTestJwt({ sub: "user-roles-title", roles: ["Viewer", "Admin"] }));
+      expect(isUserAdmin()).toBe(true);
+
+      setAuthToken(makeTestJwt({ sub: "user-roles-upper", roles: ["ADMIN"] }));
+      expect(isUserAdmin()).toBe(true);
+    });
+
+    it("correctly decodes unpadded Base64URL tokens requiring padding", () => {
+      vi.stubEnv("ADMIN_MODE", "false");
+      // Craft payloads whose base64 string length modulo 4 are 2 and 3
+      const payloadPad2 = { sub: "pad2", a: "x", admin: true }; // test padding
+      const tokenPad2 = makeTestJwt(payloadPad2);
+      const b64Part = tokenPad2.split(".")[1]!;
+      expect(b64Part.length % 4).not.toBe(0);
+      setAuthToken(tokenPad2);
+      expect(isUserAdmin()).toBe(true);
+    });
+
+    it("safely returns false when token payload parses to a primitive or null", () => {
+      vi.stubEnv("ADMIN_MODE", "false");
+      setAuthToken(makeTestJwt(null));
+      expect(isUserAdmin()).toBe(false);
+
+      setAuthToken(makeTestJwt(12345));
+      expect(isUserAdmin()).toBe(false);
+
+      setAuthToken(makeTestJwt("just-a-string"));
+      expect(isUserAdmin()).toBe(false);
+    });
+
+    it("returns true when token contains roles array containing 'admin'", () => {
+      vi.stubEnv("ADMIN_MODE", "false");
+      setAuthToken(makeTestJwt({ sub: "user-3", roles: ["viewer", "admin"] }));
+      expect(isUserAdmin()).toBe(true);
+    });
+
+    it("returns false when token contains regular user role", () => {
+      vi.stubEnv("ADMIN_MODE", "false");
+      setAuthToken(makeTestJwt({ sub: "user-4", role: "user" }));
+      expect(isUserAdmin()).toBe(false);
+    });
+
+    it("returns false when token is malformed", () => {
+      vi.stubEnv("ADMIN_MODE", "false");
+      setAuthToken("not.a.valid.jwt");
+      expect(isUserAdmin()).toBe(false);
     });
   });
 });

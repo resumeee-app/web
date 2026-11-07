@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type React from "react";
-import { api } from "@/api/client";
+import { api, setAuthToken } from "@/api/client";
 import type { Branch } from "@/api/workbench-queries";
 import { PromptPreviewCard } from "./prompt-preview-card";
 
@@ -44,6 +44,27 @@ function createTestWrapper() {
 describe("PromptPreviewCard", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+    vi.stubEnv("ADMIN_MODE", "true");
+    setAuthToken(null);
+  });
+
+  it("renders null and does not mount prompt inspector when isUserAdmin is false", () => {
+    vi.stubEnv("ADMIN_MODE", "false");
+    vi.stubEnv("VITE_ADMIN_MODE", "false");
+    setAuthToken(null);
+    const { Wrapper } = createTestWrapper();
+
+    const { container } = render(
+      <Wrapper>
+        <PromptPreviewCard branch={mockBranch} defaultExpanded={true} />
+      </Wrapper>
+    );
+
+    expect(container.firstChild).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: /llm prompt preview/i })
+    ).not.toBeInTheDocument();
   });
 
   it("renders collapsed by default and expands upon user click", async () => {

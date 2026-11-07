@@ -25,6 +25,66 @@ export function getAuthToken(): string | null {
 }
 
 /**
+ * Returns true when the application is configured to run in single-user Admin Mode.
+ * Checks `ADMIN_MODE`, falling back to legacy `VITE_ADMIN_MODE`.
+ */
+export function isAdminMode(): boolean {
+  const adminMode = import.meta.env.ADMIN_MODE;
+  const legacyAdminMode = import.meta.env.VITE_ADMIN_MODE;
+  return adminMode !== undefined && adminMode !== ""
+    ? adminMode === "true"
+    : legacyAdminMode === "true";
+}
+
+/**
+ * Evaluates whether the currently authenticated user has administrative privileges.
+ * Returns true if running in Admin Mode or if the active JWT bearer token contains
+ * an admin claim (admin: true, role: "admin", or roles: ["admin"]).
+ */
+export function isUserAdmin(): boolean {
+  if (isAdminMode()) {
+    return true;
+  }
+  const token = getAuthToken();
+  if (!token) {
+    return false;
+  }
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3 || !parts[1]) {
+      return false;
+    }
+    const payloadSegment = parts[1];
+    const base64 = payloadSegment.replace(/-/g, "+").replace(/_/g, "/");
+    const padLength = (4 - (base64.length % 4)) % 4;
+    const paddedBase64 = base64.padEnd(base64.length + padLength, "=");
+    const jsonString = decodeURIComponent(
+      atob(paddedBase64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    const payload: unknown = JSON.parse(jsonString);
+    if (typeof payload !== "object" || payload === null) {
+      return false;
+    }
+    const claims = payload as {
+      admin?: boolean;
+      role?: unknown;
+      roles?: unknown;
+    };
+    const isAdminRole = (val: unknown): boolean =>
+      typeof val === "string" && val.trim().toLowerCase() === "admin";
+    const roleMatches = isAdminRole(claims.role);
+    const rolesMatch =
+      Array.isArray(claims.roles) && claims.roles.some(isAdminRole);
+    return Boolean(claims.admin === true || roleMatches || rolesMatch);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Creates a strongly typed OpenAPI client bound to the Resumeee API schema.
  * Defensively merges default headers with custom options to preserve Content-Type.
  */
@@ -42,15 +102,10 @@ export function createApiClient(options?: Partial<ClientOptions>) {
   client.use({
     async onRequest({ request }) {
       const token = getAuthToken();
-      const adminMode = import.meta.env.ADMIN_MODE;
-      const legacyAdminMode = import.meta.env.VITE_ADMIN_MODE;
-      const isAdminMode =
-        adminMode !== undefined && adminMode !== ""
-          ? adminMode === "true"
-          : legacyAdminMode === "true";
+      const isAdmin = isAdminMode();
       if (token) {
         request.headers.set("Authorization", `Bearer ${token}`);
-      } else if (isAdminMode && !request.headers.has("X-User-ID")) {
+      } else if (isAdmin && !request.headers.has("X-User-ID")) {
         request.headers.set("X-User-ID", "default");
       }
       return request;
