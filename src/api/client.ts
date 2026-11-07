@@ -8,13 +8,29 @@ import type { paths } from "./schema";
 export const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) || "/api/v1";
 
+let currentAuthToken: string | null = null;
+
+/**
+ * Sets the active authentication bearer token for outgoing API requests.
+ */
+export function setAuthToken(token: string | null) {
+  currentAuthToken = token;
+}
+
+/**
+ * Retrieves the currently active authentication bearer token.
+ */
+export function getAuthToken(): string | null {
+  return currentAuthToken;
+}
+
 /**
  * Creates a strongly typed OpenAPI client bound to the Resumeee API schema.
  * Defensively merges default headers with custom options to preserve Content-Type.
  */
 export function createApiClient(options?: Partial<ClientOptions>) {
   const { headers: customHeaders, ...restOptions } = options || {};
-  return createClient<paths>({
+  const client = createClient<paths>({
     baseUrl: API_BASE_URL,
     headers: {
       "Content-Type": "application/json",
@@ -22,6 +38,29 @@ export function createApiClient(options?: Partial<ClientOptions>) {
     },
     ...restOptions,
   });
+
+  client.use({
+    async onRequest({ request }) {
+      const token = getAuthToken();
+      const isAdminMode = import.meta.env.VITE_ADMIN_MODE === "true";
+      if (token) {
+        request.headers.set("Authorization", `Bearer ${token}`);
+      } else if (isAdminMode && !request.headers.has("X-User-ID")) {
+        request.headers.set("X-User-ID", "default");
+      }
+      return request;
+    },
+    async onResponse({ response }) {
+      if (response.status === 401 && typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("resumeee:unauthorized"));
+      } else if (response.status === 429 && typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("resumeee:quota-exceeded"));
+      }
+      return response;
+    },
+  });
+
+  return client;
 }
 
 /**

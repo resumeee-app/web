@@ -47,7 +47,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({
   headingLevel = "h2",
 }) => {
   const isBuiltIn = Boolean(
-    preset.is_built_in || preset.id.startsWith("builtin-")
+    preset.is_built_in || preset.id.startsWith("builtin-") || preset.user_id === "system"
   );
   const HeadingTag = headingLevel;
 

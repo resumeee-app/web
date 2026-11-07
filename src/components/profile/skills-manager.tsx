@@ -422,17 +422,26 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                           </span>
                         )}
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onDeleteSkill(skill.id);
-                            onAnnouncement?.(`Removed skill ${skill.name}`);
-                          }}
-                          className="rounded-full p-0.5 text-slate-500 hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                          aria-label={`Remove skill ${skill.name}`}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
+                        {skill.is_global || skill.user_id === "system" ? (
+                          <span
+                            className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-medium"
+                            title="Global verified skill (immutable)"
+                          >
+                            Global
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onDeleteSkill(skill.id);
+                              onAnnouncement?.(`Removed skill ${skill.name}`);
+                            }}
+                            className="rounded-full p-0.5 text-slate-500 hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                            aria-label={`Remove skill ${skill.name}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
                       </span>
                     );
                   })

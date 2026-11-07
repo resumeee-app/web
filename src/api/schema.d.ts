@@ -1063,6 +1063,8 @@ export interface components {
             id: string;
             user_id: string;
             name: string;
+            slug?: string;
+            is_global?: boolean;
             category?: string;
             proficiency?: string;
             years_experience?: number;
