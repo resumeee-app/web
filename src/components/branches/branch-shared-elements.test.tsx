@@ -79,6 +79,16 @@ describe("branch-shared-elements", () => {
       render(<BranchStatusBadge status="error" />);
       expect(screen.getByText("Error")).toBeInTheDocument();
     });
+
+    it("renders stale and needs_sync status badge as Out of Sync without pulsing animation", () => {
+      const { rerender } = render(<BranchStatusBadge status="stale" />);
+      expect(screen.getByText("Out of Sync")).toBeInTheDocument();
+      // Ensure it does not render Tailoring
+      expect(screen.queryByText("Tailoring")).not.toBeInTheDocument();
+
+      rerender(<BranchStatusBadge status="needs_sync" />);
+      expect(screen.getByText("Out of Sync")).toBeInTheDocument();
+    });
   });
 
   describe("BranchTargetDisplay", () => {

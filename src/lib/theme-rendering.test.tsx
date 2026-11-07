@@ -138,12 +138,14 @@ describe("Dark Theme Rendering & Accessibility Verification", () => {
       <div className="flex gap-2 p-4">
         <BranchStatusBadge status="active" />
         <BranchStatusBadge status="tailoring" />
+        <BranchStatusBadge status="stale" />
         <BranchStatusBadge status="error" />
       </div>
     );
 
     expect(screen.getByText("Active")).toBeInTheDocument();
     expect(screen.getByText("Tailoring")).toBeInTheDocument();
+    expect(screen.getByText("Out of Sync")).toBeInTheDocument();
     expect(screen.getByText("Error")).toBeInTheDocument();
 
     const results = await axe(container);

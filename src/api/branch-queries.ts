@@ -64,8 +64,10 @@ export type CreateBranchInput = {
  * - `active`: Branch is ready, tailored, or default un-tailored.
  * - `tailoring`: Asynchronous LLM tailoring job is in progress.
  * - `error`: Tailoring or synchronization failed.
+ * - `stale`: Branch is out of sync with the latest master profile revision.
+ * - `needs_sync`: Alias for stale status.
  */
-export type BranchStatus = "active" | "tailoring" | "error";
+export type BranchStatus = "active" | "tailoring" | "error" | "stale" | "needs_sync";
 
 /**
  * Extracts a human-readable error message from an API response or unknown error object,
@@ -104,6 +106,7 @@ export function isDefaultBranch(branch: Branch): boolean {
 
 /**
  * Resolves the visual and operational status indicator for a branch.
+ * Decouples is_stale from active tailoring to prevent false active job indicators.
  */
 export function getBranchStatus(branch: Branch): BranchStatus {
   if (branch.status) {
@@ -114,14 +117,40 @@ export function getBranchStatus(branch: Branch): BranchStatus {
     if (s === "error" || s === "failed") {
       return "error";
     }
+    if (s === "stale" || s === "needs_sync" || s === "out_of_sync") {
+      return "stale";
+    }
     if (s === "active" || s === "completed" || s === "completed_with_warnings") {
+      if (branch.is_stale) {
+        return "stale";
+      }
       return "active";
     }
   }
   if (branch.is_stale) {
-    return "tailoring";
+    return "stale";
   }
   return "active";
+}
+
+/**
+ * Formats the active version state for branch display:
+ * - Default branch displays "Untailored" (mirrors master profile without LLM tailoring).
+ * - Custom tailored branch with active version displays "v<N> (Active)".
+ * - Custom branch without an active version displays "Not tailored yet".
+ */
+export function formatBranchVersionStatus(branch: Branch): string {
+  if (isDefaultBranch(branch)) {
+    return "Untailored";
+  }
+  if (!branch.active_version_id || branch.active_version_id.trim().length === 0) {
+    return "Not tailored yet";
+  }
+  const cleanId = branch.active_version_id.trim();
+  const version = cleanId.startsWith("v") || cleanId.startsWith("V")
+    ? cleanId
+    : `v${cleanId}`;
+  return `${version} (Active)`;
 }
 
 /**

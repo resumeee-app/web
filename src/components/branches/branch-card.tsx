@@ -142,7 +142,7 @@ export const BranchCard: React.FC<BranchCardProps> = ({
             </span>
             {!isDefault && presetName && (
               <span className="truncate text-slate-500 dark:text-slate-400">
-                Preset: <strong className="font-medium text-slate-700 dark:text-slate-300">{presetName}</strong>
+                Strategy: <strong className="font-medium text-slate-700 dark:text-slate-300">{presetName}</strong>
               </span>
             )}
           </div>

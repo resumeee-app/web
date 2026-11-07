@@ -330,6 +330,14 @@ describe("HomePage Dashboard Integration & Views", () => {
     expect(allBranchesLinks).toHaveLength(2);
     expect(allBranchesLinks[0]).toHaveAttribute("href", "/branches");
     expect(allBranchesLinks[1]).toHaveAttribute("href", "/branches");
+
+    // Verify active version status on recent branch cards
+    expect(screen.getByText("Untailored")).toBeInTheDocument();
+    expect(screen.getByText("v2 (Active)")).toBeInTheDocument();
+
+    // Verify RFC-005 Tailoring Strategy terminology
+    expect(screen.getByText("Strategy:")).toBeInTheDocument();
+    expect(screen.queryByText("Preset:")).not.toBeInTheDocument();
   });
 
   it("renders live stats for total branches, templates, and presets", async () => {
@@ -339,19 +347,26 @@ describe("HomePage Dashboard Integration & Views", () => {
     expect(screen.getByTestId("metric-total-templates")).toHaveTextContent("2");
     expect(screen.getByTestId("metric-total-presets")).toHaveTextContent("1");
 
-    // Verify stat card and capability card links for Templates
+    // Verify stat card links for Templates and Presets
     const browseTemplatesLink = screen.getByRole("link", { name: /^browse templates$/i });
     expect(browseTemplatesLink).toHaveAttribute("href", "/templates");
 
-    const goToTemplatesLink = screen.getByRole("link", { name: /ats templates.*go to templates/i });
-    expect(goToTemplatesLink).toHaveAttribute("href", "/templates");
-
-    // Verify stat card and capability card links for Presets
     const managePresetsLink = screen.getByRole("link", { name: /^manage presets$/i });
     expect(managePresetsLink).toHaveAttribute("href", "/presets");
+  });
 
-    const goToPresetsLink = screen.getByRole("link", { name: /targeting presets.*go to presets/i });
-    expect(goToPresetsLink).toHaveAttribute("href", "/presets");
+  it("removes redundant Application Capabilities card grid to streamline dashboard focus", async () => {
+    renderHomePage();
+
+    await screen.findByRole("heading", { level: 1, name: /resume management/i });
+
+    // Application Capabilities section must be completely eliminated
+    expect(
+      screen.queryByRole("heading", { name: /application capabilities/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /ats templates.*go to templates/i })
+    ).not.toBeInTheDocument();
   });
 
   it("verifies every interactive link on the dashboard points to a valid route", async () => {
@@ -568,5 +583,29 @@ describe("HomePage Dashboard Integration & Views", () => {
 
     expect(await screen.findByText("General Untargeted Branch")).toBeInTheDocument();
     expect(screen.getByText("Untargeted role")).toBeInTheDocument();
+    expect(screen.getByText("Not tailored yet")).toBeInTheDocument();
+  });
+
+  it("renders Out of Sync badge rather than pulsing Tailoring badge for stale branches", async () => {
+    mockBranches = [
+      {
+        id: "branch-stale-1",
+        user_id: "u1",
+        name: "Stale Resume Line",
+        template_set_id: "tmpl-clean",
+        is_default: false,
+        active_version_id: "v1",
+        is_stale: true,
+        status: "active",
+      },
+    ];
+
+    renderHomePage();
+
+    expect(await screen.findByText("Stale Resume Line")).toBeInTheDocument();
+    // Out of Sync badge rendered
+    expect(screen.getByText("Out of Sync")).toBeInTheDocument();
+    // Must NOT display animated Tailoring badge
+    expect(screen.queryByText("Tailoring")).not.toBeInTheDocument();
   });
 });

@@ -8,6 +8,7 @@ import {
   useDeleteBranchMutation,
   isDefaultBranch,
   getBranchStatus,
+  formatBranchVersionStatus,
   extractApiErrorMessage,
   branchKeys,
   type Branch,
@@ -107,6 +108,118 @@ describe("branch-queries and domain logic", () => {
         status: "error",
       };
       expect(getBranchStatus(branch)).toBe("error");
+    });
+
+    it("returns stale when is_stale is true and not actively tailoring", () => {
+      const branch: Branch = {
+        id: "b-4",
+        user_id: "u-1",
+        name: "Stale Line",
+        template_set_id: "tmpl-1",
+        is_stale: true,
+      };
+      expect(getBranchStatus(branch)).toBe("stale");
+
+      const activeStaleBranch: Branch = {
+        id: "b-5",
+        user_id: "u-1",
+        name: "Completed but Stale Line",
+        template_set_id: "tmpl-1",
+        status: "active",
+        is_stale: true,
+      };
+      expect(getBranchStatus(activeStaleBranch)).toBe("stale");
+    });
+
+    it("preserves tailoring status when actively tailoring even if is_stale is true", () => {
+      const branch: Branch = {
+        id: "b-6",
+        user_id: "u-1",
+        name: "Tailoring Stale Line",
+        template_set_id: "tmpl-1",
+        status: "tailoring",
+        is_stale: true,
+      };
+      expect(getBranchStatus(branch)).toBe("tailoring");
+    });
+
+    it("preserves error status when in error even if is_stale is true", () => {
+      const branch: Branch = {
+        id: "b-7",
+        user_id: "u-1",
+        name: "Error Stale Line",
+        template_set_id: "tmpl-1",
+        status: "error",
+        is_stale: true,
+      };
+      expect(getBranchStatus(branch)).toBe("error");
+    });
+
+    it("supports explicit stale, needs_sync, and out_of_sync statuses", () => {
+      const b1: Branch = {
+        id: "b-8",
+        user_id: "u-1",
+        name: "Stale Status Line",
+        template_set_id: "tmpl-1",
+        status: "stale",
+      };
+      expect(getBranchStatus(b1)).toBe("stale");
+
+      const b2: Branch = {
+        id: "b-9",
+        user_id: "u-1",
+        name: "Needs Sync Line",
+        template_set_id: "tmpl-1",
+        status: "needs_sync",
+      };
+      expect(getBranchStatus(b2)).toBe("stale");
+    });
+  });
+
+  describe("formatBranchVersionStatus helper", () => {
+    it("returns Untailored for default branch regardless of active_version_id", () => {
+      const branch: Branch = {
+        id: "branch-default-u1",
+        user_id: "u-1",
+        name: "Master Profile (Default)",
+        template_set_id: "tmpl-1",
+        is_default: true,
+        active_version_id: "v1",
+      };
+      expect(formatBranchVersionStatus(branch)).toBe("Untailored");
+    });
+
+    it("formats active version state for tailored branches", () => {
+      const branchWithV: Branch = {
+        id: "b-custom-1",
+        user_id: "u-1",
+        name: "Tailored Branch",
+        template_set_id: "tmpl-1",
+        is_default: false,
+        active_version_id: "v3",
+      };
+      expect(formatBranchVersionStatus(branchWithV)).toBe("v3 (Active)");
+
+      const branchNumeric: Branch = {
+        id: "b-custom-2",
+        user_id: "u-1",
+        name: "Tailored Branch Numeric",
+        template_set_id: "tmpl-1",
+        is_default: false,
+        active_version_id: "2",
+      };
+      expect(formatBranchVersionStatus(branchNumeric)).toBe("v2 (Active)");
+    });
+
+    it("returns Not tailored yet when custom branch has no active version", () => {
+      const branch: Branch = {
+        id: "b-custom-3",
+        user_id: "u-1",
+        name: "Untailored Custom Branch",
+        template_set_id: "tmpl-1",
+        is_default: false,
+      };
+      expect(formatBranchVersionStatus(branch)).toBe("Not tailored yet");
     });
   });
 

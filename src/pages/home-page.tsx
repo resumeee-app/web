@@ -33,7 +33,6 @@ import {
   Eye,
   ArrowRight,
   BookOpen,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +49,7 @@ import {
   useCreateBranchMutation,
   isDefaultBranch,
   getBranchStatus,
+  formatBranchVersionStatus,
   type CreateBranchInput,
 } from "@/api/branch-queries";
 import { useFullProfile } from "@/api/profile-queries";
@@ -164,71 +164,6 @@ export const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
   );
 };
 
-/**
- * Declarative configuration item for an application capability card.
- */
-export interface CapabilityCardConfig {
-  /** Target navigation route */
-  to: string;
-  /** Card title */
-  title: string;
-  /** Descriptive summary */
-  description: string;
-  /** Lucide icon component */
-  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
-  /** Color theme classes for icon, text, and border hover transitions */
-  iconColorClass: string;
-  hoverBorderClass: string;
-  ctaTextClass: string;
-  /** Call-to-action button label */
-  ctaLabel: string;
-}
-
-/**
- * Canonical capability cards catalog displayed on the Dashboard.
- */
-export const CAPABILITY_CARDS: readonly CapabilityCardConfig[] = [
-  {
-    to: "/profile",
-    title: "Master Career Profile",
-    description: "Centralized career graph with work experience, verified skills, and PDF resume import.",
-    icon: User,
-    iconColorClass: "text-indigo-600 dark:text-indigo-400",
-    hoverBorderClass: "hover:border-indigo-300 dark:hover:border-indigo-700",
-    ctaTextClass: "text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400",
-    ctaLabel: "Go to Profile",
-  },
-  {
-    to: "/branches",
-    title: "Resume Branches",
-    description: "Create role-specific variants, run AI gap analysis, and maintain version history.",
-    icon: GitBranch,
-    iconColorClass: "text-emerald-600 dark:text-emerald-400",
-    hoverBorderClass: "hover:border-emerald-300 dark:hover:border-emerald-700",
-    ctaTextClass: "text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400",
-    ctaLabel: "Go to Branches",
-  },
-  {
-    to: "/templates",
-    title: "ATS Templates",
-    description: "Clean, Executive, and Minimalist templates engineered for modern hiring pipelines.",
-    icon: Layers,
-    iconColorClass: "text-blue-600 dark:text-blue-400",
-    hoverBorderClass: "hover:border-blue-300 dark:hover:border-blue-700",
-    ctaTextClass: "text-blue-600 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400",
-    ctaLabel: "Go to Templates",
-  },
-  {
-    to: "/presets",
-    title: "Targeting Presets",
-    description: "Configure role instructions, word count constraints, and model provider preferences.",
-    icon: Sliders,
-    iconColorClass: "text-amber-600 dark:text-amber-400",
-    hoverBorderClass: "hover:border-amber-300 dark:hover:border-amber-700",
-    ctaTextClass: "text-amber-600 dark:text-amber-400 group-hover:text-amber-600 dark:group-hover:text-amber-400",
-    ctaLabel: "Go to Presets",
-  },
-];
 
 /**
  * HomePage Component
@@ -407,13 +342,13 @@ export const HomePage: React.FC = () => {
                     {profile?.headline || "Primary career graph & resume foundation"}
                   </p>
 
-                  <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-center">
+                  <div className="mt-3 grid grid-cols-5 gap-1 border-t border-slate-100 dark:border-slate-800 pt-2.5 text-center">
                     <div>
                       <div data-testid="metric-experiences" className="text-sm font-bold text-slate-900 dark:text-slate-100">
                         {experiencesCount}
                       </div>
                       <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
-                        Experience
+                        Exp
                       </div>
                     </div>
                     <div>
@@ -429,23 +364,24 @@ export const HomePage: React.FC = () => {
                         {projectsCount}
                       </div>
                       <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
-                        Projects
+                        Proj
                       </div>
                     </div>
-                  </div>
-
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-center text-xs text-slate-500 dark:text-slate-400">
                     <div>
-                      <span className="font-medium text-slate-700 dark:text-slate-300" data-testid="metric-education">
+                      <div data-testid="metric-education" className="text-sm font-bold text-slate-900 dark:text-slate-100">
                         {educationCount}
-                      </span>{" "}
-                      Edu
+                      </div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
+                        Edu
+                      </div>
                     </div>
                     <div>
-                      <span className="font-medium text-slate-700 dark:text-slate-300" data-testid="metric-certifications">
+                      <div data-testid="metric-certifications" className="text-sm font-bold text-slate-900 dark:text-slate-100">
                         {certificationsCount}
-                      </span>{" "}
-                      Certs
+                      </div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
+                        Certs
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -564,6 +500,7 @@ export const HomePage: React.FC = () => {
             {recentBranches.map((branch) => {
               const isDefault = isDefaultBranch(branch);
               const status = getBranchStatus(branch);
+              const versionStatus = formatBranchVersionStatus(branch);
               const formattedDate = formatBranchDate(branch.updated_at);
               const templateName = templatesMap[branch.template_set_id] || branch.template_set_id;
               const presetName = branch.preset_id ? presetsMap[branch.preset_id] : undefined;
@@ -628,11 +565,18 @@ export const HomePage: React.FC = () => {
                         </span>
                       </div>
 
+                      <div className="flex items-center gap-1.5 truncate">
+                        <GitBranch className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
+                        <span className="truncate">
+                          Version: <strong className="font-medium text-slate-700 dark:text-slate-300">{versionStatus}</strong>
+                        </span>
+                      </div>
+
                       {presetName && (
-                        <div className="col-span-2 flex items-center gap-1.5 truncate text-slate-500 dark:text-slate-400">
+                        <div className="flex items-center gap-1.5 truncate text-slate-500 dark:text-slate-400">
                           <Sliders className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
                           <span className="truncate">
-                            Preset: <strong className="font-medium text-slate-700 dark:text-slate-300">{presetName}</strong>
+                            Strategy: <strong className="font-medium text-slate-700 dark:text-slate-300">{presetName}</strong>
                           </span>
                         </div>
                       )}
@@ -667,46 +611,6 @@ export const HomePage: React.FC = () => {
             })}
           </div>
         )}
-      </section>
-
-      {/* Explore Capabilities Section */}
-      <section aria-labelledby="capabilities-heading" className="space-y-4">
-        <h2
-          id="capabilities-heading"
-          className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center space-x-2"
-        >
-          <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
-          <span>Application Capabilities</span>
-        </h2>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {CAPABILITY_CARDS.map((card) => {
-            const Icon = card.icon;
-            return (
-              <Link
-                key={card.to}
-                to={card.to}
-                className={`group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm ${card.hoverBorderClass} transition-colors flex flex-col justify-between`}
-              >
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <Icon className={`h-4 w-4 ${card.iconColorClass}`} aria-hidden="true" />
-                    <h3 className={`font-semibold text-sm text-slate-900 dark:text-slate-100 ${card.ctaTextClass} transition-colors`}>
-                      {card.title}
-                    </h3>
-                  </div>
-                  <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    {card.description}
-                  </p>
-                </div>
-                <div className={`mt-4 flex items-center text-xs font-medium ${card.iconColorClass}`}>
-                  <span>{card.ctaLabel}</span>
-                  <ArrowRight className="ml-1 h-3 w-3 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
-                </div>
-              </Link>
-            );
-          })}
-        </div>
       </section>
 
       {/* Accessible Create Branch Modal */}

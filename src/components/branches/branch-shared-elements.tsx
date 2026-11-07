@@ -1,5 +1,5 @@
 import React from "react";
-import { ShieldCheck, Sparkles, AlertCircle } from "lucide-react";
+import { ShieldCheck, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import type { BranchStatus } from "@/api/branch-queries";
 
 /**
@@ -94,6 +94,7 @@ export interface BranchStatusBadgeProps {
  * Renders an accessible, colored indicator badge corresponding to the branch lifecycle status:
  * - `active`: Emerald badge with dot indicator.
  * - `tailoring`: Amber badge with animated sparkles icon.
+ * - `stale` / `needs_sync`: Amber badge with sync icon indicating out-of-sync status.
  * - `error`: Red badge with alert icon.
  *
  * @param {BranchStatusBadgeProps} props Component properties.
@@ -113,6 +114,14 @@ export const BranchStatusBadge: React.FC<BranchStatusBadgeProps> = ({ status }) 
       <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 dark:bg-amber-950/60 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-600/20 dark:ring-amber-500/30">
         <Sparkles className="h-3 w-3 animate-pulse text-amber-600 dark:text-amber-400" aria-hidden="true" />
         Tailoring
+      </span>
+    );
+  }
+  if (status === "stale" || status === "needs_sync") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 dark:bg-amber-950/60 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-600/20 dark:ring-amber-500/30">
+        <RefreshCw className="h-3 w-3 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+        Out of Sync
       </span>
     );
   }
