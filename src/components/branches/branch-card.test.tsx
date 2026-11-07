@@ -151,6 +151,25 @@ describe("BranchCard Component", () => {
     expect(screen.getByText(/error/i)).toBeInTheDocument();
   });
 
+  it("renders bound tailoring strategy name when presetName is provided on tailored branch", () => {
+    const branchWithPreset: Branch = {
+      ...customBranch,
+      preset_id: "preset-staff-1",
+    };
+
+    render(
+      <MemoryRouter>
+        <BranchCard
+          branch={branchWithPreset}
+          presetName="Executive Leadership"
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Executive Leadership")).toBeInTheDocument();
+    expect(screen.getByText(/strategy:/i)).toBeInTheDocument();
+  });
+
   it("has zero accessibility violations according to axe-core", async () => {
     const { container: defaultContainer } = render(
       <MemoryRouter>

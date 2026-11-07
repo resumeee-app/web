@@ -373,7 +373,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 Step 2: AI Tailoring Strategy
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Choose how AI analyzes and presents your career achievements:
+                Choose how AI analyzes and presents your career achievements (prompt directives and density guidelines):
               </p>
             </div>
 
@@ -382,7 +382,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 htmlFor="create-preset-id"
                 className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
               >
-                Preset
+                Tailoring Strategy
               </label>
               <select
                 id="create-preset-id"
@@ -390,7 +390,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 onChange={(e) => handlePresetChange(e.target.value)}
                 className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
-                <option value="">-- Generic (No Preset) --</option>
+                <option value="">-- Generic (No Strategy) --</option>
                 {presets.map((preset) => (
                   <option key={preset.id} value={preset.id}>
                     {preset.name}
@@ -481,7 +481,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 Step 3: Visual Layout & Design
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Choose visual appearance and ATS formatting:
+                Choose visual appearance and ATS formatting (visual Go template layout, independent of AI strategy):
               </p>
             </div>
 

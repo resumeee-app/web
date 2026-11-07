@@ -61,12 +61,12 @@ export const PresetsPage: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Sliders className="h-6 w-6 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Presets & Tailoring Strategies
+              Tailoring Strategies
             </h1>
           </div>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            Configure Tier-2 prompt instructions, target length constraints,
-            formatting rules, and administrative fields for resume generation.
+            Configure AI prompt directives, target length constraints,
+            formatting rules, and density guidelines for resume tailoring.
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export const PresetsPage: React.FC = () => {
           })}
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
-          <span>New Preset</span>
+          <span>Create Tailoring Strategy</span>
         </Link>
       </div>
 
@@ -94,7 +94,7 @@ export const PresetsPage: React.FC = () => {
             className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400"
             aria-hidden="true"
           />
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading presets gallery...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading tailoring strategies gallery...</p>
         </div>
       )}
 
@@ -110,7 +110,7 @@ export const PresetsPage: React.FC = () => {
           />
           <div>
             <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
-              Failed to load presets
+              Failed to load tailoring strategies
             </h3>
             <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
               {presetsError?.message || "An unexpected error occurred."}
@@ -131,7 +131,7 @@ export const PresetsPage: React.FC = () => {
           />
           <div>
             <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
-              Failed to delete preset
+              Failed to delete tailoring strategy
             </h3>
             <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">{deleteError}</p>
           </div>
@@ -146,11 +146,11 @@ export const PresetsPage: React.FC = () => {
             aria-hidden="true"
           />
           <h2 className="mt-3 text-lg font-semibold text-slate-900 dark:text-slate-100">
-            No presets found
+            No tailoring strategies found
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-            You do not have any tailoring strategy presets yet. Create a custom
-            preset to guide LLM resume tailoring.
+            You do not have any tailoring strategies yet. Create a custom
+            strategy to guide LLM resume tailoring.
           </p>
           <div className="mt-6">
             <Link
@@ -162,7 +162,7 @@ export const PresetsPage: React.FC = () => {
               })}
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
-              <span>Create your first preset</span>
+              <span>Create your first strategy</span>
             </Link>
           </div>
         </div>

@@ -424,12 +424,12 @@ describe("BranchWorkbenchPage", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole("combobox", { name: /target preset/i })
+        screen.getByRole("combobox", { name: /tailoring strategy/i })
       ).toBeInTheDocument();
     });
 
     const presetSelect = screen.getByRole("combobox", {
-      name: /target preset/i,
+      name: /tailoring strategy/i,
     });
     await user.selectOptions(presetSelect, "preset-custom");
 
@@ -439,7 +439,7 @@ describe("BranchWorkbenchPage", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Preset Updated")).toBeInTheDocument();
+      expect(screen.getByText("Tailoring Strategy Updated")).toBeInTheDocument();
     });
 
     const templateSelect = screen.getByRole("combobox", {

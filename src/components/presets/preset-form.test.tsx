@@ -67,7 +67,7 @@ describe("PresetForm Component", () => {
       />
     );
 
-    expect(screen.getByLabelText(/preset name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/strategy name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^description/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/template set/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/system instructions/i)).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe("PresetForm Component", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("button", { name: /save preset/i })
+      screen.getByRole("button", { name: /save tailoring strategy/i })
     ).toBeInTheDocument();
   });
 
@@ -149,11 +149,11 @@ describe("PresetForm Component", () => {
       />
     );
 
-    const submitBtn = screen.getByRole("button", { name: /save preset/i });
+    const submitBtn = screen.getByRole("button", { name: /save tailoring strategy/i });
     await user.click(submitBtn);
 
     expect(handleSubmit).not.toHaveBeenCalled();
-    expect(screen.getByText(/preset name is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/strategy name is required/i)).toBeInTheDocument();
   });
 
   it("submits valid form values successfully with provider, model, and reasoning level", async () => {
@@ -167,7 +167,7 @@ describe("PresetForm Component", () => {
       />
     );
 
-    await user.type(screen.getByLabelText(/preset name/i), "My Custom Tech Preset");
+    await user.type(screen.getByLabelText(/strategy name/i), "My Custom Tech Preset");
     await user.type(
       screen.getByLabelText(/^description/i),
       "Optimized for high-growth tech start-ups."
@@ -196,7 +196,7 @@ describe("PresetForm Component", () => {
       screen.getByLabelText(/include administrative & immigration fields/i)
     );
 
-    const submitBtn = screen.getByRole("button", { name: /save preset/i });
+    const submitBtn = screen.getByRole("button", { name: /save tailoring strategy/i });
     await user.click(submitBtn);
 
     expect(handleSubmit).toHaveBeenCalledTimes(1);
@@ -260,10 +260,10 @@ describe("PresetForm Component", () => {
     );
 
     // Read-only banner is displayed
-    expect(screen.getByText(/system preset \(read-only\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/system strategy \(read-only\)/i)).toBeInTheDocument();
 
     // Inputs and selects must be disabled
-    expect(screen.getByLabelText(/preset name/i)).toBeDisabled();
+    expect(screen.getByLabelText(/strategy name/i)).toBeDisabled();
     expect(screen.getByLabelText(/^description/i)).toBeDisabled();
     expect(screen.getByLabelText(/template set/i)).toBeDisabled();
     expect(screen.getByLabelText(/system instructions/i)).toBeDisabled();
@@ -273,7 +273,7 @@ describe("PresetForm Component", () => {
 
     // Save button must not be rendered
     expect(
-      screen.queryByRole("button", { name: /save preset/i })
+      screen.queryByRole("button", { name: /save tailoring strategy/i })
     ).not.toBeInTheDocument();
 
     // Duplicate action is offered
@@ -312,7 +312,7 @@ describe("PresetForm Component", () => {
     await user.selectOptions(modelSelect, "");
     await user.selectOptions(reasoningSelect, "");
 
-    const submitBtn = screen.getByRole("button", { name: /save preset/i });
+    const submitBtn = screen.getByRole("button", { name: /save tailoring strategy/i });
     await user.click(submitBtn);
 
     expect(handleSubmit).toHaveBeenCalledTimes(1);

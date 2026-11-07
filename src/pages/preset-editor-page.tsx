@@ -119,20 +119,20 @@ export const PresetEditorPage: React.FC = () => {
   }, [isCreateMode, clonedPreset, preset]);
 
   // Page title and subtitle
-  let pageTitle = "Create Custom Preset";
-  let pageSubtitle = "Define tailored prompt guidance and formatting rules.";
+  let pageTitle = "Create Tailoring Strategy";
+  let pageSubtitle = "Define AI prompt directives, density constraints, and formatting rules.";
 
   if (isCreateMode && cloneFromId) {
-    pageTitle = "Duplicate Preset";
-    pageSubtitle = "Create a customized copy of an existing preset.";
+    pageTitle = "Duplicate Tailoring Strategy";
+    pageSubtitle = "Create a customized copy of an existing tailoring strategy.";
   } else if (!isCreateMode && preset) {
     if (isBuiltIn) {
-      pageTitle = `${preset.name} (System Preset)`;
+      pageTitle = `${preset.name} (System Strategy)`;
       pageSubtitle =
-        "Built-in system preset. Read-only mode with duplicate option.";
+        "Built-in system strategy. Read-only mode with duplicate option.";
     } else {
       pageTitle = `Edit: ${preset.name}`;
-      pageSubtitle = "Update system instructions and tailoring configurations.";
+      pageSubtitle = "Update AI prompt directives and tailoring configurations.";
     }
   }
 
@@ -145,7 +145,7 @@ export const PresetEditorPage: React.FC = () => {
           className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-1 -ml-1"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>Back to Presets</span>
+          <span>Back to Tailoring Strategies</span>
         </Link>
 
         <div className="mt-3 flex items-center space-x-2">
@@ -168,7 +168,7 @@ export const PresetEditorPage: React.FC = () => {
             className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400"
             aria-hidden="true"
           />
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading preset details...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading tailoring strategy details...</p>
         </div>
       )}
 
@@ -184,10 +184,10 @@ export const PresetEditorPage: React.FC = () => {
           />
           <div>
             <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
-              Failed to load preset
+              Failed to load tailoring strategy
             </h3>
             <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
-              {presetError?.message || "The requested preset could not be found."}
+              {presetError?.message || "The requested tailoring strategy could not be found."}
             </p>
           </div>
         </div>
@@ -205,7 +205,7 @@ export const PresetEditorPage: React.FC = () => {
           />
           <div>
             <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
-              Failed to save preset
+              Failed to save tailoring strategy
             </h3>
             <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">{saveError}</p>
           </div>

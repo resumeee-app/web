@@ -67,7 +67,7 @@ describe("CreateBranchModal Component", () => {
     expect(screen.getByLabelText(/branch name \*/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/target company/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/target role/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/preset/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/tailoring strategy/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/template set \*/i)).toBeInTheDocument();
   });
 

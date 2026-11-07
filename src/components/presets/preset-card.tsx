@@ -63,11 +63,11 @@ export const PresetCard: React.FC<PresetCardProps> = ({
             {isBuiltIn ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20">
                 <Shield className="h-3 w-3" aria-hidden="true" />
-                <span>System Preset</span>
+                <span>System Strategy</span>
               </span>
             ) : (
               <span className="inline-flex items-center rounded-full bg-purple-50 dark:bg-purple-950/50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-300 ring-1 ring-inset ring-purple-700/10 dark:ring-purple-400/20">
-                Custom
+                Custom Strategy
               </span>
             )}
             {preset.include_admin_fields && (
@@ -149,10 +149,10 @@ export const PresetCard: React.FC<PresetCardProps> = ({
             size="sm"
             onClick={() => onDuplicate(preset)}
             className="gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-            aria-label={`Duplicate ${preset.name} to Custom`}
+            aria-label={`Duplicate ${preset.name} to Custom Strategy`}
           >
             <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Duplicate to Custom</span>
+            <span>Duplicate Strategy</span>
           </Button>
         </div>
 
@@ -173,11 +173,11 @@ export const PresetCard: React.FC<PresetCardProps> = ({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Preset</AlertDialogTitle>
+                <AlertDialogTitle>Delete Tailoring Strategy</AlertDialogTitle>
                 <AlertDialogDescription>
                   Are you sure you want to delete "{preset.name}"? This action
                   cannot be undone and will permanently remove this custom
-                  strategy preset.
+                  tailoring strategy.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

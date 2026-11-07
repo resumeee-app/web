@@ -182,7 +182,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
     if (!name.trim()) {
-      newErrors.name = "Preset name is required";
+      newErrors.name = "Strategy name is required";
     }
     if (!templateSetId) {
       newErrors.templateSetId = "Template set is required";
@@ -246,10 +246,10 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             />
             <div>
               <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-200">
-                System Preset (Read-Only)
+                System Strategy (Read-Only)
               </h4>
               <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
-                This built-in preset is protected from direct modification. You
+                This built-in tailoring strategy is protected from direct modification. You
                 can duplicate it to create a customizable copy.
               </p>
             </div>
@@ -271,9 +271,14 @@ export const PresetForm: React.FC<PresetFormProps> = ({
 
       {/* Preset Details section */}
       <div className="space-y-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-          Preset Configuration
-        </h2>
+        <div>
+          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+            Tailoring Strategy Configuration
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Tailoring Strategy defines AI prompt directives and density constraints. Visual formatting and layout are controlled separately by the Template Set.
+          </p>
+        </div>
 
         {/* Name input */}
         <div>
@@ -281,7 +286,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             htmlFor="preset-name"
             className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
-            Preset Name <span className="text-red-500">*</span>
+            Strategy Name <span className="text-red-500">*</span>
           </label>
           <input
             id="preset-name"
@@ -323,7 +328,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             value={description}
             disabled={isBuiltIn}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Brief purpose or context for this tailoring preset"
+            placeholder="Brief purpose or context for this tailoring strategy"
             className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
           />
         </div>
@@ -336,6 +341,9 @@ export const PresetForm: React.FC<PresetFormProps> = ({
           >
             Template Set <span className="text-red-500">*</span>
           </label>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+            Visual Go template layout suggested when this tailoring strategy is selected.
+          </p>
           <select
             id="preset-template"
             value={templateSetId}
@@ -536,7 +544,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             className="gap-2 focus-visible:ring-indigo-500"
           >
             <Save className="h-4 w-4" aria-hidden="true" />
-            <span>{isSubmitting ? "Saving..." : "Save Preset"}</span>
+            <span>{isSubmitting ? "Saving..." : "Save Tailoring Strategy"}</span>
           </Button>
         </div>
       )}

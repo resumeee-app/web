@@ -250,16 +250,16 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
       await updateMutation.mutateAsync({ preset_id: presetId });
       setToast({
         open: true,
-        title: "Preset Updated",
-        description: "Target preset updated for this branch.",
+        title: "Tailoring Strategy Updated",
+        description: "Target tailoring strategy updated for this branch.",
         variant: "success",
       });
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Failed to update target preset";
+        err instanceof Error ? err.message : "Failed to update target tailoring strategy";
       setToast({
         open: true,
-        title: "Preset Update Failed",
+        title: "Tailoring Strategy Update Failed",
         description: message,
         variant: "destructive",
       });

@@ -116,10 +116,10 @@ describe("TailorActionBar", () => {
       })
     ).not.toBeInTheDocument();
 
-    // Preset selector is suppressed for default branch
+    // Tailoring strategy selector is suppressed for default branch
     expect(
       screen.queryByRole("combobox", {
-        name: /target preset/i,
+        name: /tailoring strategy/i,
       })
     ).not.toBeInTheDocument();
 
@@ -218,7 +218,7 @@ describe("TailorActionBar", () => {
     );
 
     const presetSelect = screen.getByRole("combobox", {
-      name: /target preset/i,
+      name: /tailoring strategy/i,
     });
     const templateSelect = screen.getByRole("combobox", {
       name: /resume template/i,

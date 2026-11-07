@@ -186,7 +186,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                 </h2>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Choose the tailoring strategy and LLM density directives for this target opportunity.
+                Choose the tailoring strategy (AI prompt directives and density constraints) for this target opportunity.
               </p>
 
               {!branch.is_default && (
@@ -195,11 +195,11 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                     htmlFor="workbench-preset-select"
                     className="text-xs font-medium text-slate-700 dark:text-slate-300"
                   >
-                    Preset:
+                    Tailoring Strategy:
                   </label>
                   <select
                     id="workbench-preset-select"
-                    aria-label="Target Preset"
+                    aria-label="Tailoring Strategy"
                     value={branch.preset_id || ""}
                     onChange={(e) => onUpdatePreset?.(e.target.value)}
                     disabled={isUpdating || isTailoring}
@@ -212,7 +212,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                     ))}
                     {presets.length === 0 && (
                       <option value={branch.preset_id || ""}>
-                        {currentPreset?.name || branch.preset_id || "Default Preset"}
+                        {currentPreset?.name || branch.preset_id || "Default Strategy"}
                       </option>
                     )}
                   </select>
@@ -261,7 +261,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                 </h2>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Choose the visual layout and ATS formatting without triggering LLM re-tailoring.
+                Choose the template set (visual Go template layout and ATS styling) without modifying resume content.
               </p>
 
               <div className="flex flex-col gap-1.5 pt-1">

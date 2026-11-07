@@ -130,7 +130,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
         </h2>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Configure prompt constraints and section priorities. These synthesize
-          directly into the preset system instructions.
+          directly into the tailoring strategy instructions.
         </p>
       </div>
 

@@ -98,10 +98,10 @@ describe("PresetEditorPage Component", () => {
     renderWithRoute("/presets/new");
 
     expect(
-      screen.getByRole("heading", { level: 1, name: /create custom preset/i })
+      screen.getByRole("heading", { level: 1, name: /create tailoring strategy/i })
     ).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText(/preset name/i), "My New Strategy");
+    await user.type(screen.getByLabelText(/strategy name/i), "My New Strategy");
     await user.selectOptions(
       screen.getByLabelText(/template set/i),
       "builtin-standard-clean"
@@ -111,7 +111,7 @@ describe("PresetEditorPage Component", () => {
       "Concise metrics."
     );
 
-    await user.click(screen.getByRole("button", { name: /save preset/i }));
+    await user.click(screen.getByRole("button", { name: /save tailoring strategy/i }));
 
     expect(createMutateAsync).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -140,14 +140,14 @@ describe("PresetEditorPage Component", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: /1-page tech resume \(system preset\)/i,
+        name: /1-page tech resume \(system strategy\)/i,
       })
     ).toBeInTheDocument();
 
-    expect(screen.getByText(/system preset \(read-only\)/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/preset name/i)).toBeDisabled();
+    expect(screen.getByText(/system strategy \(read-only\)/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/strategy name/i)).toBeDisabled();
     expect(
-      screen.queryByRole("button", { name: /save preset/i })
+      screen.queryByRole("button", { name: /save tailoring strategy/i })
     ).not.toBeInTheDocument();
   });
 
@@ -176,12 +176,12 @@ describe("PresetEditorPage Component", () => {
       })
     ).toBeInTheDocument();
 
-    const nameInput = screen.getByLabelText(/preset name/i);
+    const nameInput = screen.getByLabelText(/strategy name/i);
     expect(nameInput).not.toBeDisabled();
     await user.clear(nameInput);
     await user.type(nameInput, "Updated Staff Preset");
 
-    await user.click(screen.getByRole("button", { name: /save preset/i }));
+    await user.click(screen.getByRole("button", { name: /save tailoring strategy/i }));
 
     expect(updateMutateAsync).toHaveBeenCalledWith({
       id: "preset-custom-001",
@@ -211,11 +211,11 @@ describe("PresetEditorPage Component", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: /duplicate preset/i,
+        name: /duplicate tailoring strategy/i,
       })
     ).toBeInTheDocument();
 
-    const nameInput = screen.getByLabelText(/preset name/i) as HTMLInputElement;
+    const nameInput = screen.getByLabelText(/strategy name/i) as HTMLInputElement;
     expect(nameInput.value).toBe("Copy of 1-Page Tech Resume");
   });
 
@@ -231,7 +231,7 @@ describe("PresetEditorPage Component", () => {
 
     const alert = screen.getByRole("alert");
     expect(alert).toBeInTheDocument();
-    expect(screen.getByText("Failed to load preset")).toBeInTheDocument();
+    expect(screen.getByText("Failed to load tailoring strategy")).toBeInTheDocument();
     expect(
       screen.getByText("Server error: Preset 999 does not exist")
     ).toBeInTheDocument();
@@ -250,7 +250,7 @@ describe("PresetEditorPage Component", () => {
 
     renderWithRoute("/presets/new");
 
-    await user.type(screen.getByLabelText(/preset name/i), "Faulty Preset");
+    await user.type(screen.getByLabelText(/strategy name/i), "Faulty Preset");
     await user.selectOptions(
       screen.getByLabelText(/template set/i),
       "builtin-standard-clean"
@@ -260,12 +260,12 @@ describe("PresetEditorPage Component", () => {
       "Some instructions."
     );
 
-    await user.click(screen.getByRole("button", { name: /save preset/i }));
+    await user.click(screen.getByRole("button", { name: /save tailoring strategy/i }));
 
     expect(createMutateAsync).toHaveBeenCalled();
     const alert = await screen.findByRole("alert");
     expect(alert).toBeInTheDocument();
-    expect(screen.getByText("Failed to save preset")).toBeInTheDocument();
+    expect(screen.getByText("Failed to save tailoring strategy")).toBeInTheDocument();
     expect(screen.getByText("Database write failure")).toBeInTheDocument();
     // Does not navigate away on error
     expect(screen.queryByText("Presets Gallery")).not.toBeInTheDocument();
@@ -291,12 +291,12 @@ describe("PresetEditorPage Component", () => {
 
     renderWithRoute("/presets/preset-custom-001");
 
-    await user.click(screen.getByRole("button", { name: /save preset/i }));
+    await user.click(screen.getByRole("button", { name: /save tailoring strategy/i }));
 
     expect(updateMutateAsync).toHaveBeenCalled();
     const alert = await screen.findByRole("alert");
     expect(alert).toBeInTheDocument();
-    expect(screen.getByText("Failed to save preset")).toBeInTheDocument();
+    expect(screen.getByText("Failed to save tailoring strategy")).toBeInTheDocument();
     expect(
       screen.getByText("Network timeout during update")
     ).toBeInTheDocument();

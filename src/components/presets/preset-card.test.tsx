@@ -46,7 +46,7 @@ describe("PresetCard Component", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: /1-page tech resume/i })
     ).toBeInTheDocument();
-    expect(screen.getByText("System Preset")).toBeInTheDocument();
+    expect(screen.getByText("System Strategy")).toBeInTheDocument();
     expect(
       screen.getByText("Strict 1-page max format for engineering roles.")
     ).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe("PresetCard Component", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: /custom staff swe preset/i })
     ).toBeInTheDocument();
-    expect(screen.getByText("Custom")).toBeInTheDocument();
+    expect(screen.getByText("Custom Strategy")).toBeInTheDocument();
     expect(screen.getByText("Admin Fields")).toBeInTheDocument();
     expect(screen.getByText(/gemini-4-argon/i)).toBeInTheDocument();
     expect(screen.getByText(/reasoning: high/i)).toBeInTheDocument();
@@ -102,7 +102,7 @@ describe("PresetCard Component", () => {
     // Dialog appears with confirmation
     expect(screen.getByRole("alertdialog")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /delete preset/i })
+      screen.getByRole("heading", { name: /delete tailoring strategy/i })
     ).toBeInTheDocument();
     expect(
       screen.getByText(/are you sure you want to delete "custom staff swe preset"/i)

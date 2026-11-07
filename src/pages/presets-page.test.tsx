@@ -71,7 +71,7 @@ describe("PresetsPage Component", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders page title, subtitle, and New Preset button", async () => {
+  it("renders page title, subtitle, and Create Tailoring Strategy button", async () => {
     vi.spyOn(apiHooks, "usePresetsQuery").mockReturnValue({
       data: mockPresets,
       isLoading: false,
@@ -91,12 +91,12 @@ describe("PresetsPage Component", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: /presets & tailoring strategies/i,
+        name: /tailoring strategies/i,
       })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("link", { name: /new preset/i })
+      screen.getByRole("link", { name: /create tailoring strategy/i })
     ).toHaveAttribute("href", "/presets/new");
 
     // Both cards should be rendered
@@ -121,9 +121,9 @@ describe("PresetsPage Component", () => {
 
     renderWithProviders(<PresetsPage />);
 
-    expect(screen.getByText(/no presets found/i)).toBeInTheDocument();
+    expect(screen.getByText(/no tailoring strategies found/i)).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /create your first preset/i })
+      screen.getByRole("link", { name: /create your first strategy/i })
     ).toHaveAttribute("href", "/presets/new");
   });
 
@@ -176,7 +176,7 @@ describe("PresetsPage Component", () => {
 
     const alert = screen.getByRole("alert");
     expect(alert).toBeInTheDocument();
-    expect(screen.getByText("Failed to load presets")).toBeInTheDocument();
+    expect(screen.getByText("Failed to load tailoring strategies")).toBeInTheDocument();
     expect(
       screen.getByText("Network offline: unable to reach presets endpoint")
     ).toBeInTheDocument();
@@ -263,7 +263,7 @@ describe("PresetsPage Component", () => {
 
     const alert = await screen.findByRole("alert");
     expect(alert).toBeInTheDocument();
-    expect(screen.getByText("Failed to delete preset")).toBeInTheDocument();
+    expect(screen.getByText("Failed to delete tailoring strategy")).toBeInTheDocument();
     expect(
       screen.getByText("Database constraint: preset in use")
     ).toBeInTheDocument();

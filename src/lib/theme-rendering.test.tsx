@@ -198,7 +198,7 @@ describe("Dark Theme Rendering & Accessibility Verification", () => {
       </MemoryRouter>
     );
 
-    const bannerHeading = screen.getByText(/system preset \(read-only\)/i);
+    const bannerHeading = screen.getByText(/system strategy \(read-only\)/i);
     expect(bannerHeading).toBeInTheDocument();
 
     const results = await axe(container);
