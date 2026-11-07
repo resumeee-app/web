@@ -1,10 +1,14 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import fs from 'fs';
 import path from 'path';
+
+const rootEnvDir = path.resolve(__dirname, '..');
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  envDir: fs.existsSync(path.join(rootEnvDir, '.env')) ? rootEnvDir : __dirname,
   envPrefix: ['VITE_', 'ADMIN_MODE'],
   plugins: [react()],
   resolve: {
