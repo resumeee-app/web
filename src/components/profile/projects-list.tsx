@@ -12,6 +12,7 @@ import {
   FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { ShortIdBadge } from "./short-id-badge";
+import { formatDateRange, formatDateInput } from "@/lib/date";
 import {
   SkillSelector,
   parseSkillTokens,
@@ -133,8 +134,8 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
     setUrl(proj.url || "");
     setUrlError(null);
     setNameError(null);
-    setStartDate(proj.start_date || "");
-    setEndDate(proj.end_date || "");
+    setStartDate(formatDateInput(proj.start_date));
+    setEndDate(formatDateInput(proj.end_date));
     setSummary(proj.summary || "");
     setSkillsInput(
       proj.skills && proj.skills.length > 0
@@ -263,11 +264,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                   )}
                   {(proj.start_date || proj.end_date) && (
                     <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                      <span>
-                        {proj.start_date
-                          ? `${proj.start_date} — ${proj.end_date || "Present"}`
-                          : proj.end_date}
-                      </span>
+                      <span>{formatDateRange(proj.start_date, proj.end_date)}</span>
                     </div>
                   )}
                   {proj.skills && proj.skills.length > 0 && (
@@ -533,8 +530,8 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                         </label>
                         <input
                           id="proj-start-date"
-                          type="text"
-                          placeholder="YYYY-MM (e.g. 2023-01)"
+                          type="date"
+                          placeholder="YYYY-MM-DD"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
                           className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
@@ -549,8 +546,8 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                         </label>
                         <input
                           id="proj-end-date"
-                          type="text"
-                          placeholder="YYYY-MM or blank if ongoing"
+                          type="date"
+                          placeholder="YYYY-MM-DD"
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
                           className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"

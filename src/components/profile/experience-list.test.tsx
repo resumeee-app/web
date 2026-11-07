@@ -11,7 +11,7 @@ const mockExperiences: components["schemas"]["WorkExperience"][] = [
     user_id: "user-1",
     company: "Acme Corp",
     role_title: "Staff Engineer",
-    start_date: "2021-01",
+    start_date: "2021-01-01",
     end_date: null,
     is_current: true,
     location: { city: "San Francisco", region: "CA" },
@@ -55,8 +55,8 @@ const mockExperiences: components["schemas"]["WorkExperience"][] = [
     user_id: "user-1",
     company: "Beta Tech",
     role_title: "Senior Developer",
-    start_date: "2018-03",
-    end_date: "2020-12",
+    start_date: "2018-03-01",
+    end_date: "2020-12-31",
     is_current: false,
     location: { city: "Austin", region: "TX" },
     facts: [],
@@ -202,7 +202,7 @@ describe("ExperienceList", () => {
 
     await user.type(companyInput, "NextGen Cloud Inc");
     await user.type(roleInput, "Distinguished Engineer");
-    await user.type(startInput, "2022-04");
+    await user.type(startInput, "2022-04-01");
     await user.type(cityInput, "Seattle");
     await user.type(regionInput, "WA");
 
@@ -215,7 +215,7 @@ describe("ExperienceList", () => {
     expect(handleAddExperience).toHaveBeenCalledWith({
       company: "NextGen Cloud Inc",
       role_title: "Distinguished Engineer",
-      start_date: "2022-04",
+      start_date: "2022-04-01",
       end_date: null,
       is_current: true,
       location: {
@@ -347,7 +347,7 @@ describe("ExperienceList", () => {
 
     await user.type(screen.getByLabelText(/Company \/ Organization/i), "Acme Labs");
     await user.type(screen.getByLabelText(/Role \/ Title/i), "Principal Architect");
-    await user.type(screen.getByLabelText(/Start Date/i), "2023-01");
+    await user.type(screen.getByLabelText(/Start Date/i), "2023-01-01");
 
     const toggleBtn = screen.getByRole("button", { name: /Extended Details/i });
     await user.click(toggleBtn);
@@ -372,7 +372,7 @@ describe("ExperienceList", () => {
     expect(handleAddExperience).toHaveBeenCalledWith({
       company: "Acme Labs",
       role_title: "Principal Architect",
-      start_date: "2023-01",
+      start_date: "2023-01-01",
       end_date: null,
       is_current: false,
       location: {
@@ -448,7 +448,7 @@ describe("ExperienceList", () => {
       expect.objectContaining({
         company: "Acme Corp",
         role_title: "Staff Engineer",
-        start_date: "2021-01",
+        start_date: "2021-01-01",
         end_date: null,
         is_current: true,
         location: { city: "San Francisco", region: "CA" },
@@ -618,7 +618,7 @@ describe("ExperienceList", () => {
 
       await user.type(screen.getByLabelText(/Company \/ Organization/i), "Boundary Corp");
       await user.type(screen.getByLabelText(/Role \/ Title/i), "Tester");
-      await user.type(screen.getByLabelText(/Start Date/i), "2023-01");
+      await user.type(screen.getByLabelText(/Start Date/i), "2023-01-01");
 
       const toggleBtn = screen.getByRole("button", { name: /Extended Details/i });
       await user.click(toggleBtn);

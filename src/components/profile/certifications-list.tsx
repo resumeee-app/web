@@ -12,6 +12,7 @@ import {
   FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { ShortIdBadge } from "./short-id-badge";
+import { formatDateDisplay, formatDateInput } from "@/lib/date";
 import type { components } from "@/api/schema";
 
 /**
@@ -93,7 +94,7 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
     setEditingId(cert.id);
     setName(cert.name);
     setIssuer(cert.issuer || "");
-    setDate(cert.date || "");
+    setDate(formatDateInput(cert.date));
     setUrl(cert.url || "");
     setUrlError(null);
     setNameError(null);
@@ -177,7 +178,7 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
                   </div>
                 )}
                 <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                  {cert.date && <span>Issued: {cert.date}</span>}
+                  {cert.date && <span>Issued: {formatDateDisplay(cert.date)}</span>}
                   {cert.url && isValidHttpUrl(cert.url) && (
                     <>
                       <span aria-hidden="true">•</span>
@@ -301,8 +302,8 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
                 </label>
                 <input
                   id="cert-date"
-                  type="text"
-                  placeholder="YYYY-MM"
+                  type="date"
+                  placeholder="YYYY-MM-DD"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"

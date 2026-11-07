@@ -1095,7 +1095,9 @@ export interface components {
             company: string;
             role_title: string;
             employment_type?: components["schemas"]["EmploymentType"];
+            /** Format: date */
             start_date: string;
+            /** Format: date */
             end_date?: string | null;
             is_current?: boolean;
             location?: components["schemas"]["Location"];
@@ -1117,7 +1119,9 @@ export interface components {
             company: string;
             role_title: string;
             employment_type?: components["schemas"]["EmploymentType"];
+            /** Format: date */
             start_date: string;
+            /** Format: date */
             end_date?: string | null;
             is_current?: boolean;
             location?: components["schemas"]["Location"];
@@ -1134,7 +1138,9 @@ export interface components {
             company?: string;
             role_title?: string;
             employment_type?: components["schemas"]["EmploymentType"];
+            /** Format: date */
             start_date?: string;
+            /** Format: date */
             end_date?: string | null;
             is_current?: boolean;
             location?: components["schemas"]["Location"];
@@ -1153,7 +1159,9 @@ export interface components {
             name: string;
             role?: string;
             url?: string;
+            /** Format: date */
             start_date?: string;
+            /** Format: date */
             end_date?: string | null;
             summary?: string;
             facts?: components["schemas"]["Fact"][];
@@ -1168,7 +1176,9 @@ export interface components {
             name: string;
             role?: string;
             url?: string;
+            /** Format: date */
             start_date?: string;
+            /** Format: date */
             end_date?: string | null;
             summary?: string;
             skill_ids?: string[];
@@ -1178,7 +1188,9 @@ export interface components {
             name?: string;
             role?: string;
             url?: string;
+            /** Format: date */
             start_date?: string;
+            /** Format: date */
             end_date?: string | null;
             summary?: string;
             skill_ids?: string[];
@@ -1190,7 +1202,9 @@ export interface components {
             institution: string;
             degree?: string;
             field?: string;
+            /** Format: date */
             start_date?: string;
+            /** Format: date */
             end_date?: string | null;
             score?: string;
             location?: components["schemas"]["Location"];
@@ -1205,7 +1219,9 @@ export interface components {
             institution: string;
             degree?: string;
             field?: string;
+            /** Format: date */
             start_date?: string;
+            /** Format: date */
             end_date?: string | null;
             score?: string;
             location?: components["schemas"]["Location"];
@@ -1215,7 +1231,9 @@ export interface components {
             institution?: string;
             degree?: string;
             field?: string;
+            /** Format: date */
             start_date?: string;
+            /** Format: date */
             end_date?: string | null;
             score?: string;
             location?: components["schemas"]["Location"];
@@ -1226,6 +1244,7 @@ export interface components {
             user_id: string;
             name: string;
             issuer?: string;
+            /** Format: date */
             date?: string;
             url?: string;
             summary?: string;
@@ -1238,6 +1257,7 @@ export interface components {
         CreateCertificationRequest: {
             name: string;
             issuer?: string;
+            /** Format: date */
             date?: string;
             url?: string;
             summary?: string;
@@ -1246,6 +1266,7 @@ export interface components {
         UpdateCertificationRequest: {
             name?: string;
             issuer?: string;
+            /** Format: date */
             date?: string;
             url?: string;
             summary?: string;
@@ -1512,7 +1533,9 @@ export interface components {
             company: string;
             role_title: string;
             employment_type?: components["schemas"]["EmploymentType"];
+            /** Format: date */
             start_date: string;
+            /** Format: date */
             end_date?: string | null;
             location?: components["schemas"]["Location"];
             company_location?: components["schemas"]["Location"];
@@ -1528,7 +1551,9 @@ export interface components {
             name: string;
             role?: string;
             url?: string;
+            /** Format: date */
             start_date?: string;
+            /** Format: date */
             end_date?: string | null;
             bullet_points: components["schemas"]["TailoredBullet"][];
         };
@@ -1537,7 +1562,9 @@ export interface components {
             institution: string;
             degree?: string;
             field?: string;
+            /** Format: date */
             start_date?: string;
+            /** Format: date */
             end_date?: string | null;
             score?: string;
             location?: components["schemas"]["Location"];
@@ -1547,6 +1574,7 @@ export interface components {
             source_entity_id: string;
             name: string;
             issuer?: string;
+            /** Format: date */
             date?: string;
             url?: string;
         };

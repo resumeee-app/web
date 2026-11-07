@@ -81,7 +81,7 @@ describe("CertificationsList", () => {
 
     await user.type(nameInput, "AWS Solutions Architect Professional");
     await user.type(issuerInput, "Amazon Web Services");
-    await user.type(dateInput, "2024-02");
+    await user.type(dateInput, "2024-02-15");
     await user.type(urlInput, "https://aws.amazon.com/verification/12345");
 
     const saveBtn = screen.getByRole("button", { name: /Save Certification/i });
@@ -90,7 +90,7 @@ describe("CertificationsList", () => {
     expect(handleAddCertification).toHaveBeenCalledWith({
       name: "AWS Solutions Architect Professional",
       issuer: "Amazon Web Services",
-      date: "2024-02",
+      date: "2024-02-15",
       url: "https://aws.amazon.com/verification/12345",
     });
   });

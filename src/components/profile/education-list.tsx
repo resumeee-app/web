@@ -11,6 +11,7 @@ import {
   FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { ShortIdBadge } from "./short-id-badge";
+import { formatDateRange, formatDateInput } from "@/lib/date";
 import type { components } from "@/api/schema";
 
 /**
@@ -126,8 +127,8 @@ export const EducationList: React.FC<EducationListProps> = ({
     setInstitution(item.institution);
     setDegree(item.degree || "");
     setField(item.field || "");
-    setStartDate(item.start_date || "");
-    setEndDate(item.end_date || "");
+    setStartDate(formatDateInput(item.start_date));
+    setEndDate(formatDateInput(item.end_date));
     setScore(item.score || "");
     setCity(item.location?.city || "");
     setRegion(item.location?.region || "");
@@ -250,9 +251,7 @@ export const EducationList: React.FC<EducationListProps> = ({
       ) : (
         <ul className="space-y-4" aria-label="Education history list">
           {education.map((edu) => {
-            const dateDisplay = [edu.start_date, edu.end_date || "Present"]
-              .filter(Boolean)
-              .join(" — ");
+            const dateDisplay = formatDateRange(edu.start_date, edu.end_date);
             const locationDisplay = [edu.location?.city, edu.location?.region]
               .filter(Boolean)
               .join(", ");
@@ -502,8 +501,8 @@ export const EducationList: React.FC<EducationListProps> = ({
                   </label>
                   <input
                     id="edu-start"
-                    type="text"
-                    placeholder="YYYY-MM"
+                    type="date"
+                    placeholder="YYYY-MM-DD"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
@@ -518,8 +517,8 @@ export const EducationList: React.FC<EducationListProps> = ({
                   </label>
                   <input
                     id="edu-end"
-                    type="text"
-                    placeholder="YYYY-MM"
+                    type="date"
+                    placeholder="YYYY-MM-DD"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"

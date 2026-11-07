@@ -11,6 +11,7 @@ import {
   FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { ShortIdBadge } from "./short-id-badge";
+import { formatDateRange, formatDateInput } from "@/lib/date";
 import {
   SkillSelector,
   parseSkillTokens,
@@ -174,8 +175,8 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
     setRoleTitle(exp.role_title);
     setCity(exp.location?.city || "");
     setRegion(exp.location?.region || "");
-    setStartDate(exp.start_date);
-    setEndDate(exp.end_date || "");
+    setStartDate(formatDateInput(exp.start_date));
+    setEndDate(formatDateInput(exp.end_date));
     setIsCurrent(Boolean(exp.is_current));
     setEmploymentType(exp.employment_type || "");
     setCompanyCity(exp.company_location?.city || "");
@@ -341,9 +342,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
       ) : (
         <ul className="space-y-4" aria-label="Work experiences list">
           {experiences.map((exp, idx) => {
-            const dateDisplay = exp.is_current
-              ? `${exp.start_date} — Present`
-              : `${exp.start_date} — ${exp.end_date || "Present"}`;
+            const dateDisplay = formatDateRange(exp.start_date, exp.end_date, exp.is_current);
             const locationDisplay = [exp.location?.city, exp.location?.region]
               .filter(Boolean)
               .join(", ");
@@ -653,8 +652,8 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                     ref={startDateInputRef}
                     id="exp-start"
                     required
-                    type="text"
-                    placeholder="YYYY-MM"
+                    type="date"
+                    placeholder="YYYY-MM-DD"
                     value={startDate}
                     onChange={(e) => {
                       setStartDate(e.target.value);
@@ -685,8 +684,8 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                   </label>
                   <input
                     id="exp-end"
-                    type="text"
-                    placeholder="YYYY-MM"
+                    type="date"
+                    placeholder="YYYY-MM-DD"
                     disabled={isCurrent}
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}

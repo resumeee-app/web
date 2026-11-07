@@ -104,8 +104,8 @@ describe("EducationList", () => {
     await user.type(instInput, "Stanford University");
     await user.type(degreeInput, "Master of Science");
     await user.type(fieldInput, "Computer Science");
-    await user.type(startInput, "2018-09");
-    await user.type(endInput, "2020-06");
+    await user.type(startInput, "2018-09-01");
+    await user.type(endInput, "2020-06-30");
     await user.type(scoreInput, "4.0 GPA");
 
     const saveBtn = screen.getByRole("button", { name: /Save Education/i });
@@ -115,8 +115,8 @@ describe("EducationList", () => {
       institution: "Stanford University",
       degree: "Master of Science",
       field: "Computer Science",
-      start_date: "2018-09",
-      end_date: "2020-06",
+      start_date: "2018-09-01",
+      end_date: "2020-06-30",
       score: "4.0 GPA",
     });
   });

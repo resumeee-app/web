@@ -12,7 +12,7 @@ const mockProjects: components["schemas"]["Project"][] = [
     name: "Resumeee Open Source",
     role: "Lead Maintainer",
     url: "https://github.com/rrivera/resumeee",
-    start_date: "2023-01",
+    start_date: "2023-01-01",
     end_date: null,
     summary: "AI-native resume builder with Git-like branch versioning.",
     skills: [
@@ -78,7 +78,7 @@ describe("ProjectsList", () => {
 
     expect(screen.getByText("Resumeee Open Source")).toBeInTheDocument();
     expect(screen.getByText("Lead Maintainer")).toBeInTheDocument();
-    expect(screen.getByText("2023-01 — Present")).toBeInTheDocument();
+    expect(screen.getByText("2023-01-01 — Present")).toBeInTheDocument();
     expect(screen.getByText("TypeScript")).toBeInTheDocument();
     expect(screen.getByText("Go")).toBeInTheDocument();
     expect(screen.getByText("proj-11111111")).toBeInTheDocument();
@@ -304,8 +304,8 @@ describe("ProjectsList", () => {
     const endDateInput = screen.getByLabelText(/End Date/i);
     const skillsInput = screen.getByLabelText(/^Skills$/i);
 
-    await user.type(startDateInput, "2024-01");
-    await user.type(endDateInput, "2024-12");
+    await user.type(startDateInput, "2024-01-01");
+    await user.type(endDateInput, "2024-12-31");
     await user.type(skillsInput, "Kubernetes, Rust");
 
     await user.click(screen.getByRole("button", { name: /Save Project/i }));
@@ -314,8 +314,8 @@ describe("ProjectsList", () => {
       name: "Cloud Orchestrator",
       role: undefined,
       url: undefined,
-      start_date: "2024-01",
-      end_date: "2024-12",
+      start_date: "2024-01-01",
+      end_date: "2024-12-31",
       summary: undefined,
       skill_ids: ["skill-1", "skill-2"],
     });
@@ -346,7 +346,7 @@ describe("ProjectsList", () => {
     expect(toggleBtn).toHaveAttribute("aria-expanded", "true");
 
     const startDateInput = screen.getByLabelText(/Start Date/i) as HTMLInputElement;
-    expect(startDateInput.value).toBe("2023-01");
+    expect(startDateInput.value).toBe("2023-01-01");
 
     const skillsInput = screen.getByLabelText(/^Skills$/i) as HTMLInputElement;
     expect(skillsInput.value).toContain("TypeScript");
@@ -354,7 +354,7 @@ describe("ProjectsList", () => {
 
     // Update End Date
     const endDateInput = screen.getByLabelText(/End Date/i);
-    await user.type(endDateInput, "2025-06");
+    await user.type(endDateInput, "2025-06-30");
 
     await user.click(screen.getByRole("button", { name: /Save Project/i }));
 
@@ -362,8 +362,8 @@ describe("ProjectsList", () => {
       "proj-11111111-2222-3333-4444-555555555555",
       expect.objectContaining({
         name: "Resumeee Open Source",
-        start_date: "2023-01",
-        end_date: "2025-06",
+        start_date: "2023-01-01",
+        end_date: "2025-06-30",
         skill_ids: ["skill-ts", "skill-go"],
       })
     );
