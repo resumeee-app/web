@@ -52,7 +52,7 @@ export interface BranchCardProps {
  * - Enforces the Default Branch Invariant: renders a prominent "Default Branch" badge,
  *   displays clarifying text explaining its un-tailored master nature, and suppresses deletion actions.
  * - Communicates tailoring lifecycle state through colored status indicators.
- * - Provides navigation seam to `/branches/:id` (the branch workbench, defined in Issue #98).
+ * - Provides navigation seam to `/branches/:id` (the branch workbench).
  *
  * Accessibility & WAI-ARIA Considerations:
  * - Uses semantic `<article>` landmark with `aria-labelledby` referencing the branch title heading.

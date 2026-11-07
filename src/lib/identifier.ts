@@ -2,7 +2,7 @@
  * Identifier Utility for Compact Entity Identification.
  *
  * Implements token-efficient short entity identifiers matching the canonical Resumeee
- * domain specification (internal/domain/identifier.go, Issue #84).
+ * domain specification (internal/domain/identifier.go).
  */
 
 /**

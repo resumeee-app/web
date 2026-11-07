@@ -17,7 +17,7 @@ export interface ShortIdBadgeProps
 
 /**
  * Accessible compact entity identifier badge displaying the short identifier alongside
- * full UUID information for prompt token transparency (Issue #84, WCAG 2.1 AA).
+ * full UUID information for prompt token transparency (WCAG 2.1 AA).
  *
  * Provides screen-reader accessible labels with both the short identifier and full UUID,
  * as well as a native browser title tooltip for hover inspection.

@@ -106,7 +106,7 @@ describe("ResumeViewer Component", () => {
     expect(pagePaper.parentElement).toBe(container.firstChild);
   });
 
-  it("does not render layout sizing controls or fixed page boundary guides (removed per spec #143)", () => {
+  it("does not render layout sizing controls or fixed page boundary guides", () => {
     render(
       <ResumeViewer
         htmlContent={mockHtml}

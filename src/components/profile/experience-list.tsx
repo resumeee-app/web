@@ -55,7 +55,7 @@ export interface ExperienceListProps {
  *
  * Implements:
  * - Orderable list with keyboard-accessible Move Up and Move Down controls.
- * - Display of compact ShortIDs (Issue #84) for experiences and bullet points.
+ * - Display of compact ShortIDs for experiences and bullet points.
  * - Nested list of quantifiable markdown bullet points (Facts) with add and delete actions.
  * - Collapsible "Extended Details" section for administrative, government, and visa fields:
  *   employment type, company location, company contact, hours per week, supervisor details,

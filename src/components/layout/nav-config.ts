@@ -23,7 +23,7 @@ export interface NavItem {
  * Central data-driven registry of main navigation routes.
  *
  * @remarks
- * Other feature branches and UI tickets can append routes to this single array
+ * Other feature branches can append routes to this single array
  * as one-line changes without altering layout components.
  */
 export const mainNavItems: NavItem[] = [
