@@ -42,7 +42,12 @@ export function createApiClient(options?: Partial<ClientOptions>) {
   client.use({
     async onRequest({ request }) {
       const token = getAuthToken();
-      const isAdminMode = import.meta.env.VITE_ADMIN_MODE === "true";
+      const adminMode = import.meta.env.ADMIN_MODE;
+      const legacyAdminMode = import.meta.env.VITE_ADMIN_MODE;
+      const isAdminMode =
+        adminMode !== undefined && adminMode !== ""
+          ? adminMode === "true"
+          : legacyAdminMode === "true";
       if (token) {
         request.headers.set("Authorization", `Bearer ${token}`);
       } else if (isAdminMode && !request.headers.has("X-User-ID")) {
