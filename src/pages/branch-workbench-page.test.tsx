@@ -796,6 +796,63 @@ describe("BranchWorkbenchPage", () => {
     });
   });
 
+  it("gates preview and disables 'Inspect Resume' on fresh branches with zero completed versions", async () => {
+    const freshBranch: Branch = {
+      ...mockBranch,
+      id: "branch-fresh",
+      name: "Fresh Junior Engineer Branch",
+      active_version_id: undefined,
+    };
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({ data: freshBranch, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({ data: [], error: undefined }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    const { Wrapper } = createTestWrapper("/branches/branch-fresh");
+    render(<BranchWorkbenchPage />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", {
+          level: 1,
+          name: "Fresh Junior Engineer Branch",
+        })
+      ).toBeInTheDocument();
+    });
+
+    // Inspect Resume link should NOT be an active link navigating to /branches/:id/preview
+    expect(
+      screen.queryByRole("link", {
+        name: /inspect resume for fresh junior engineer branch/i,
+      })
+    ).not.toBeInTheDocument();
+
+    // Inspect Resume button should be disabled
+    const inspectBtn = screen.getByRole("button", {
+      name: /inspect resume/i,
+    });
+    expect(inspectBtn).toBeInTheDocument();
+    expect(inspectBtn).toBeDisabled();
+    expect(inspectBtn).toHaveAttribute("aria-disabled", "true");
+
+    // Guidance text should be displayed advising the user to tailor first
+    expect(
+      screen.getByText(/tailor resume first to preview/i)
+    ).toBeInTheDocument();
+  });
+
   it("passes automated axe accessibility audit with 0 violations", async () => {
     vi.spyOn(api, "GET").mockImplementation((path: string) => {
       if (path === "/branches/{id}") {

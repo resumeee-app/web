@@ -30,6 +30,7 @@ import {
   getBranchVersionExportUrl,
   type ExportFormat,
 } from "@/api/render-queries";
+import { useTemplates } from "@/api/template-queries";
 
 /**
  * Props for ResumePreviewPage component.
@@ -73,6 +74,16 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
   } = useBranchVersions(branchId);
 
   const { data: masterProfile } = useFullProfile();
+  const { data: templates = [] } = useTemplates();
+
+  // Friendly template name resolution falling back to ID if not found in catalog
+  const templateName = React.useMemo(() => {
+    if (!branch?.template_set_id) {
+      return "";
+    }
+    const matched = templates.find((t) => t.id === branch.template_set_id);
+    return matched?.name || branch.template_set_id;
+  }, [templates, branch?.template_set_id]);
 
   // Active view tab state (Rendered Resume vs Tailoring Diff)
   const [activeTab, setActiveTab] = React.useState<string>(initialTab);
@@ -214,6 +225,12 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
               <span>Back to Workbench</span>
             </Link>
           </li>
+          <li aria-hidden="true" className="text-slate-400 dark:text-slate-600">
+            /
+          </li>
+          <li className="text-slate-700 dark:text-slate-300 font-medium" aria-current="page">
+            Preview{templateName ? ` (${templateName})` : ""}
+          </li>
         </ol>
       </nav>
 
@@ -236,7 +253,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
             {branch.template_set_id && (
               <>
                 <span className="text-slate-300 dark:text-slate-600">•</span>
-                <span className="font-mono text-slate-500 dark:text-slate-400">Template: {branch.template_set_id}</span>
+                <span className="text-slate-500 dark:text-slate-400">Template: {templateName}</span>
               </>
             )}
           </div>

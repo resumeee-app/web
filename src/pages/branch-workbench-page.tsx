@@ -89,6 +89,13 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
   const { data: presets = [] } = usePresets();
   const { data: templates = [] } = useTemplates();
 
+  // Determine whether branch has any completed versions ready for preview
+  const hasCompletedVersions = React.useMemo(() => {
+    return versions.some(
+      (v) => v.status === "completed" || v.status === "completed_with_warnings"
+    );
+  }, [versions]);
+
   // Active generation polling version UUID
   const [pollingVersionId, setPollingVersionId] = React.useState<string | null>(
     null
@@ -442,6 +449,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
           branch={branch}
           presets={presets}
           templates={templates}
+          hasCompletedVersions={hasCompletedVersions}
           isTailoring={isTailoring}
           isSyncing={syncMutation.isPending}
           isUpdating={updateMutation.isPending}
@@ -466,15 +474,28 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
                   This default branch mirrors your authoritative master career profile with 100% fidelity and zero LLM modifications. Changing the template set re-renders the canonical resume immediately.
                 </p>
               </div>
-              <Button asChild size="sm" className="shrink-0 flex items-center gap-1.5">
-                <Link
-                  to={`/branches/${branch.id}/preview`}
-                  aria-label="Inspect Master Resume"
+              {hasCompletedVersions ? (
+                <Button asChild size="sm" className="shrink-0 flex items-center gap-1.5">
+                  <Link
+                    to={`/branches/${branch.id}/preview`}
+                    aria-label="Inspect Master Resume"
+                  >
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                    <span>Inspect Master Resume</span>
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  disabled
+                  aria-disabled="true"
+                  size="sm"
+                  className="shrink-0 flex items-center gap-1.5 cursor-not-allowed opacity-60"
+                  aria-label="Inspect Master Resume (Refresh to generate master version)"
                 >
                   <Eye className="h-4 w-4" aria-hidden="true" />
                   <span>Inspect Master Resume</span>
-                </Link>
-              </Button>
+                </Button>
+              )}
             </div>
           </section>
         ) : (

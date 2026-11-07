@@ -11,6 +11,12 @@ import {
   Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Badge } from "./badge";
 import type { Branch, Preset, TemplateSet } from "@/api/workbench-queries";
 
@@ -30,6 +36,8 @@ export interface TailorActionBarProps {
   isSyncing: boolean;
   /** Flag indicating whether branch settings are currently updating. */
   isUpdating?: boolean;
+  /** Flag indicating whether this branch has at least one completed version ready for preview. */
+  hasCompletedVersions?: boolean;
   /** Callback triggered when user updates the target preset. */
   onUpdatePreset?: (presetId: string) => void;
   /** Callback triggered when user updates the resume ATS template set. */
@@ -63,6 +71,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
   isTailoring,
   isSyncing,
   isUpdating = false,
+  hasCompletedVersions = true,
   onUpdatePreset,
   onUpdateTemplate,
   onTailorResume,
@@ -285,15 +294,42 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
             </div>
 
             <div className="pt-2">
-              <Button asChild variant="secondary" className="w-full flex items-center justify-center gap-2">
-                <Link
-                  to={`/branches/${branch.id}/preview`}
-                  aria-label={`Inspect resume for ${branch.name}`}
-                >
-                  <Eye className="h-4 w-4" aria-hidden="true" />
-                  <span>Inspect Resume</span>
-                </Link>
-              </Button>
+              {hasCompletedVersions ? (
+                <Button asChild variant="secondary" className="w-full flex items-center justify-center gap-2">
+                  <Link
+                    to={`/branches/${branch.id}/preview`}
+                    aria-label={`Inspect resume for ${branch.name}`}
+                  >
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                    <span>Inspect Resume</span>
+                  </Link>
+                </Button>
+              ) : (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="w-full block">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled
+                          aria-disabled="true"
+                          className="w-full flex items-center justify-center gap-2 cursor-not-allowed opacity-60"
+                        >
+                          <Eye className="h-4 w-4" aria-hidden="true" />
+                          <span>Inspect Resume</span>
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Tailor resume first to preview</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <p className="mt-1.5 text-center text-xs text-slate-500 dark:text-slate-400">
+                    Tailor resume first to preview.
+                  </p>
+                </TooltipProvider>
+              )}
             </div>
           </div>
         </div>

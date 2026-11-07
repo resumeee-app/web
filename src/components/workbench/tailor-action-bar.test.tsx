@@ -262,6 +262,62 @@ describe("TailorActionBar", () => {
     expect(onSync).toHaveBeenCalled();
   });
 
+  it("disables 'Inspect Resume' button and contextualizes guidance when branch has zero completed versions", () => {
+    render(
+      <TailorActionBar
+        branch={mockBranch}
+        presets={mockPresets}
+        templates={mockTemplates}
+        hasCompletedVersions={false}
+        isTailoring={false}
+        isSyncing={false}
+        onTailorResume={vi.fn()}
+        onSyncMaster={vi.fn()}
+      />
+    );
+
+    // Should NOT have an active link navigating to /branches/:id/preview
+    expect(
+      screen.queryByRole("link", {
+        name: /inspect resume/i,
+      })
+    ).not.toBeInTheDocument();
+
+    // Should have disabled button with accessible aria attributes
+    const disabledButton = screen.getByRole("button", {
+      name: /inspect resume/i,
+    });
+    expect(disabledButton).toBeInTheDocument();
+    expect(disabledButton).toBeDisabled();
+    expect(disabledButton).toHaveAttribute("aria-disabled", "true");
+
+    // Helpful guidance to tailor first must be visible
+    expect(
+      screen.getByText(/tailor resume first to preview/i)
+    ).toBeInTheDocument();
+  });
+
+  it("renders active 'Inspect Resume' link when branch has completed versions", () => {
+    render(
+      <TailorActionBar
+        branch={mockBranch}
+        presets={mockPresets}
+        templates={mockTemplates}
+        hasCompletedVersions={true}
+        isTailoring={false}
+        isSyncing={false}
+        onTailorResume={vi.fn()}
+        onSyncMaster={vi.fn()}
+      />
+    );
+
+    const inspectLink = screen.getByRole("link", {
+      name: /inspect resume for senior backend engineer/i,
+    });
+    expect(inspectLink).toBeInTheDocument();
+    expect(inspectLink).toHaveAttribute("href", "/branches/branch-123/preview");
+  });
+
   it("has no accessibility violations", async () => {
     const { container } = render(
       <TailorActionBar

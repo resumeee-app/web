@@ -6,6 +6,15 @@ import { QueryClient, QueryClientProvider, type UseQueryResult } from "@tanstack
 import { axe } from "vitest-axe";
 import { ResumePreviewPage } from "./resume-preview-page";
 import * as renderQueries from "@/api/render-queries";
+import * as templateQueries from "@/api/template-queries";
+
+vi.mock("@/api/template-queries", async (importOriginal) => {
+  const actual = await importOriginal<typeof templateQueries>();
+  return {
+    ...actual,
+    useTemplates: vi.fn(),
+  };
+});
 
 vi.mock("@/api/render-queries", async (importOriginal) => {
   const actual = await importOriginal<typeof renderQueries>();
@@ -181,6 +190,23 @@ describe("ResumePreviewPage Component", () => {
     vi.mocked(renderQueries.useFullProfile).mockReturnValue(
       mockQueryResult<renderQueries.MasterProfileSnapshot>({
         data: mockMasterProfile,
+        isLoading: false,
+        isError: false,
+      })
+    );
+
+    vi.mocked(templateQueries.useTemplates).mockReturnValue(
+      mockQueryResult<templateQueries.TemplateSet[]>({
+        data: [
+          {
+            id: "tmpl-1",
+            user_id: "u-1",
+            name: "Simple Modern Tech",
+            html_template: "",
+            markdown_template: "",
+            text_template: "",
+          },
+        ],
         isLoading: false,
         isError: false,
       })
@@ -385,6 +411,40 @@ describe("ResumePreviewPage Component", () => {
 
     const workbenchLink = within(breadcrumb).getByRole("link", { name: /back to workbench/i });
     expect(workbenchLink).toHaveAttribute("href", "/branches/b-123");
+  });
+
+  it("resolves template UUID to friendly name in preview header and breadcrumb trail", () => {
+    render(<ResumePreviewPage />, { wrapper: createTestWrapper() });
+
+    // Preview header must display friendly template name instead of raw UUID
+    expect(screen.getByText(/template: simple modern tech/i)).toBeInTheDocument();
+    expect(screen.queryByText(/template: tmpl-1/i)).not.toBeInTheDocument();
+
+    // Breadcrumb navigation should also reflect friendly template name
+    const breadcrumbNav = screen.getByRole("navigation", { name: /breadcrumb/i });
+    expect(breadcrumbNav).toHaveTextContent(/preview \(simple modern tech\)/i);
+  });
+
+  it("falls back to raw template ID in header and breadcrumb when template is not in catalog", () => {
+    vi.mocked(renderQueries.useBranch).mockReturnValue(
+      mockQueryResult<renderQueries.Branch>({
+        data: {
+          ...mockBranch,
+          template_set_id: "tmpl-unknown-custom-uuid",
+        },
+        isLoading: false,
+        isError: false,
+      })
+    );
+
+    render(<ResumePreviewPage />, { wrapper: createTestWrapper() });
+
+    // Fallback to raw ID in header
+    expect(screen.getByText(/template: tmpl-unknown-custom-uuid/i)).toBeInTheDocument();
+
+    // Fallback to raw ID in breadcrumb
+    const breadcrumbNav = screen.getByRole("navigation", { name: /breadcrumb/i });
+    expect(breadcrumbNav).toHaveTextContent(/preview \(tmpl-unknown-custom-uuid\)/i);
   });
 
   it("has zero accessibility violations according to axe-core", async () => {
