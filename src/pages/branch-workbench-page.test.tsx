@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type React from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -609,9 +609,37 @@ describe("BranchWorkbenchPage", () => {
       ).toBeInTheDocument();
     });
 
-    expect(
-      screen.getByRole("link", { name: /back to resumes/i })
-    ).toBeInTheDocument();
+    const backLink = screen.getByRole("link", { name: /back to branches/i });
+    expect(backLink).toBeInTheDocument();
+    expect(backLink).toHaveAttribute("href", "/branches");
+  });
+
+  it("renders breadcrumb navigation linking back to branches catalog", async () => {
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({ data: mockBranch, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({ data: mockVersions, error: undefined }) as never;
+      }
+      return Promise.resolve({ data: [], error: undefined }) as never;
+    });
+
+    const { Wrapper } = createTestWrapper();
+    render(<BranchWorkbenchPage pollIntervalMs={30} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: mockBranch.name })
+      ).toBeInTheDocument();
+    });
+
+    const breadcrumb = screen.getByRole("navigation", { name: /breadcrumb/i });
+    expect(breadcrumb).toBeInTheDocument();
+
+    const backLink = within(breadcrumb).getByRole("link", { name: /back to branches/i });
+    expect(backLink).toBeInTheDocument();
+    expect(backLink).toHaveAttribute("href", "/branches");
   });
 
   it("resets state when branchId parameter changes", async () => {

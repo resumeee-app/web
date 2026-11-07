@@ -166,11 +166,11 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
             {branchError?.message || "The requested resume branch could not be found."}
           </p>
           <Link
-            to="/"
+            to="/branches"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            <span>Return to dashboard</span>
+            <span>Back to Branches</span>
           </Link>
         </div>
       </main>
@@ -193,13 +193,28 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
     <main className={`container mx-auto px-4 py-6 max-w-7xl ${className}`}>
       {/* Navigation Breadcrumb / Return Link */}
       <nav aria-label="Breadcrumb" className="mb-4">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>Back to Dashboard</span>
-        </Link>
+        <ol className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <li>
+            <Link
+              to="/branches"
+              className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
+            >
+              Branches
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-slate-400 dark:text-slate-600">
+            /
+          </li>
+          <li>
+            <Link
+              to={branchId ? `/branches/${branchId}` : "/branches"}
+              className="inline-flex items-center gap-1 hover:text-slate-900 dark:hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Back to Workbench</span>
+            </Link>
+          </li>
+        </ol>
       </nav>
 
       {/* Top Header Section: Title, Target Details, Version Picker, Export Toolbar */}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider, type UseQueryResult } from "@tanstack/react-query";
@@ -367,7 +367,24 @@ describe("ResumePreviewPage Component", () => {
 
     render(<ResumePreviewPage />, { wrapper: createTestWrapper() });
 
-    expect(screen.getByRole("alert")).toHaveTextContent(/branch not found/i);
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent(/branch not found/i);
+    const returnLink = within(alert).getByRole("link", { name: /back to branches/i });
+    expect(returnLink).toBeInTheDocument();
+    expect(returnLink).toHaveAttribute("href", "/branches");
+  });
+
+  it("renders breadcrumb navigation linking to branches catalog and parent branch workbench", () => {
+    render(<ResumePreviewPage />, { wrapper: createTestWrapper() });
+
+    const breadcrumb = screen.getByRole("navigation", { name: /breadcrumb/i });
+    expect(breadcrumb).toBeInTheDocument();
+
+    const branchesLink = within(breadcrumb).getByRole("link", { name: /^branches$/i });
+    expect(branchesLink).toHaveAttribute("href", "/branches");
+
+    const workbenchLink = within(breadcrumb).getByRole("link", { name: /back to workbench/i });
+    expect(workbenchLink).toHaveAttribute("href", "/branches/b-123");
   });
 
   it("has zero accessibility violations according to axe-core", async () => {
