@@ -834,6 +834,8 @@ export interface paths {
             query?: {
                 /** @description Desired preview format (html, markdown, text). Defaults to JSON with all formats. */
                 format?: "html" | "markdown" | "text";
+                /** @description Optional visual template set ID override for dynamic preview. */
+                template_set_id?: string;
             };
             header?: never;
             path: {
@@ -3643,6 +3645,8 @@ export interface operations {
             query?: {
                 /** @description Desired preview format (html, markdown, text). Defaults to JSON with all formats. */
                 format?: "html" | "markdown" | "text";
+                /** @description Optional visual template set ID override for dynamic preview. */
+                template_set_id?: string;
             };
             header?: never;
             path: {

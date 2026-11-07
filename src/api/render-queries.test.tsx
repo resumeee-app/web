@@ -211,5 +211,29 @@ describe("render-queries API hooks", () => {
         params: { path: { id: "branch-123", v: "2" } },
       });
     });
+
+    it("fetches rendered resume output with templateSetId override", async () => {
+      const mockRender = {
+        html: "<h1>Dynamic Resume</h1>",
+        markdown: "# Dynamic Resume",
+        plain_text: "Dynamic Resume",
+      };
+
+      vi.mocked(api.GET).mockResolvedValueOnce(mockApiResponse(mockRender));
+
+      const { result } = renderHook(
+        () => useBranchVersionPreview("branch-123", 2, "tmpl-modern"),
+        { wrapper: createWrapper() }
+      );
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data).toEqual(mockRender);
+      expect(api.GET).toHaveBeenCalledWith("/branches/{id}/versions/{v}/preview", {
+        params: {
+          path: { id: "branch-123", v: "2" },
+          query: { template_set_id: "tmpl-modern" },
+        },
+      });
+    });
   });
 });

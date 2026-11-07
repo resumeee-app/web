@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider, type UseQueryResult } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { axe } from "vitest-axe";
 import { ResumePreviewPage } from "./resume-preview-page";
 import * as renderQueries from "@/api/render-queries";
 import * as templateQueries from "@/api/template-queries";
+import * as workbenchQueries from "@/api/workbench-queries";
 
 vi.mock("@/api/template-queries", async (importOriginal) => {
   const actual = await importOriginal<typeof templateQueries>();
@@ -25,6 +26,16 @@ vi.mock("@/api/render-queries", async (importOriginal) => {
     useBranchVersion: vi.fn(),
     useBranchVersionPreview: vi.fn(),
     useFullProfile: vi.fn(),
+  };
+});
+
+vi.mock("@/api/workbench-queries", async (importOriginal) => {
+  const actual = await importOriginal<typeof workbenchQueries>();
+  return {
+    ...actual,
+    useTemplates: vi.fn(),
+    useUpdateBranch: vi.fn(),
+    renderPreviewEphemeral: vi.fn(),
   };
 });
 
@@ -148,8 +159,11 @@ describe("ResumePreviewPage Component", () => {
     facts: [],
   };
 
+  let mockUpdateBranchMutate: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUpdateBranchMutate = vi.fn();
 
     vi.mocked(renderQueries.useBranch).mockReturnValue(
       mockQueryResult<renderQueries.Branch>({
@@ -175,16 +189,26 @@ describe("ResumePreviewPage Component", () => {
       })
     );
 
-    vi.mocked(renderQueries.useBranchVersionPreview).mockReturnValue(
-      mockQueryResult<renderQueries.RenderOutput>({
-        data: {
-          html: mockVersion1.html_output || "",
-          markdown: mockVersion1.markdown_output || "",
-          plain_text: mockVersion1.plain_text_output || "",
-        },
-        isLoading: false,
-        isError: false,
-      })
+    vi.mocked(renderQueries.useBranchVersionPreview).mockImplementation(
+      (branchId, versionId, templateSetId) => {
+        const queryClient = useQueryClient();
+        const cached = queryClient.getQueryData<renderQueries.RenderOutput>(
+          renderQueries.renderQueryKeys.branchPreview(
+            branchId,
+            String(versionId),
+            templateSetId
+          )
+        );
+        return mockQueryResult<renderQueries.RenderOutput>({
+          data: cached || {
+            html: mockVersion1.html_output || "",
+            markdown: mockVersion1.markdown_output || "",
+            plain_text: mockVersion1.plain_text_output || "",
+          },
+          isLoading: false,
+          isError: false,
+        });
+      }
     );
 
     vi.mocked(renderQueries.useFullProfile).mockReturnValue(
@@ -195,22 +219,59 @@ describe("ResumePreviewPage Component", () => {
       })
     );
 
+    const mockTemplatesList = [
+      {
+        id: "tmpl-1",
+        user_id: "u-1",
+        name: "Simple Modern Tech",
+        description: "Simple modern tech layout",
+        html_template: "<div>Standard</div>",
+        markdown_template: "# Standard",
+        text_template: "Standard",
+      },
+      {
+        id: "tmpl-2",
+        user_id: "u-1",
+        name: "Executive Clean",
+        description: "Executive layout",
+        html_template: "<div>Executive</div>",
+        markdown_template: "# Executive",
+        text_template: "Executive",
+      },
+    ];
+
     vi.mocked(templateQueries.useTemplates).mockReturnValue(
       mockQueryResult<templateQueries.TemplateSet[]>({
-        data: [
-          {
-            id: "tmpl-1",
-            user_id: "u-1",
-            name: "Simple Modern Tech",
-            html_template: "",
-            markdown_template: "",
-            text_template: "",
-          },
-        ],
+        data: mockTemplatesList,
         isLoading: false,
         isError: false,
       })
     );
+
+    vi.mocked(workbenchQueries.useTemplates).mockReturnValue(
+      mockQueryResult<workbenchQueries.TemplateSet[]>({
+        data: mockTemplatesList,
+        isLoading: false,
+        isError: false,
+      })
+    );
+
+    mockUpdateBranchMutate = vi.fn();
+    vi.mocked(workbenchQueries.useUpdateBranch).mockReturnValue({
+      mutate: mockUpdateBranchMutate,
+      mutateAsync: vi.fn().mockResolvedValue({}),
+      isPending: false,
+    } as never);
+
+    vi.mocked(workbenchQueries.renderPreviewEphemeral).mockResolvedValue({
+      template_set_id: "tmpl-2",
+      html: "<!DOCTYPE html><html><body><h1>Jane Doe - Executive</h1></body></html>",
+      markdown: "# Jane Doe - Executive",
+      plain_text: "Jane Doe - Executive",
+      html_output: "<!DOCTYPE html><html><body><h1>Jane Doe - Executive</h1></body></html>",
+      markdown_output: "# Jane Doe - Executive",
+      plain_text_output: "Jane Doe - Executive",
+    });
   });
 
   it("renders page title, branch metadata, and export toolbar", () => {
@@ -453,5 +514,36 @@ describe("ResumePreviewPage Component", () => {
     // Note: in jsdom axe-core, iframes: false prevents cross-frame postMessage errors
     const results = await axe(container, { iframes: false });
     expect(results).toHaveNoViolations();
+  });
+
+  it("switches templates dynamically using ephemeral preview endpoint", async () => {
+    const user = userEvent.setup();
+    render(<ResumePreviewPage />, { wrapper: createTestWrapper() });
+
+    const templateSelect = screen.getByRole("combobox", {
+      name: /select resume template/i,
+    });
+    expect(templateSelect).toBeInTheDocument();
+    expect(templateSelect).toHaveValue("tmpl-1");
+
+    await user.selectOptions(templateSelect, "tmpl-2");
+
+    expect(workbenchQueries.renderPreviewEphemeral).toHaveBeenCalledWith(
+      "b-123",
+      1,
+      "tmpl-2"
+    );
+
+    await waitFor(() => {
+      const iframe = screen.getByTitle("Rendered Resume Preview");
+      expect(iframe).toHaveAttribute(
+        "srcdoc",
+        "<!DOCTYPE html><html><body><h1>Jane Doe - Executive</h1></body></html>"
+      );
+    });
+
+    expect(mockUpdateBranchMutate).toHaveBeenCalledWith({
+      template_set_id: "tmpl-2",
+    });
   });
 });

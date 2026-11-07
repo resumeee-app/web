@@ -18,6 +18,7 @@ import * as React from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useQueryClient } from "@tanstack/react-query";
 import { ExportToolbar } from "@/components/preview/export-toolbar";
 import { ResumeViewer } from "@/components/preview/resume-viewer";
 import { DiffViewer } from "@/components/preview/diff-viewer";
@@ -28,9 +29,14 @@ import {
   useBranchVersionPreview,
   useFullProfile,
   getBranchVersionExportUrl,
+  renderQueryKeys,
   type ExportFormat,
 } from "@/api/render-queries";
-import { useTemplates } from "@/api/template-queries";
+import {
+  useTemplates,
+  useUpdateBranch,
+  renderPreviewEphemeral,
+} from "@/api/workbench-queries";
 
 /**
  * Props for ResumePreviewPage component.
@@ -75,15 +81,30 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
 
   const { data: masterProfile } = useFullProfile();
   const { data: templates = [] } = useTemplates();
+  const updateBranchMutation = useUpdateBranch(branchId);
+  const queryClient = useQueryClient();
+
+  // Active template set selection state for live dynamic re-rendering
+  const [selectedTemplateId, setSelectedTemplateId] = React.useState<
+    string | undefined
+  >(branch?.template_set_id);
+
+  // Synchronize initial template selection once branch data arrives
+  React.useEffect(() => {
+    if (branch?.template_set_id && selectedTemplateId === undefined) {
+      setSelectedTemplateId(branch.template_set_id);
+    }
+  }, [branch?.template_set_id, selectedTemplateId]);
 
   // Friendly template name resolution falling back to ID if not found in catalog
   const templateName = React.useMemo(() => {
-    if (!branch?.template_set_id) {
+    const tId = selectedTemplateId || branch?.template_set_id;
+    if (!tId) {
       return "";
     }
-    const matched = templates.find((t) => t.id === branch.template_set_id);
-    return matched?.name || branch.template_set_id;
-  }, [templates, branch?.template_set_id]);
+    const matched = templates.find((t) => t.id === tId);
+    return matched?.name || tId;
+  }, [templates, selectedTemplateId, branch?.template_set_id]);
 
   // Active view tab state (Rendered Resume vs Tailoring Diff)
   const [activeTab, setActiveTab] = React.useState<string>(initialTab);
@@ -133,17 +154,53 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
     }
   }, [versions, branch, selectedVersionNumber]);
 
+  const [isEphemeralRendering, setIsEphemeralRendering] = React.useState(false);
+
   // Fetch full details of the currently selected version
   const {
     data: activeVersion,
     isLoading: isVersionDetailsLoading,
   } = useBranchVersion(branchId, selectedVersionNumber);
 
-  // Fetch Go server-rendered outputs for the branch version preview
+  // Fetch Go server-rendered outputs for the branch version preview, incorporating active template
   const {
     data: previewOutputs,
     isLoading: isPreviewLoading,
-  } = useBranchVersionPreview(branchId, selectedVersionNumber);
+  } = useBranchVersionPreview(branchId, selectedVersionNumber, selectedTemplateId);
+
+  const handleTemplateChange = async (newTemplateId: string) => {
+    setSelectedTemplateId(newTemplateId);
+    if (branchId) {
+      updateBranchMutation.mutate({ template_set_id: newTemplateId });
+    }
+    if (!branchId || selectedVersionNumber === undefined) {
+      return;
+    }
+    setIsEphemeralRendering(true);
+    try {
+      const res = await renderPreviewEphemeral(
+        branchId,
+        selectedVersionNumber,
+        newTemplateId
+      );
+      queryClient.setQueryData(
+        renderQueryKeys.branchPreview(
+          branchId,
+          String(selectedVersionNumber),
+          newTemplateId
+        ),
+        {
+          html: res.html_output || res.html || "",
+          markdown: res.markdown_output || res.markdown || "",
+          plain_text: res.plain_text_output || res.plain_text || "",
+        }
+      );
+    } catch (err) {
+      console.error("Failed to render ephemeral preview:", err);
+    } finally {
+      setIsEphemeralRendering(false);
+    }
+  };
 
   // Loading state handling
   if (isBranchLoading || isVersionsLoading) {
@@ -250,17 +307,45 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
                 <span>{branch.target_company}</span>
               </>
             )}
-            {branch.template_set_id && (
+            {(selectedTemplateId || branch.template_set_id) && (
               <>
                 <span className="text-slate-300 dark:text-slate-600">•</span>
-                <span className="text-slate-500 dark:text-slate-400">Template: {templateName}</span>
+                <span className="font-mono text-slate-500 dark:text-slate-400">
+                  Template: {templateName}
+                </span>
               </>
             )}
           </div>
         </div>
 
-        {/* Right side: Version Selection Dropdown & Export Toolbar */}
+        {/* Right side: Template Selector, Version Selection Dropdown & Export Toolbar */}
         <div className="flex flex-wrap items-center gap-3">
+          {/* Template Selector */}
+          {templates.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <label
+                htmlFor="resume-template-select"
+                className="text-xs font-medium text-slate-600 dark:text-slate-300"
+              >
+                Template:
+              </label>
+              <select
+                id="resume-template-select"
+                value={selectedTemplateId ?? branch.template_set_id ?? ""}
+                onChange={(e) => handleTemplateChange(e.target.value)}
+                aria-label="Select resume template"
+                disabled={isEphemeralRendering}
+                className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs font-medium text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              >
+                {templates.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id}>
+                    {tpl.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Version Selector (if multiple versions exist) */}
           {versions.length > 0 && (
             <div className="flex items-center gap-1.5">
@@ -315,7 +400,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
 
         {/* Tab 1: Live Rendered Resume Preview */}
         <TabsContent value="preview" className="focus-visible:outline-none">
-          {isVersionDetailsLoading || isPreviewLoading ? (
+          {isVersionDetailsLoading || isPreviewLoading || isEphemeralRendering ? (
             <div
               role="status"
               aria-label="Loading version outputs"

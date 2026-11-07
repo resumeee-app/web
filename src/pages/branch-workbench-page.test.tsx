@@ -984,4 +984,114 @@ describe("BranchWorkbenchPage", () => {
       ).toBeInTheDocument();
     });
   });
+
+  it("displays visual feedback and preview confirmation when switching appearance templates", async () => {
+    const user = userEvent.setup();
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({ data: mockBranch, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({
+          data: mockVersions,
+          error: undefined,
+        }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({
+          data: [
+            ...mockTemplates,
+            {
+              id: "tpl-modern",
+              user_id: "u-1",
+              name: "Modern Clean Layout",
+              description: "Contemporary design",
+              html_template: "<div>Modern</div>",
+              markdown_template: "# Modern",
+              text_template: "Modern",
+            },
+          ],
+          error: undefined,
+        }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    vi.spyOn(api, "PUT").mockResolvedValue({
+      data: { ...mockBranch, template_set_id: "tpl-modern" },
+      error: undefined,
+      response: new Response(),
+    } as never);
+
+    vi.spyOn(api, "POST").mockResolvedValue({
+      data: {
+        template_set_id: "tpl-modern",
+        html: "<div class='modern'>Preview Content</div>",
+        markdown: "# Modern",
+        plain_text: "Modern",
+      },
+      error: undefined,
+      response: new Response(),
+    } as never);
+
+    const { Wrapper } = createTestWrapper();
+    render(<BranchWorkbenchPage pollIntervalMs={30} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("combobox", { name: /resume template/i })
+      ).toBeInTheDocument();
+    });
+
+    const templateSelect = screen.getByRole("combobox", {
+      name: /resume template/i,
+    });
+    await user.selectOptions(templateSelect, "tpl-modern");
+
+    expect(api.PUT).toHaveBeenCalledWith("/branches/{id}", {
+      params: { path: { id: "b-123" } },
+      body: { template_set_id: "tpl-modern" },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Layout switched to "Modern Clean Layout"\. Resume preview updated\./i)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("Template Updated")
+      ).toBeInTheDocument();
+    });
+
+    // Verify Quick Preview button is present and opens the preview dialog
+    const quickPreviewBtn = screen.getByRole("button", {
+      name: /preview layout in modal/i,
+    });
+    expect(quickPreviewBtn).toBeInTheDocument();
+    await user.click(quickPreviewBtn);
+
+    expect(api.POST).toHaveBeenCalledWith(
+      "/branches/{id}/versions/{v}/render-preview",
+      {
+        params: { path: { id: "b-123", v: "1" } },
+        body: { template_set_id: "tpl-modern" },
+      }
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("dialog")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/Template Appearance Preview:/i)
+      ).toBeInTheDocument();
+      const modalIframe = screen.getByTitle("Template Layout Preview");
+      expect(modalIframe).toBeInTheDocument();
+      expect(modalIframe).toHaveAttribute("sandbox", "");
+      expect(modalIframe).toHaveAttribute("srcdoc", "<div class='modern'>Preview Content</div>");
+    });
+  });
 });

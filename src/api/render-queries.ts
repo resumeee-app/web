@@ -53,8 +53,10 @@ export const renderQueryKeys = {
   version: (branchId: string, versionId: string) =>
     ["render", "branch", branchId, "version", versionId] as const,
   /** Cache key for a specific branch version preview output */
-  branchPreview: (branchId: string, versionId: string) =>
-    ["render", "branch", branchId, "version", versionId, "preview"] as const,
+  branchPreview: (branchId: string, versionId: string, templateSetId?: string) =>
+    templateSetId
+      ? (["render", "branch", branchId, "preview", versionId, templateSetId] as const)
+      : (["render", "branch", branchId, "preview", versionId] as const),
   /** Cache key for the root master profile career snapshot */
   masterProfile: () => ["render", "masterProfile"] as const,
 };
@@ -214,18 +216,23 @@ export function useFullProfile(): UseQueryResult<MasterProfileSnapshot, Error> {
  *
  * @param branchId - Unique UUID of the parent resume branch.
  * @param versionNumberOrId - Sequential version number (e.g. 1) or version UUID.
+ * @param templateSetId - Optional visual layout template set ID override for dynamic preview rendering.
  * @returns UseQueryResult containing the RenderOutput record.
  */
 export function useBranchVersionPreview(
   branchId: string,
-  versionNumberOrId: string | number | undefined
+  versionNumberOrId: string | number | undefined,
+  templateSetId?: string
 ): UseQueryResult<RenderOutput, Error> {
   const v = versionNumberOrId !== undefined ? String(versionNumberOrId) : "";
   return useQuery({
-    queryKey: renderQueryKeys.branchPreview(branchId, v),
+    queryKey: renderQueryKeys.branchPreview(branchId, v, templateSetId),
     queryFn: async () => {
       const { data, error } = await api.GET("/branches/{id}/versions/{v}/preview", {
-        params: { path: { id: branchId, v } },
+        params: {
+          path: { id: branchId, v },
+          query: templateSetId ? { template_set_id: templateSetId } : undefined,
+        },
       });
       if (error || !data) {
         const errorMsg =

@@ -3,6 +3,13 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, AlertCircle, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
   ToastProvider,
   Toast,
   ToastTitle,
@@ -18,6 +25,7 @@ import {
   useSetActiveVersion,
   useUpdateBranch,
   useSyncBranch,
+  renderPreviewEphemeral,
 } from "@/api/workbench-queries";
 import {
   useGenerateVersion,
@@ -32,6 +40,7 @@ import { VersionTimeline } from "@/components/workbench/version-timeline";
 import { GapAnalysisCard, type GapItem } from "@/components/workbench/gap-analysis-card";
 import { BranchContextEditor } from "@/components/workbench/branch-context-editor";
 import { PromptPreviewCard } from "@/components/workbench/prompt-preview-card";
+import { stripScriptTags } from "@/components/templates/template-preview-pane";
 
 /**
  * Toast state tracking notifications triggered by asynchronous operations.
@@ -266,13 +275,61 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     }
   };
 
+  // Live visual feedback for Document Appearance template switching
+  const [templateFeedback, setTemplateFeedback] = React.useState<string | null>(null);
+  const [activeTemplateSetId, setActiveTemplateSetId] = React.useState<string | null>(null);
+
+  // Template layout quick preview modal state
+  const [previewModalOpen, setPreviewModalOpen] = React.useState(false);
+  const [previewModalHtml, setPreviewModalHtml] = React.useState<string | null>(null);
+  const [previewModalTemplateName, setPreviewModalTemplateName] = React.useState<string>("");
+  const [isPreviewModalLoading, setIsPreviewModalLoading] = React.useState(false);
+
+  const handleOpenPreviewModal = async (targetTemplateIdOverride?: string) => {
+    const targetTemplateId = targetTemplateIdOverride || activeTemplateSetId || branch?.template_set_id;
+    const targetTemplate = templates.find((t) => t.id === targetTemplateId);
+    const tName = targetTemplate?.name || targetTemplateId || "Standard Template";
+    setPreviewModalTemplateName(tName);
+    setPreviewModalOpen(true);
+
+    if (!branchId || !activeVersion || !targetTemplateId) {
+      setPreviewModalHtml(null);
+      return;
+    }
+
+    setIsPreviewModalLoading(true);
+    try {
+      const res = await renderPreviewEphemeral(
+        branchId,
+        activeVersion.version_number,
+        targetTemplateId
+      );
+      setPreviewModalHtml(res.html_output || res.html || "");
+    } catch (err) {
+      console.error("Failed to render preview modal:", err);
+      setPreviewModalHtml(null);
+    } finally {
+      setIsPreviewModalLoading(false);
+    }
+  };
+
+  const sanitizedModalHtml = React.useMemo(
+    () => (previewModalHtml ? stripScriptTags(previewModalHtml) : null),
+    [previewModalHtml]
+  );
+
   const handleUpdateTemplate = async (templateId: string) => {
+    const targetTemplate = templates.find((t) => t.id === templateId);
+    const templateName = targetTemplate?.name || templateId;
+    setActiveTemplateSetId(templateId);
+
     try {
       await updateMutation.mutateAsync({ template_set_id: templateId });
+      setTemplateFeedback(`Layout switched to "${templateName}". Resume preview updated.`);
       setToast({
         open: true,
         title: "Template Updated",
-        description: "Resume template set updated for this branch.",
+        description: `Resume template set updated to "${templateName}". Preview layout confirmed.`,
         variant: "success",
       });
     } catch (err) {
@@ -446,13 +503,15 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
 
         {/* Workbench Header & Action Bar */}
         <TailorActionBar
-          branch={branch}
+          branch={activeTemplateSetId ? { ...branch, template_set_id: activeTemplateSetId } : branch}
           presets={presets}
           templates={templates}
           hasCompletedVersions={hasCompletedVersions}
           isTailoring={isTailoring}
           isSyncing={syncMutation.isPending}
           isUpdating={updateMutation.isPending}
+          templateFeedback={templateFeedback}
+          onPreviewLayout={activeVersion ? () => handleOpenPreviewModal(activeTemplateSetId || branch.template_set_id) : undefined}
           onUpdatePreset={handleUpdatePreset}
           onUpdateTemplate={handleUpdateTemplate}
           onTailorResume={handleTailorResume}
@@ -559,6 +618,41 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         <ToastClose aria-label="Close notification" />
       </Toast>
       <ToastViewport />
+
+      {/* Template Quick Preview Modal */}
+      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
+        <DialogContent className="sm:max-w-[760px] max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Template Appearance Preview: {previewModalTemplateName}</DialogTitle>
+            <DialogDescription>
+              Live layout preview confirming appearance template switch for {branch.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 min-h-[420px] border border-slate-200 dark:border-slate-800 rounded-md bg-white dark:bg-slate-900 overflow-hidden relative">
+            {isPreviewModalLoading ? (
+              <div
+                role="status"
+                aria-label="Loading template preview"
+                className="flex flex-col items-center justify-center h-full min-h-[420px] text-slate-500 text-sm gap-2"
+              >
+                <Loader2 className="h-6 w-6 animate-spin text-indigo-600 dark:text-indigo-400" />
+                <span>Rendering template preview...</span>
+              </div>
+            ) : sanitizedModalHtml ? (
+              <iframe
+                srcDoc={sanitizedModalHtml}
+                title="Template Layout Preview"
+                className="w-full h-full min-h-[420px] border-0"
+                sandbox=""
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full min-h-[420px] text-slate-500 text-sm">
+                No preview available. Tailor a resume version to preview appearance layouts.
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </ToastProvider>
   );
 };

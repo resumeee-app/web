@@ -266,6 +266,9 @@ export function useUpdateBranch(branchId: string) {
       queryClient.invalidateQueries({
         queryKey: workbenchKeys.branch(branchId),
       });
+      queryClient.invalidateQueries({
+        queryKey: ["render", "branch", branchId],
+      });
     },
   });
 }
@@ -396,12 +399,20 @@ export async function renderPreviewEphemeral(
     throw new Error(extractApiErrorMessage(error, "Failed to render preview"));
   }
 
+  const raw = data as Record<string, string>;
+  const html = raw.html || raw.html_output || "";
+  const markdown = raw.markdown || raw.markdown_output || "";
+  const plainText = raw.plain_text || raw.plain_text_output || "";
+
   return {
     ...data,
     template_set_id: templateSetId,
-    html_output: data.html,
-    markdown_output: data.markdown,
-    plain_text_output: data.plain_text,
+    html,
+    markdown,
+    plain_text: plainText,
+    html_output: html,
+    markdown_output: markdown,
+    plain_text_output: plainText,
   };
 }
 

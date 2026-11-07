@@ -38,6 +38,10 @@ export interface TailorActionBarProps {
   isUpdating?: boolean;
   /** Flag indicating whether this branch has at least one completed version ready for preview. */
   hasCompletedVersions?: boolean;
+  /** Live visual confirmation message displayed after updating layout template. */
+  templateFeedback?: string | null;
+  /** Callback triggered to preview current layout in quick modal dialog. */
+  onPreviewLayout?: () => void;
   /** Callback triggered when user updates the target preset. */
   onUpdatePreset?: (presetId: string) => void;
   /** Callback triggered when user updates the resume ATS template set. */
@@ -72,6 +76,8 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
   isSyncing,
   isUpdating = false,
   hasCompletedVersions = true,
+  templateFeedback,
+  onPreviewLayout,
   onUpdatePreset,
   onUpdateTemplate,
   onTailorResume,
@@ -291,19 +297,52 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                   )}
                 </select>
               </div>
+
+              {templateFeedback ? (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="rounded border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1.5 text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-1.5"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>{templateFeedback}</span>
+                </div>
+              ) : (
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  Active layout:{" "}
+                  <span className="font-medium text-slate-700 dark:text-slate-300">
+                    {currentTemplate?.name || branch.template_set_id || "Standard Template"}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="pt-2">
               {hasCompletedVersions ? (
-                <Button asChild variant="secondary" className="w-full flex items-center justify-center gap-2">
-                  <Link
-                    to={`/branches/${branch.id}/preview`}
-                    aria-label={`Inspect resume for ${branch.name}`}
-                  >
-                    <Eye className="h-4 w-4" aria-hidden="true" />
-                    <span>Inspect Resume</span>
-                  </Link>
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {onPreviewLayout && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={onPreviewLayout}
+                      className="flex-1 flex items-center justify-center gap-1.5 text-xs"
+                      aria-label="Preview layout in modal"
+                    >
+                      <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>Quick Preview</span>
+                    </Button>
+                  )}
+                  <Button asChild variant="secondary" size="sm" className="flex-1 flex items-center justify-center gap-1.5 text-xs">
+                    <Link
+                      to={`/branches/${branch.id}/preview`}
+                      aria-label={`Inspect resume for ${branch.name}`}
+                    >
+                      <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>Inspect Resume</span>
+                    </Link>
+                  </Button>
+                </div>
               ) : (
                 <TooltipProvider>
                   <Tooltip>

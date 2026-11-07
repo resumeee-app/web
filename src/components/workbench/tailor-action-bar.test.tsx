@@ -334,4 +334,59 @@ describe("TailorActionBar", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("calls onUpdateTemplate when template combobox selection changes", async () => {
+    const user = userEvent.setup();
+    const onUpdateTemplate = vi.fn();
+
+    render(
+      <TailorActionBar
+        branch={mockBranch}
+        presets={mockPresets}
+        templates={mockTemplates}
+        isTailoring={false}
+        isSyncing={false}
+        onUpdateTemplate={onUpdateTemplate}
+        onTailorResume={vi.fn()}
+        onSyncMaster={vi.fn()}
+      />
+    );
+
+    const templateSelect = screen.getByRole("combobox", {
+      name: /resume template/i,
+    });
+    expect(templateSelect).toBeInTheDocument();
+
+    await user.selectOptions(templateSelect, "tpl-executive");
+    expect(onUpdateTemplate).toHaveBeenCalledWith("tpl-executive");
+  });
+
+  it("renders visual feedback when templateFeedback is provided and triggers onPreviewLayout", async () => {
+    const user = userEvent.setup();
+    const onPreviewLayout = vi.fn();
+
+    render(
+      <TailorActionBar
+        branch={mockBranch}
+        presets={mockPresets}
+        templates={mockTemplates}
+        isTailoring={false}
+        isSyncing={false}
+        templateFeedback="Layout switched to Executive Minimalist."
+        onPreviewLayout={onPreviewLayout}
+        onTailorResume={vi.fn()}
+        onSyncMaster={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getByText("Layout switched to Executive Minimalist.")
+    ).toBeInTheDocument();
+
+    const quickPreviewBtn = screen.getByRole("button", {
+      name: /preview layout in modal/i,
+    });
+    await user.click(quickPreviewBtn);
+    expect(onPreviewLayout).toHaveBeenCalledTimes(1);
+  });
 });
