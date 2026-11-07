@@ -230,7 +230,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
                 className="flex items-center justify-between px-3 py-2 text-sm"
               >
                 <div className="flex items-center space-x-2">
-                  <span className="w-5 text-xs font-semibold text-slate-400 dark:text-slate-500">
+                  <span className="w-5 text-xs font-semibold text-slate-400 dark:text-slate-400">
                     {index + 1}.
                   </span>
                   <span className="font-medium text-slate-800 dark:text-slate-200">

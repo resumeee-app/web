@@ -526,7 +526,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             <span className="font-medium block">
               Include Administrative & Immigration Fields
             </span>
-            <span className="text-xs text-slate-500 block">
+            <span className="text-xs text-slate-500 dark:text-slate-400 block">
               Enables unabridged history, supervisor contacts, hours per week,
               and citizenship verification data required for audit and visa
               filings.

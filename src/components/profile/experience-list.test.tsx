@@ -679,4 +679,71 @@ describe("ExperienceList", () => {
     expect(dialog).toHaveClass("max-h-[90vh]");
     expect(dialog).toHaveClass("overflow-y-auto");
   });
+
+  it("displays visible error messages, sets aria-invalid, and shifts focus to first invalid field on empty submission", async () => {
+    const user = userEvent.setup();
+    const handleAddExperience = vi.fn();
+    render(
+      <ExperienceList
+        experiences={mockExperiences}
+        onReorder={vi.fn()}
+        onAddExperience={handleAddExperience}
+        onUpdateExperience={vi.fn()}
+        onDeleteExperience={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Add Work Experience/i }));
+
+    // Click Save Experience without filling required fields
+    const saveBtn = screen.getByRole("button", { name: /Save Experience/i });
+    await user.click(saveBtn);
+
+    expect(handleAddExperience).not.toHaveBeenCalled();
+
+    // Verify visible inline error messages
+    expect(screen.getByText(/Role \/ Title is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/Company \/ Organization is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/Start Date is required/i)).toBeInTheDocument();
+
+    const roleInput = screen.getByLabelText(/Role \/ Title/i);
+    const companyInput = screen.getByLabelText(/Company \/ Organization/i);
+    const startInput = screen.getByLabelText(/Start Date/i);
+
+    expect(roleInput).toHaveAttribute("aria-invalid", "true");
+    expect(roleInput).toHaveAttribute("aria-describedby", "exp-role-error");
+    expect(companyInput).toHaveAttribute("aria-invalid", "true");
+    expect(companyInput).toHaveAttribute("aria-describedby", "exp-company-error");
+    expect(startInput).toHaveAttribute("aria-invalid", "true");
+    expect(startInput).toHaveAttribute("aria-describedby", "exp-start-error");
+
+    // First invalid field must receive focus
+    expect(roleInput).toHaveFocus();
+  });
+
+  it("restores focus to trigger button upon modal dismissal via cancel button", async () => {
+    const user = userEvent.setup();
+    render(
+      <ExperienceList
+        experiences={mockExperiences}
+        onReorder={vi.fn()}
+        onAddExperience={vi.fn()}
+        onUpdateExperience={vi.fn()}
+        onDeleteExperience={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    const addExpBtn = screen.getByRole("button", { name: /Add Work Experience/i });
+    await user.click(addExpBtn);
+
+    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
+    await user.click(cancelBtn);
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(addExpBtn).toHaveFocus();
+  });
 });

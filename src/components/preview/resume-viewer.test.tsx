@@ -154,4 +154,86 @@ describe("ResumeViewer Component", () => {
     const results = await axe(container, { iframes: false });
     expect(results).toHaveNoViolations();
   });
+
+  it("implements roving tabindex on radiogroup options", async () => {
+    const user = userEvent.setup();
+    render(
+      <ResumeViewer
+        htmlContent={mockHtml}
+        markdownContent={mockMarkdown}
+        plainTextContent={mockPlainText}
+      />
+    );
+
+    const htmlRadio = screen.getByRole("radio", { name: /html/i });
+    const markdownRadio = screen.getByRole("radio", { name: /markdown/i });
+    const textRadio = screen.getByRole("radio", { name: /plain text/i });
+
+    // Initially HTML is selected
+    expect(htmlRadio).toHaveAttribute("tabindex", "0");
+    expect(markdownRadio).toHaveAttribute("tabindex", "-1");
+    expect(textRadio).toHaveAttribute("tabindex", "-1");
+
+    // Click Markdown
+    await user.click(markdownRadio);
+    expect(htmlRadio).toHaveAttribute("tabindex", "-1");
+    expect(markdownRadio).toHaveAttribute("tabindex", "0");
+    expect(textRadio).toHaveAttribute("tabindex", "-1");
+  });
+
+  it("navigates radiogroup using ArrowRight and ArrowLeft keys with wrapping", async () => {
+    const user = userEvent.setup();
+    render(
+      <ResumeViewer
+        htmlContent={mockHtml}
+        markdownContent={mockMarkdown}
+        plainTextContent={mockPlainText}
+      />
+    );
+
+    const htmlRadio = screen.getByRole("radio", { name: /html/i });
+    const markdownRadio = screen.getByRole("radio", { name: /markdown/i });
+    const textRadio = screen.getByRole("radio", { name: /plain text/i });
+
+    htmlRadio.focus();
+    expect(htmlRadio).toHaveFocus();
+
+    // ArrowRight moves to Markdown
+    await user.keyboard("{ArrowRight}");
+    expect(markdownRadio).toHaveFocus();
+    expect(markdownRadio).toHaveAttribute("aria-checked", "true");
+    expect(markdownRadio).toHaveAttribute("tabindex", "0");
+    expect(htmlRadio).toHaveAttribute("tabindex", "-1");
+
+    // ArrowRight moves to Plain Text
+    await user.keyboard("{ArrowRight}");
+    expect(textRadio).toHaveFocus();
+    expect(textRadio).toHaveAttribute("aria-checked", "true");
+
+    // ArrowRight wraps to HTML
+    await user.keyboard("{ArrowRight}");
+    expect(htmlRadio).toHaveFocus();
+    expect(htmlRadio).toHaveAttribute("aria-checked", "true");
+
+    // ArrowLeft wraps backwards to Plain Text
+    await user.keyboard("{ArrowLeft}");
+    expect(textRadio).toHaveFocus();
+    expect(textRadio).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("applies visible focus ring styling to radio options", () => {
+    render(
+      <ResumeViewer
+        htmlContent={mockHtml}
+        markdownContent={mockMarkdown}
+        plainTextContent={mockPlainText}
+      />
+    );
+
+    const radios = screen.getAllByRole("radio");
+    for (const radio of radios) {
+      expect(radio.className).toMatch(/focus-visible:ring-2/);
+      expect(radio.className).toMatch(/focus-visible:ring-indigo-500/);
+    }
+  });
 });

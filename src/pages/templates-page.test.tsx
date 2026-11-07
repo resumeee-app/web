@@ -328,4 +328,28 @@ describe("TemplatesPage Component", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("restores focus to preview button upon dismissing preview modal", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<TemplatesPage />);
+
+    await screen.findByText("Standard Clean");
+
+    const previewBtn = screen.getByRole("button", {
+      name: /preview standard clean/i,
+    });
+    await user.click(previewBtn);
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+
+    const closeBtn = within(dialog).getByRole("button", { name: /close/i });
+    await user.click(closeBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    expect(previewBtn).toHaveFocus();
+  });
 });

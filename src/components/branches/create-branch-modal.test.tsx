@@ -1,3 +1,4 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -287,5 +288,64 @@ describe("CreateBranchModal Component", () => {
       branch_instructions: "",
       custom_directives: "",
     });
+  });
+
+  it("renders step badges with dark mode contrast classes", () => {
+    render(
+      <CreateBranchModal
+        open={true}
+        onOpenChange={vi.fn()}
+        existingBranches={existingBranches}
+        presets={presets}
+        templates={templates}
+        onSubmit={vi.fn()}
+      />
+    );
+
+    const step1Badge = screen.getByText("Step 1");
+    const step2Badge = screen.getByText("Step 2");
+    const step3Badge = screen.getByText("Step 3");
+
+    expect(step1Badge).toHaveClass("dark:text-slate-400");
+    expect(step1Badge).not.toHaveClass("dark:text-slate-500");
+    expect(step2Badge).toHaveClass("dark:text-slate-400");
+    expect(step2Badge).not.toHaveClass("dark:text-slate-500");
+    expect(step3Badge).toHaveClass("dark:text-slate-400");
+    expect(step3Badge).not.toHaveClass("dark:text-slate-500");
+  });
+
+  it("restores focus to trigger button upon modal dismissal via cancel button", async () => {
+    const user = userEvent.setup();
+    const TestComponent = () => {
+      const [open, setOpen] = React.useState(false);
+      return (
+        <div>
+          <button type="button" onClick={() => setOpen(true)}>
+            Open Branch Modal
+          </button>
+          <CreateBranchModal
+            open={open}
+            onOpenChange={setOpen}
+            existingBranches={existingBranches}
+            presets={presets}
+            templates={templates}
+            onSubmit={vi.fn()}
+          />
+        </div>
+      );
+    };
+
+    render(<TestComponent />);
+
+    const openBtn = screen.getByRole("button", { name: /Open Branch Modal/i });
+    await user.click(openBtn);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
+    await user.click(cancelBtn);
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(openBtn).toHaveFocus();
   });
 });

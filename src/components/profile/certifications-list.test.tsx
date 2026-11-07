@@ -206,4 +206,51 @@ describe("CertificationsList", () => {
     expect(dialog).toHaveClass("max-h-[90vh]");
     expect(dialog).toHaveClass("overflow-y-auto");
   });
+
+  it("displays visible error messages, sets aria-invalid, and shifts focus to certification name on empty submission", async () => {
+    const user = userEvent.setup();
+    const handleAddCertification = vi.fn();
+    render(
+      <CertificationsList
+        certifications={mockCertifications}
+        onAddCertification={handleAddCertification}
+        onUpdateCertification={vi.fn()}
+        onDeleteCertification={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Add Certification/i }));
+
+    const saveBtn = screen.getByRole("button", { name: /Save Certification/i });
+    await user.click(saveBtn);
+
+    expect(handleAddCertification).not.toHaveBeenCalled();
+
+    expect(screen.getByText(/Certification name is required/i)).toBeInTheDocument();
+    const nameInput = screen.getByLabelText(/Certification Name/i);
+    expect(nameInput).toHaveAttribute("aria-invalid", "true");
+    expect(nameInput).toHaveAttribute("aria-describedby", "cert-name-error");
+    expect(nameInput).toHaveFocus();
+  });
+
+  it("restores focus to trigger button upon modal dismissal via cancel button", async () => {
+    const user = userEvent.setup();
+    render(
+      <CertificationsList
+        certifications={mockCertifications}
+        onAddCertification={vi.fn()}
+        onUpdateCertification={vi.fn()}
+        onDeleteCertification={vi.fn()}
+      />
+    );
+
+    const addBtn = screen.getByRole("button", { name: /Add Certification/i });
+    await user.click(addBtn);
+
+    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
+    await user.click(cancelBtn);
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(addBtn).toHaveFocus();
+  });
 });

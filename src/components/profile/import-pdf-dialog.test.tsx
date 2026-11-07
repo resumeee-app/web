@@ -510,4 +510,34 @@ describe("ImportPDFDialog", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("restores focus to trigger button upon dialog dismissal", async () => {
+    const user = userEvent.setup();
+    const { wrapper } = createWrapper();
+
+    const TestParent = () => {
+      const [open, setOpen] = React.useState(false);
+      return (
+        <div>
+          <button type="button" onClick={() => setOpen(true)}>
+            Open Import Dialog
+          </button>
+          <ImportPDFDialog open={open} onOpenChange={setOpen} />
+        </div>
+      );
+    };
+
+    render(<TestParent />, { wrapper });
+
+    const openBtn = screen.getByRole("button", { name: /Open Import Dialog/i });
+    await user.click(openBtn);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
+    await user.click(cancelBtn);
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(openBtn).toHaveFocus();
+  });
 });

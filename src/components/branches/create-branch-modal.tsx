@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -48,6 +48,10 @@ export interface CreateBranchModalProps {
    * Indicates if the creation mutation is currently pending.
    */
   isSubmitting?: boolean;
+  /**
+   * Optional ref to trigger element to restore focus on modal dismissal.
+   */
+  triggerRef?: React.RefObject<HTMLElement | null>;
 }
 
 /**
@@ -81,9 +85,11 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
   templates,
   onSubmit,
   isSubmitting = false,
+  triggerRef,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [hasManuallySelectedTheme, setHasManuallySelectedTheme] = useState(false);
+  const internalTriggerRef = useRef<HTMLElement | null>(null);
 
   // Form State
   const [name, setName] = useState("");
@@ -98,6 +104,9 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
   // Initialize or reset defaults when modal opens
   useEffect(() => {
     if (open) {
+      if (!triggerRef?.current) {
+        internalTriggerRef.current = (document.activeElement as HTMLElement) || null;
+      }
       setStep(1);
       setHasManuallySelectedTheme(false);
       setName("");
@@ -120,7 +129,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
         "standard";
       setTemplateSetId(initialTemplateId);
     }
-  }, [open, presets, templates]);
+  }, [open, presets, templates, triggerRef]);
 
   /**
    * Validates Step 1 inputs (required name and unique name check).
@@ -216,7 +225,17 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={FORM_DIALOG_CONTENT_CLASS}>
+      <DialogContent
+        className={FORM_DIALOG_CONTENT_CLASS}
+        onCloseAutoFocus={(e) => {
+          const el = triggerRef?.current || internalTriggerRef.current;
+          if (el) {
+            e.preventDefault();
+            internalTriggerRef.current = null;
+            el.focus();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Create New Resume Branch</DialogTitle>
           <DialogDescription>
@@ -238,7 +257,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 }`}
                 aria-current={step === 1 ? "step" : undefined}
               >
-                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Step 1</span>
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-400">Step 1</span>
                 <span>The Opportunity</span>
               </button>
             </li>
@@ -255,7 +274,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 }`}
                 aria-current={step === 2 ? "step" : undefined}
               >
-                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Step 2</span>
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-400">Step 2</span>
                 <span>AI Tailoring</span>
               </button>
             </li>
@@ -272,7 +291,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 }`}
                 aria-current={step === 3 ? "step" : undefined}
               >
-                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Step 3</span>
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-400">Step 3</span>
                 <span>Visual Design</span>
               </button>
             </li>

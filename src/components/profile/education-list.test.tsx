@@ -575,4 +575,55 @@ describe("EducationList", () => {
     expect(dialog).toHaveClass("max-h-[90vh]");
     expect(dialog).toHaveClass("overflow-y-auto");
   });
+
+  it("displays visible error messages, sets aria-invalid, and shifts focus to institution on empty submission", async () => {
+    const user = userEvent.setup();
+    const handleAddEducation = vi.fn();
+    render(
+      <EducationList
+        education={mockEducation}
+        onAddEducation={handleAddEducation}
+        onUpdateEducation={vi.fn()}
+        onDeleteEducation={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Add Education/i }));
+
+    const saveBtn = screen.getByRole("button", { name: /Save Education/i });
+    await user.click(saveBtn);
+
+    expect(handleAddEducation).not.toHaveBeenCalled();
+
+    expect(screen.getByText(/Institution \/ School is required/i)).toBeInTheDocument();
+    const instInput = screen.getByLabelText(/Institution \/ School/i);
+    expect(instInput).toHaveAttribute("aria-invalid", "true");
+    expect(instInput).toHaveAttribute("aria-describedby", "edu-institution-error");
+    expect(instInput).toHaveFocus();
+  });
+
+  it("restores focus to trigger button upon modal dismissal via cancel button", async () => {
+    const user = userEvent.setup();
+    render(
+      <EducationList
+        education={mockEducation}
+        onAddEducation={vi.fn()}
+        onUpdateEducation={vi.fn()}
+        onDeleteEducation={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    const addBtn = screen.getByRole("button", { name: /Add Education/i });
+    await user.click(addBtn);
+
+    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
+    await user.click(cancelBtn);
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(addBtn).toHaveFocus();
+  });
 });

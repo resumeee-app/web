@@ -338,4 +338,17 @@ describe("PresetForm Component", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("renders admin fields subtext with dark mode contrast classes", () => {
+    render(
+      <PresetForm
+        templateSets={mockTemplates}
+        availableModels={mockAvailableModels}
+        onSubmit={vi.fn()}
+      />
+    );
+
+    const subtext = screen.getByText(/enables unabridged history/i);
+    expect(subtext).toHaveClass("dark:text-slate-400");
+  });
 });

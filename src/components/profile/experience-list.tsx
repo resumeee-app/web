@@ -103,6 +103,16 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
   const [startDate, setStartDate] = React.useState("");
   const [endDate, setEndDate] = React.useState("");
   const [isCurrent, setIsCurrent] = React.useState(false);
+  const [formErrors, setFormErrors] = React.useState<{
+    roleTitle?: string;
+    company?: string;
+    startDate?: string;
+  }>({});
+
+  const triggerRef = React.useRef<HTMLElement | null>(null);
+  const roleInputRef = React.useRef<HTMLInputElement | null>(null);
+  const companyInputRef = React.useRef<HTMLInputElement | null>(null);
+  const startDateInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Extended details form state
   const [showExtended, setShowExtended] = React.useState(false);
@@ -121,7 +131,14 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
   // Per-experience bullet input drafts
   const [bulletDrafts, setBulletDrafts] = React.useState<Record<string, string>>({});
 
-  const handleOpenAdd = () => {
+  React.useEffect(() => {
+    if (dialogOpen && !triggerRef.current) {
+      triggerRef.current = (document.activeElement as HTMLElement) || null;
+    }
+  }, [dialogOpen]);
+
+  const handleOpenAdd = (e?: React.MouseEvent<HTMLElement>) => {
+    triggerRef.current = (e?.currentTarget || document.activeElement) as HTMLElement;
     setEditingId(null);
     setEditingExperience(null);
     setCompany("");
@@ -142,10 +159,15 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
     setDutiesSummary("");
     setSkillsInput("");
     setShowExtended(false);
+    setFormErrors({});
     setDialogOpen(true);
   };
 
-  const handleOpenEdit = (exp: components["schemas"]["WorkExperience"]) => {
+  const handleOpenEdit = (
+    exp: components["schemas"]["WorkExperience"],
+    e?: React.MouseEvent<HTMLElement>
+  ) => {
+    triggerRef.current = (e?.currentTarget || document.activeElement) as HTMLElement;
     setEditingId(exp.id);
     setEditingExperience(exp);
     setCompany(exp.company);
@@ -170,14 +192,35 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
     setDutiesSummary(exp.duties_summary || "");
     setSkillsInput(exp.skills?.map((s) => s.name || s.id).join(", ") || "");
     setShowExtended(false);
+    setFormErrors({});
     setDialogOpen(true);
   };
 
   const handleSaveDialog = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!company.trim() || !roleTitle.trim() || !startDate.trim()) {
+    const newErrors: { roleTitle?: string; company?: string; startDate?: string } = {};
+    if (!roleTitle.trim()) {
+      newErrors.roleTitle = "Role / Title is required.";
+    }
+    if (!company.trim()) {
+      newErrors.company = "Company / Organization is required.";
+    }
+    if (!startDate.trim()) {
+      newErrors.startDate = "Start Date is required.";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setFormErrors(newErrors);
+      if (newErrors.roleTitle) {
+        roleInputRef.current?.focus();
+      } else if (newErrors.company) {
+        companyInputRef.current?.focus();
+      } else if (newErrors.startDate) {
+        startDateInputRef.current?.focus();
+      }
       return;
     }
+    setFormErrors({});
 
     const trimmedCompanyCity = companyCity.trim();
     const trimmedCompanyRegion = companyRegion.trim();
@@ -378,7 +421,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleOpenEdit(exp)}
+                      onClick={(e) => handleOpenEdit(exp, e)}
                       aria-label={`Edit ${exp.role_title} at ${exp.company}`}
                     >
                       <Edit2 className="h-4 w-4" />
@@ -479,7 +522,17 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
 
       {/* Add / Edit Experience Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className={FORM_DIALOG_CONTENT_CLASS}>
+        <DialogContent
+          className={FORM_DIALOG_CONTENT_CLASS}
+          onCloseAutoFocus={(e) => {
+            if (triggerRef.current) {
+              e.preventDefault();
+              const el = triggerRef.current;
+              triggerRef.current = null;
+              el.focus();
+            }
+          }}
+        >
           <form noValidate onSubmit={handleSaveDialog}>
             <DialogHeader>
               <DialogTitle>
@@ -495,13 +548,30 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                   Role / Title <span className="text-red-500">*</span>
                 </label>
                 <input
+                  ref={roleInputRef}
                   id="exp-role"
                   required
                   type="text"
                   value={roleTitle}
-                  onChange={(e) => setRoleTitle(e.target.value)}
+                  onChange={(e) => {
+                    setRoleTitle(e.target.value);
+                    if (formErrors.roleTitle) {
+                      setFormErrors((prev) => ({ ...prev, roleTitle: undefined }));
+                    }
+                  }}
+                  aria-invalid={Boolean(formErrors.roleTitle)}
+                  aria-describedby={formErrors.roleTitle ? "exp-role-error" : undefined}
                   className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
+                {formErrors.roleTitle && (
+                  <p
+                    id="exp-role-error"
+                    role="alert"
+                    className="mt-1 text-xs text-red-600 dark:text-red-400"
+                  >
+                    {formErrors.roleTitle}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -512,13 +582,30 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                   Company / Organization <span className="text-red-500">*</span>
                 </label>
                 <input
+                  ref={companyInputRef}
                   id="exp-company"
                   required
                   type="text"
                   value={company}
-                  onChange={(e) => setCompany(e.target.value)}
+                  onChange={(e) => {
+                    setCompany(e.target.value);
+                    if (formErrors.company) {
+                      setFormErrors((prev) => ({ ...prev, company: undefined }));
+                    }
+                  }}
+                  aria-invalid={Boolean(formErrors.company)}
+                  aria-describedby={formErrors.company ? "exp-company-error" : undefined}
                   className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
+                {formErrors.company && (
+                  <p
+                    id="exp-company-error"
+                    role="alert"
+                    className="mt-1 text-xs text-red-600 dark:text-red-400"
+                  >
+                    {formErrors.company}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -563,14 +650,31 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                     Start Date <span className="text-red-500">*</span>
                   </label>
                   <input
+                    ref={startDateInputRef}
                     id="exp-start"
                     required
                     type="text"
                     placeholder="YYYY-MM"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      if (formErrors.startDate) {
+                        setFormErrors((prev) => ({ ...prev, startDate: undefined }));
+                      }
+                    }}
+                    aria-invalid={Boolean(formErrors.startDate)}
+                    aria-describedby={formErrors.startDate ? "exp-start-error" : undefined}
                     className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   />
+                  {formErrors.startDate && (
+                    <p
+                      id="exp-start-error"
+                      role="alert"
+                      className="mt-1 text-xs text-red-600 dark:text-red-400"
+                    >
+                      {formErrors.startDate}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label

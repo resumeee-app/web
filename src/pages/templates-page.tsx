@@ -75,6 +75,13 @@ export const TemplatesPage: React.FC = () => {
 
   // State for quick preview modal
   const [previewTemplate, setPreviewTemplate] = React.useState<TemplateSet | null>(null);
+  const previewTriggerRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    if (previewTemplate && !previewTriggerRef.current) {
+      previewTriggerRef.current = (document.activeElement as HTMLElement) || null;
+    }
+  }, [previewTemplate]);
 
   // Filter templates
   const filteredTemplates = React.useMemo(() => {
@@ -241,7 +248,10 @@ export const TemplatesPage: React.FC = () => {
                 <TemplateCard
                   key={tmpl.id}
                   template={tmpl}
-                  onPreview={(t) => setPreviewTemplate(t)}
+                  onPreview={(t) => {
+                    previewTriggerRef.current = (document.activeElement as HTMLElement) || null;
+                    setPreviewTemplate(t);
+                  }}
                   onDelete={(t) => setTemplateToDelete(t)}
                   onDuplicate={handleDuplicate}
                 />
@@ -302,7 +312,17 @@ export const TemplatesPage: React.FC = () => {
         open={Boolean(previewTemplate)}
         onOpenChange={(open) => !open && setPreviewTemplate(null)}
       >
-        <DialogContent className="max-w-4xl h-[85vh] flex flex-col p-6">
+        <DialogContent
+          className="max-w-4xl h-[85vh] flex flex-col p-6"
+          onCloseAutoFocus={(e) => {
+            if (previewTriggerRef.current) {
+              e.preventDefault();
+              const el = previewTriggerRef.current;
+              previewTriggerRef.current = null;
+              el.focus();
+            }
+          }}
+        >
           <DialogHeader className="flex-shrink-0 pr-8">
             <DialogTitle>{previewTemplate?.name}</DialogTitle>
             <DialogDescription>

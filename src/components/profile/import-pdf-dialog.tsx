@@ -77,6 +77,13 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
   const prevOpenRef = React.useRef(open);
   const parseGenRef = React.useRef(0);
   const abortControllerRef = React.useRef<AbortController | null>(null);
+  const triggerRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    if (open) {
+      triggerRef.current = (document.activeElement as HTMLElement) || null;
+    }
+  }, [open]);
 
   // Synchronize open state ref
   isOpenRef.current = open;
@@ -286,6 +293,14 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
         }}
         onPointerDownOutside={(e) => {
           if (isParsing) e.preventDefault();
+        }}
+        onCloseAutoFocus={(e) => {
+          if (triggerRef.current) {
+            e.preventDefault();
+            const el = triggerRef.current;
+            triggerRef.current = null;
+            el.focus();
+          }
         }}
         className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 p-6 sm:p-8"
       >

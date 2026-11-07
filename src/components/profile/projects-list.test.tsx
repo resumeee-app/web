@@ -541,4 +541,55 @@ describe("ProjectsList", () => {
     expect(dialog).toHaveClass("max-h-[90vh]");
     expect(dialog).toHaveClass("overflow-y-auto");
   });
+
+  it("displays visible error messages, sets aria-invalid, and shifts focus to project name on empty submission", async () => {
+    const user = userEvent.setup();
+    const handleAddProject = vi.fn();
+    render(
+      <ProjectsList
+        projects={mockProjects}
+        onAddProject={handleAddProject}
+        onUpdateProject={vi.fn()}
+        onDeleteProject={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Add Project/i }));
+
+    const saveBtn = screen.getByRole("button", { name: /Save Project/i });
+    await user.click(saveBtn);
+
+    expect(handleAddProject).not.toHaveBeenCalled();
+
+    expect(screen.getByText(/Project name is required/i)).toBeInTheDocument();
+    const nameInput = screen.getByLabelText(/Project Name/i);
+    expect(nameInput).toHaveAttribute("aria-invalid", "true");
+    expect(nameInput).toHaveAttribute("aria-describedby", "proj-name-error");
+    expect(nameInput).toHaveFocus();
+  });
+
+  it("restores focus to trigger button upon modal dismissal via cancel button", async () => {
+    const user = userEvent.setup();
+    render(
+      <ProjectsList
+        projects={mockProjects}
+        onAddProject={vi.fn()}
+        onUpdateProject={vi.fn()}
+        onDeleteProject={vi.fn()}
+        onAddFact={vi.fn()}
+        onDeleteFact={vi.fn()}
+      />
+    );
+
+    const addBtn = screen.getByRole("button", { name: /Add Project/i });
+    await user.click(addBtn);
+
+    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
+    await user.click(cancelBtn);
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(addBtn).toHaveFocus();
+  });
 });

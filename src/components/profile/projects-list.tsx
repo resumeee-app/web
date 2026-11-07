@@ -89,6 +89,10 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
 
   // Per-project bullet input drafts
   const [bulletDrafts, setBulletDrafts] = React.useState<Record<string, string>>({});
+  const [nameError, setNameError] = React.useState<string | null>(null);
+
+  const triggerRef = React.useRef<HTMLElement | null>(null);
+  const nameInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Active project being edited (for preserving canonical skill IDs)
   const editingProject = React.useMemo(
@@ -96,12 +100,20 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
     [projects, editingId]
   );
 
-  const handleOpenAdd = () => {
+  React.useEffect(() => {
+    if (dialogOpen && !triggerRef.current) {
+      triggerRef.current = (document.activeElement as HTMLElement) || null;
+    }
+  }, [dialogOpen]);
+
+  const handleOpenAdd = (e?: React.MouseEvent<HTMLElement>) => {
+    triggerRef.current = (e?.currentTarget || document.activeElement) as HTMLElement;
     setEditingId(null);
     setName("");
     setRole("");
     setUrl("");
     setUrlError(null);
+    setNameError(null);
     setStartDate("");
     setEndDate("");
     setSummary("");
@@ -110,12 +122,17 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
     setDialogOpen(true);
   };
 
-  const handleOpenEdit = (proj: components["schemas"]["Project"]) => {
+  const handleOpenEdit = (
+    proj: components["schemas"]["Project"],
+    e?: React.MouseEvent<HTMLElement>
+  ) => {
+    triggerRef.current = (e?.currentTarget || document.activeElement) as HTMLElement;
     setEditingId(proj.id);
     setName(proj.name);
     setRole(proj.role || "");
     setUrl(proj.url || "");
     setUrlError(null);
+    setNameError(null);
     setStartDate(proj.start_date || "");
     setEndDate(proj.end_date || "");
     setSummary(proj.summary || "");
@@ -136,7 +153,12 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
 
   const handleSaveDialog = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setNameError("Project name is required.");
+      nameInputRef.current?.focus();
+      return;
+    }
+    setNameError(null);
 
     if (url.trim() && !isValidHttpUrl(url.trim())) {
       setUrlError("Please enter a valid HTTP or HTTPS URL.");
@@ -269,7 +291,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleOpenEdit(proj)}
+                    onClick={(e) => handleOpenEdit(proj, e)}
                     aria-label={`Edit ${proj.name}`}
                   >
                     <Edit2 className="h-4 w-4" />
@@ -366,8 +388,18 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
 
       {/* Add / Edit Project Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className={FORM_DIALOG_CONTENT_CLASS}>
-          <form onSubmit={handleSaveDialog}>
+        <DialogContent
+          className={FORM_DIALOG_CONTENT_CLASS}
+          onCloseAutoFocus={(e) => {
+            if (triggerRef.current) {
+              e.preventDefault();
+              const el = triggerRef.current;
+              triggerRef.current = null;
+              el.focus();
+            }
+          }}
+        >
+          <form noValidate onSubmit={handleSaveDialog}>
             <DialogHeader>
               <DialogTitle>
                 {editingId ? "Edit Project" : "Add Project"}
@@ -382,13 +414,28 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                   Project Name <span className="text-red-500">*</span>
                 </label>
                 <input
+                  ref={nameInputRef}
                   id="proj-name"
                   required
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (nameError) setNameError(null);
+                  }}
+                  aria-invalid={Boolean(nameError)}
+                  aria-describedby={nameError ? "proj-name-error" : undefined}
                   className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
+                {nameError && (
+                  <p
+                    id="proj-name-error"
+                    role="alert"
+                    className="mt-1 text-xs text-red-600 dark:text-red-400"
+                  >
+                    {nameError}
+                  </p>
+                )}
               </div>
 
               <div>

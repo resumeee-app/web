@@ -62,30 +62,52 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
   const [date, setDate] = React.useState("");
   const [url, setUrl] = React.useState("");
   const [urlError, setUrlError] = React.useState<string | null>(null);
+  const [nameError, setNameError] = React.useState<string | null>(null);
 
-  const handleOpenAdd = () => {
+  const triggerRef = React.useRef<HTMLElement | null>(null);
+  const nameInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  React.useEffect(() => {
+    if (dialogOpen && !triggerRef.current) {
+      triggerRef.current = (document.activeElement as HTMLElement) || null;
+    }
+  }, [dialogOpen]);
+
+  const handleOpenAdd = (e?: React.MouseEvent<HTMLElement>) => {
+    triggerRef.current = (e?.currentTarget || document.activeElement) as HTMLElement;
     setEditingId(null);
     setName("");
     setIssuer("");
     setDate("");
     setUrl("");
     setUrlError(null);
+    setNameError(null);
     setDialogOpen(true);
   };
 
-  const handleOpenEdit = (cert: components["schemas"]["Certification"]) => {
+  const handleOpenEdit = (
+    cert: components["schemas"]["Certification"],
+    e?: React.MouseEvent<HTMLElement>
+  ) => {
+    triggerRef.current = (e?.currentTarget || document.activeElement) as HTMLElement;
     setEditingId(cert.id);
     setName(cert.name);
     setIssuer(cert.issuer || "");
     setDate(cert.date || "");
     setUrl(cert.url || "");
     setUrlError(null);
+    setNameError(null);
     setDialogOpen(true);
   };
 
   const handleSaveDialog = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setNameError("Certification name is required.");
+      nameInputRef.current?.focus();
+      return;
+    }
+    setNameError(null);
 
     if (url.trim() && !isValidHttpUrl(url.trim())) {
       setUrlError("Please enter a valid HTTP or HTTPS URL.");
@@ -177,7 +199,7 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleOpenEdit(cert)}
+                  onClick={(e) => handleOpenEdit(cert, e)}
                   aria-label={`Edit ${cert.name}`}
                 >
                   <Edit2 className="h-4 w-4" />
@@ -202,8 +224,18 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
 
       {/* Add / Edit Certification Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className={FORM_DIALOG_CONTENT_CLASS}>
-          <form onSubmit={handleSaveDialog}>
+        <DialogContent
+          className={FORM_DIALOG_CONTENT_CLASS}
+          onCloseAutoFocus={(e) => {
+            if (triggerRef.current) {
+              e.preventDefault();
+              const el = triggerRef.current;
+              triggerRef.current = null;
+              el.focus();
+            }
+          }}
+        >
+          <form noValidate onSubmit={handleSaveDialog}>
             <DialogHeader>
               <DialogTitle>
                 {editingId ? "Edit Certification" : "Add Certification"}
@@ -218,14 +250,29 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
                   Certification Name <span className="text-red-500">*</span>
                 </label>
                 <input
+                  ref={nameInputRef}
                   id="cert-name"
                   required
                   type="text"
                   placeholder="e.g. AWS Certified Solutions Architect"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (nameError) setNameError(null);
+                  }}
+                  aria-invalid={Boolean(nameError)}
+                  aria-describedby={nameError ? "cert-name-error" : undefined}
                   className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
+                {nameError && (
+                  <p
+                    id="cert-name-error"
+                    role="alert"
+                    className="mt-1 text-xs text-red-600 dark:text-red-400"
+                  >
+                    {nameError}
+                  </p>
+                )}
               </div>
 
               <div>

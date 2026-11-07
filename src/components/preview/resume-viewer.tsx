@@ -24,6 +24,20 @@ import { stripScriptTags } from "@/components/templates/template-preview-pane";
  */
 export type ResumeViewMode = "html" | "markdown" | "text";
 
+interface ViewModeOption {
+  id: ResumeViewMode;
+  label: string;
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
+}
+
+const MODES: readonly ViewModeOption[] = [
+  { id: "html", label: "HTML (Visual)", icon: Code2 },
+  { id: "markdown", label: "Markdown", icon: FileCode },
+  { id: "text", label: "Plain Text", icon: FileText },
+];
+
+const VIEW_MODE_IDS: readonly ResumeViewMode[] = MODES.map((m) => m.id);
+
 /**
  * Configuration props for ResumeViewer component.
  */
@@ -52,6 +66,32 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
 }) => {
   const [viewMode, setViewMode] = React.useState<ResumeViewMode>("html");
   const sanitizedHtml = React.useMemo(() => stripScriptTags(htmlContent), [htmlContent]);
+  const buttonRefs = React.useRef<Record<ResumeViewMode, HTMLButtonElement | null>>({
+    html: null,
+    markdown: null,
+    text: null,
+  });
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    const currentIndex = VIEW_MODE_IDS.indexOf(viewMode);
+    if (currentIndex === -1) return;
+
+    let targetMode: ResumeViewMode | null = null;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      const nextIndex = (currentIndex + 1) % VIEW_MODE_IDS.length;
+      targetMode = VIEW_MODE_IDS[nextIndex] ?? null;
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const prevIndex = (currentIndex - 1 + VIEW_MODE_IDS.length) % VIEW_MODE_IDS.length;
+      targetMode = VIEW_MODE_IDS[prevIndex] ?? null;
+    }
+
+    if (targetMode) {
+      setViewMode(targetMode);
+      buttonRefs.current[targetMode]?.focus();
+    }
+  };
 
   const hasContent = Boolean(htmlContent || markdownContent || plainTextContent);
 
@@ -81,48 +121,32 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
           aria-label="Resume view mode"
           className="inline-flex items-center rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5 shadow-sm"
         >
-          <button
-            type="button"
-            role="radio"
-            aria-checked={viewMode === "html"}
-            onClick={() => setViewMode("html")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors ${
-              viewMode === "html"
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-            }`}
-          >
-            <Code2 className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>HTML (Visual)</span>
-          </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={viewMode === "markdown"}
-            onClick={() => setViewMode("markdown")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors ${
-              viewMode === "markdown"
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-            }`}
-          >
-            <FileCode className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Markdown</span>
-          </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={viewMode === "text"}
-            onClick={() => setViewMode("text")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors ${
-              viewMode === "text"
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-            }`}
-          >
-            <FileText className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Plain Text</span>
-          </button>
+          {MODES.map((mode) => {
+            const Icon = mode.icon;
+            const isChecked = viewMode === mode.id;
+            return (
+              <button
+                key={mode.id}
+                ref={(el) => {
+                  buttonRefs.current[mode.id] = el;
+                }}
+                type="button"
+                role="radio"
+                tabIndex={isChecked ? 0 : -1}
+                aria-checked={isChecked}
+                onKeyDown={handleKeyDown}
+                onClick={() => setViewMode(mode.id)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                  isChecked
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{mode.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
