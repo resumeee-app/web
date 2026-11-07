@@ -44,6 +44,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/quota": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get tenant LLM quota and usage status
+         * @description Returns the authenticated tenant's current daily request and monthly token quota status, including usage counters, remaining capacity, and window reset timestamps.
+         */
+        get: operations["getQuota"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/profile": {
         parameters: {
             query?: never;
@@ -966,6 +986,47 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        TenantQuota: {
+            /** @description Unique tenant identifier */
+            user_id: string;
+            /** @description Number of LLM generation and parse requests executed in current daily window */
+            daily_requests_used: number;
+            /** @description Maximum allowed LLM requests in a 24-hour window */
+            daily_request_limit: number;
+            /**
+             * Format: date-time
+             * @description Timestamp when the current 24-hour daily request quota window began
+             */
+            daily_window_start: string;
+            /** @description Cumulative tokens consumed across all LLM operations in current monthly window */
+            monthly_tokens_used: number;
+            /** @description Maximum allowed LLM tokens in a 30-day billing window */
+            monthly_token_limit: number;
+            /**
+             * Format: date-time
+             * @description Timestamp when the current 30-day monthly token quota window began
+             */
+            monthly_window_start: string;
+            /** @description Remaining allowed LLM requests before daily rate limit is enforced */
+            daily_requests_remaining: number;
+            /** @description Remaining allowed LLM tokens before monthly ceiling is enforced */
+            monthly_tokens_remaining: number;
+            /**
+             * Format: date-time
+             * @description Expected timestamp when the daily request window resets
+             */
+            daily_reset_at: string;
+            /**
+             * Format: date-time
+             * @description Expected timestamp when the monthly token window resets
+             */
+            monthly_reset_at: string;
+            /**
+             * Format: date-time
+             * @description Timestamp when quota counters were last modified
+             */
+            updated_at: string;
+        };
         ModelOption: {
             /**
              * @description LLM provider identifier (e.g. gemini, openai, anthropic, compat)
@@ -1731,6 +1792,23 @@ export interface components {
         };
     };
     responses: {
+        /** @description Authentication required or invalid bearer token */
+        Unauthorized: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "error": {
+                 *         "code": "UNAUTHORIZED",
+                 *         "message": "Missing or invalid Authorization header"
+                 *       }
+                 *     }
+                 */
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
         /** @description Invalid request payload or parameters */
         BadRequest: {
             headers: {
@@ -1938,6 +2016,28 @@ export interface operations {
                     };
                 };
             };
+        };
+    };
+    getQuota: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tenant quota retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TenantQuota"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            500: components["responses"]["InternalError"];
         };
     };
     getProfile: {

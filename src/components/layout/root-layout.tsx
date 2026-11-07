@@ -1,21 +1,46 @@
 import * as React from "react";
 import { Outlet } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Header } from "./header";
 import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/components/ui/use-toast";
+import { QUOTA_QUERY_KEY } from "@/api/quota-queries";
 
 /**
  * Root application layout shell rendering standard landmark hierarchy.
  *
  * @remarks
  * Architecture & Landmark Hierarchy:
- * - `<header>`: Provided by {@link Header}, including skip link, logo, navigation, and theme switcher.
+ * - `<header>`: Provided by {@link Header}, including skip link, logo, navigation, quota meter, and theme switcher.
  * - `<main id="main-content" tabIndex={-1}>`: Accessible target for bypass blocks, rendering active route via `<Outlet />`.
  * - `<footer role="contentinfo">`: Semantic page footer.
  * - `<Toaster />`: Mounts global toast notification container.
+ * - Listens for global `resumeee:quota-exceeded` event (dispatched on HTTP 429) to trigger an accessible toast alert
+ *   and invalidate cached quota queries.
  *
  * @returns JSX Element wrapping child routes with persistent shell landmarks.
  */
 export const RootLayout: React.FC = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    const handleQuotaExceeded = () => {
+      toast({
+        variant: "destructive",
+        title: "LLM Quota Exceeded",
+        description:
+          "You have reached your daily request or monthly token limit for LLM operations. Please try again after the window resets.",
+      });
+      void queryClient.invalidateQueries({ queryKey: QUOTA_QUERY_KEY });
+    };
+
+    window.addEventListener("resumeee:quota-exceeded", handleQuotaExceeded);
+    return () => {
+      window.removeEventListener("resumeee:quota-exceeded", handleQuotaExceeded);
+    };
+  }, [toast, queryClient]);
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
       <Header />

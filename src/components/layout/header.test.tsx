@@ -2,18 +2,24 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { axe } from "vitest-axe";
 import { Header } from "./header";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { mainNavItems } from "./nav-config";
 
 function renderHeader(initialRoute = "/") {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <ThemeProvider>
-      <MemoryRouter initialEntries={[initialRoute]}>
-        <Header />
-      </MemoryRouter>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <MemoryRouter initialEntries={[initialRoute]}>
+          <Header />
+        </MemoryRouter>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

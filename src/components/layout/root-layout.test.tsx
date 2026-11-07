@@ -1,22 +1,30 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { axe } from "vitest-axe";
 import { RootLayout } from "./root-layout";
 import { ThemeProvider } from "@/lib/theme-provider";
 
-function renderRootLayout(initialRoute = "/") {
+function renderRootLayout(initialRoute = "/", customQueryClient?: QueryClient) {
+  const queryClient =
+    customQueryClient ||
+    new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
   return render(
-    <ThemeProvider>
-      <MemoryRouter initialEntries={[initialRoute]}>
-        <Routes>
-          <Route path="/" element={<RootLayout />}>
-            <Route index element={<h1>Test Dashboard</h1>} />
-            <Route path="profile" element={<h1>Master Profile</h1>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <MemoryRouter initialEntries={[initialRoute]}>
+          <Routes>
+            <Route path="/" element={<RootLayout />}>
+              <Route index element={<h1>Test Dashboard</h1>} />
+              <Route path="profile" element={<h1>Master Profile</h1>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -56,5 +64,29 @@ describe("RootLayout Landmark Structure", () => {
 
     const results = await axe(container);
     expect(results).toHaveNoViolations();
+  });
+
+  it("handles resumeee:quota-exceeded event by displaying toast and invalidating quota query", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    renderRootLayout("/", queryClient);
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent("resumeee:quota-exceeded"));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("LLM Quota Exceeded")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /you have reached your daily request or monthly token limit for llm operations/i
+        )
+      ).toBeInTheDocument();
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["quota"] });
   });
 });

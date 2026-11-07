@@ -5,6 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
 import { SkipLink } from "./skip-link";
 import { ThemeToggle } from "./theme-toggle";
+import { QuotaMeter } from "@/components/quota/quota-meter";
 import { mainNavItems } from "./nav-config";
 import { Button } from "@/components/ui/button";
 
@@ -73,6 +74,7 @@ export const Header: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-4">
+          <QuotaMeter />
           <ThemeToggle />
 
           {/* Mobile Navigation Trigger */}
