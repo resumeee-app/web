@@ -384,4 +384,193 @@ describe("SkillSelector Component", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  describe("Global vs Custom skills grouping and searching", () => {
+    const mixedSkills: components["schemas"]["Skill"][] = [
+      {
+        id: "custom-go",
+        user_id: "user-1",
+        name: "Go",
+        is_global: false,
+        category: "Languages",
+      },
+      {
+        id: "custom-docker",
+        user_id: "user-1",
+        name: "Docker",
+        is_global: false,
+        category: "DevOps",
+      },
+      {
+        id: "global-rust",
+        user_id: "system",
+        name: "Rust",
+        is_global: true,
+        category: "Languages",
+      },
+      {
+        id: "global-python",
+        user_id: "system",
+        name: "Python",
+        is_global: true,
+        category: "Languages",
+      },
+    ];
+
+    it("renders Global badge on global skills and groups into Custom Skills and Pre-seeded Global Technologies when both present", () => {
+      render(
+        <SkillSelector
+          value="Go"
+          onChange={vi.fn()}
+          availableSkills={mixedSkills}
+        />
+      );
+
+      // Verify group section headers
+      expect(screen.getByText("Custom Skills")).toBeInTheDocument();
+      expect(screen.getByText("Pre-seeded Global Technologies")).toBeInTheDocument();
+
+      // Verify chips
+      const goChip = screen.getByRole("button", { name: /Go/i });
+      const rustChip = screen.getByRole("button", { name: /Rust/i });
+      const pythonChip = screen.getByRole("button", { name: /Python/i });
+
+      // Rust and Python have "Global" badge, Go does not
+      expect(rustChip.textContent).toContain("Global");
+      expect(pythonChip.textContent).toContain("Global");
+      expect(goChip.textContent).not.toContain("Global");
+    });
+
+    it("filters across both custom and global skills seamlessly using search input", async () => {
+      const user = userEvent.setup();
+      render(
+        <SkillSelector
+          value=""
+          onChange={vi.fn()}
+          availableSkills={mixedSkills}
+        />
+      );
+
+      const searchInput = screen.getByLabelText(/Filter options/i);
+      expect(searchInput).toBeInTheDocument();
+
+      // Search for "rust" -> only Rust appears
+      await user.type(searchInput, "rust");
+      expect(screen.getByRole("button", { name: /Rust/i })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Go/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Docker/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Python/i })).not.toBeInTheDocument();
+
+      // Clear and search for "devops" (category of Docker)
+      await user.clear(searchInput);
+      await user.type(searchInput, "devops");
+      expect(screen.getByRole("button", { name: /Docker/i })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Rust/i })).not.toBeInTheDocument();
+
+      // Clear search -> all skills reappear
+      await user.clear(searchInput);
+      expect(screen.getByRole("button", { name: /Go/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Rust/i })).toBeInTheDocument();
+    });
+
+    it("toggles and selects global skills alongside custom skills", async () => {
+      const user = userEvent.setup();
+      const handleChange = vi.fn();
+
+      const { rerender } = render(
+        <SkillSelector
+          value="Go"
+          onChange={handleChange}
+          availableSkills={mixedSkills}
+        />
+      );
+
+      const rustChip = screen.getByRole("button", { name: /Rust/i });
+      await user.click(rustChip);
+      expect(handleChange).toHaveBeenCalledWith("Go, Rust");
+
+      // Re-render with Go, Rust selected
+      rerender(
+        <SkillSelector
+          value="Go, Rust"
+          onChange={handleChange}
+          availableSkills={mixedSkills}
+        />
+      );
+
+      const goChip = screen.getByRole("button", { name: /Go/i });
+      const updatedRustChip = screen.getByRole("button", { name: /Rust/i });
+
+      expect(goChip).toHaveAttribute("aria-pressed", "true");
+      expect(updatedRustChip).toHaveAttribute("aria-pressed", "true");
+    });
+
+    it("renders custom-only skills without Global headers or badges", () => {
+      const customOnly: components["schemas"]["Skill"][] = [
+        { id: "c-1", user_id: "user-1", name: "Custom A", is_global: false },
+        { id: "c-2", user_id: "user-1", name: "Custom B", is_global: false },
+      ];
+      render(
+        <SkillSelector
+          value=""
+          onChange={vi.fn()}
+          availableSkills={customOnly}
+        />
+      );
+
+      expect(screen.queryByText("Pre-seeded Global Technologies")).not.toBeInTheDocument();
+      expect(screen.queryByText("Custom Skills")).not.toBeInTheDocument();
+
+      const chipA = screen.getByRole("button", { name: /Custom A/i });
+      const chipB = screen.getByRole("button", { name: /Custom B/i });
+      expect(chipA).toBeInTheDocument();
+      expect(chipB).toBeInTheDocument();
+      expect(chipA.textContent).not.toContain("Global");
+      expect(chipB.textContent).not.toContain("Global");
+    });
+
+    it("renders global-only skills with Pre-seeded Global Technologies header and Global badges", () => {
+      const globalOnly: components["schemas"]["Skill"][] = [
+        { id: "g-1", user_id: "system", name: "Global A", is_global: true },
+        { id: "g-2", user_id: "system", name: "Global B", is_global: true },
+      ];
+      render(
+        <SkillSelector
+          value=""
+          onChange={vi.fn()}
+          availableSkills={globalOnly}
+        />
+      );
+
+      expect(screen.getByText("Pre-seeded Global Technologies")).toBeInTheDocument();
+      expect(screen.queryByText("Custom Skills")).not.toBeInTheDocument();
+
+      const chipA = screen.getByRole("button", { name: /Global A/i });
+      const chipB = screen.getByRole("button", { name: /Global B/i });
+      expect(chipA).toBeInTheDocument();
+      expect(chipB).toBeInTheDocument();
+      expect(chipA.textContent).toContain("Global");
+      expect(chipB.textContent).toContain("Global");
+    });
+
+    it("displays 'No matching skills found.' when search query matches 0 skills", async () => {
+      const user = userEvent.setup();
+      render(
+        <SkillSelector
+          value=""
+          onChange={vi.fn()}
+          availableSkills={mixedSkills}
+        />
+      );
+
+      const searchInput = screen.getByLabelText(/Filter options/i);
+      await user.type(searchInput, "nonexistent-language-xyz");
+
+      expect(screen.getByText("No matching skills found.")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Go/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Rust/i })).not.toBeInTheDocument();
+      expect(screen.queryByText("Custom Skills")).not.toBeInTheDocument();
+      expect(screen.queryByText("Pre-seeded Global Technologies")).not.toBeInTheDocument();
+    });
+  });
 });

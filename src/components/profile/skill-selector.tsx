@@ -152,6 +152,21 @@ export function resolveSkillIds(
 }
 
 /**
+ * Determines whether a skill entity is a pre-seeded system global skill.
+ *
+ * @param skill - Skill entity to check.
+ * @returns True if the skill has is_global true or user_id 'system'.
+ */
+export function isGlobalSkill(
+  skill?: components["schemas"]["Skill"] | null
+): boolean {
+  if (!skill) {
+    return false;
+  }
+  return Boolean(skill.is_global || skill.user_id === "system");
+}
+
+/**
  * Props for the SkillSelector component.
  */
 export interface SkillSelectorProps {
@@ -196,6 +211,8 @@ export const SkillSelector: React.FC<SkillSelectorProps> = ({
   className,
   inputClassName,
 }) => {
+  const [searchQuery, setSearchQuery] = React.useState("");
+
   const activeTokens = React.useMemo(() => parseSkillTokens(value), [value]);
 
   const activeSet = React.useMemo(
@@ -213,6 +230,110 @@ export const SkillSelector: React.FC<SkillSelectorProps> = ({
     },
     [activeTokens, disabled, onChange]
   );
+
+  const query = searchQuery.trim().toLowerCase();
+
+  const filteredSkills = React.useMemo(() => {
+    if (!availableSkills) return [];
+    if (!query) return availableSkills;
+    return availableSkills.filter((s) => {
+      const name = (s.name ?? "").toLowerCase();
+      const sId = (s.id ?? "").toLowerCase();
+      const category = (s.category ?? "").toLowerCase();
+      const keywords = (s.keywords ?? []).map((k) => k.toLowerCase());
+      return (
+        name.includes(query) ||
+        sId.includes(query) ||
+        category.includes(query) ||
+        keywords.some((k) => k.includes(query))
+      );
+    });
+  }, [availableSkills, query]);
+
+  const customSkills = React.useMemo(
+    () => filteredSkills.filter((s) => !isGlobalSkill(s)),
+    [filteredSkills]
+  );
+
+  const globalSkills = React.useMemo(
+    () => filteredSkills.filter((s) => isGlobalSkill(s)),
+    [filteredSkills]
+  );
+
+  const hasBothGroups = React.useMemo(() => {
+    if (!availableSkills) return false;
+    let hasCustom = false;
+    let hasGlobal = false;
+    for (const s of availableSkills) {
+      if (isGlobalSkill(s)) {
+        hasGlobal = true;
+      } else {
+        hasCustom = true;
+      }
+      if (hasCustom && hasGlobal) return true;
+    }
+    return false;
+  }, [availableSkills]);
+
+  const renderChip = (s: components["schemas"]["Skill"]) => {
+    const isSelected = isSkillSelected(s, activeSet);
+    const isGlobal = isGlobalSkill(s);
+    const displayName = s.name || s.id;
+
+    return (
+      <button
+        key={s.id}
+        type="button"
+        disabled={disabled}
+        onClick={() => handleChipClick(s)}
+        aria-pressed={isSelected}
+        aria-label={displayName}
+        className={cn(
+          "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed",
+          isSelected
+            ? "bg-indigo-50 border-indigo-200 text-indigo-800 dark:bg-indigo-950/60 dark:border-indigo-800 dark:text-indigo-300"
+            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
+        )}
+      >
+        <span aria-hidden="true">{isSelected ? "✓ " : "+ "}</span>
+        <span>{displayName}</span>
+        {isGlobal && (
+          <span
+            className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-medium"
+            title="Global verified skill"
+          >
+            Global
+          </span>
+        )}
+      </button>
+    );
+  };
+
+  const renderSkillGroup = (
+    title: string | null,
+    skills: components["schemas"]["Skill"][],
+    ariaLabel: string
+  ) => {
+    if (skills.length === 0) {
+      return null;
+    }
+    return (
+      <div>
+        {title && (
+          <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+            {title}
+          </h4>
+        )}
+        <div
+          role="group"
+          aria-label={ariaLabel}
+          className="flex flex-wrap gap-1.5 items-center"
+        >
+          {skills.map(renderChip)}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className={cn("space-y-1.5", className)}>
@@ -247,38 +368,53 @@ export const SkillSelector: React.FC<SkillSelectorProps> = ({
       />
 
       {availableSkills && availableSkills.length > 0 && (
-        <div
-          role="group"
-          aria-label="Available skill options"
-          className="mt-2 flex flex-wrap gap-1.5 items-center"
-        >
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            Quick add:
-          </span>
-          {availableSkills.map((s) => {
-            const isSelected = isSkillSelected(s, activeSet);
-            const displayName = s.name || s.id;
-
-            return (
-              <button
-                key={s.id}
-                type="button"
+        <div className="mt-2 space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              Quick add:
+            </span>
+            <div className="relative">
+              <label htmlFor={`${id}-search`} className="sr-only">
+                Filter options
+              </label>
+              <input
+                id={`${id}-search`}
+                type="text"
+                placeholder="Filter available options..."
+                value={searchQuery}
                 disabled={disabled}
-                onClick={() => handleChipClick(s)}
-                aria-pressed={isSelected}
-                aria-label={displayName}
-                className={cn(
-                  "rounded-full px-2 py-0.5 text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed",
-                  isSelected
-                    ? "bg-indigo-50 border-indigo-200 text-indigo-800 dark:bg-indigo-950/60 dark:border-indigo-800 dark:text-indigo-300"
-                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
-                )}
-              >
-                <span aria-hidden="true">{isSelected ? "✓ " : "+ "}</span>
-                {displayName}
-              </button>
-            );
-          })}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full sm:w-48 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 disabled:opacity-50"
+              />
+            </div>
+          </div>
+
+          {filteredSkills.length === 0 && (
+            <p className="text-xs text-slate-400 dark:text-slate-500 italic">
+              No matching skills found.
+            </p>
+          )}
+
+          {filteredSkills.length > 0 && hasBothGroups && (
+            <div className="space-y-2">
+              {renderSkillGroup("Custom Skills", customSkills, "Custom skill options")}
+              {renderSkillGroup(
+                "Pre-seeded Global Technologies",
+                globalSkills,
+                "Pre-seeded Global Technologies options"
+              )}
+            </div>
+          )}
+
+          {filteredSkills.length > 0 && !hasBothGroups && (
+            globalSkills.length > 0
+              ? renderSkillGroup(
+                  "Pre-seeded Global Technologies",
+                  globalSkills,
+                  "Pre-seeded Global Technologies options"
+                )
+              : renderSkillGroup(null, customSkills, "Available skill options")
+          )}
         </div>
       )}
     </div>

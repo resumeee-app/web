@@ -2160,7 +2160,10 @@ export interface operations {
     };
     listSkills: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Filter skills by origin type (all returns union of custom and global, global returns system-seeded skills, custom returns tenant-owned skills) */
+                type?: "all" | "global" | "custom";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2176,6 +2179,7 @@ export interface operations {
                     "application/json": components["schemas"]["Skill"][];
                 };
             };
+            400: components["responses"]["BadRequest"];
             500: components["responses"]["InternalError"];
         };
     };
