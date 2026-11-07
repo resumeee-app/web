@@ -14,12 +14,26 @@ import type { components } from "./schema";
 export type Branch = components["schemas"]["Branch"] & {
   is_default?: boolean;
   status?: string;
+  tailoring_strategy_id?: string | null;
+  custom_directives?: string;
 };
+
+/**
+ * TargetResume is an alias for Branch under RFC-005 domain terminology.
+ */
+export type TargetResume = Branch;
 
 /**
  * System or user-defined preset containing default instructions and template binding.
  */
-export type Preset = components["schemas"]["Preset"];
+export type Preset = components["schemas"]["Preset"] & {
+  suggested_theme_id?: string | null;
+};
+
+/**
+ * TailoringStrategy is an alias for Preset under RFC-005 domain terminology.
+ */
+export type TailoringStrategy = Preset;
 
 /**
  * Visual presentation template set containing HTML, Markdown, and plaintext formatting templates.
@@ -27,7 +41,7 @@ export type Preset = components["schemas"]["Preset"];
 export type TemplateSet = components["schemas"]["TemplateSet"];
 
 /**
- * Input payload for creating a new tailored resume branch.
+ * Input payload for creating a new tailored resume branch / target resume.
  */
 export type CreateBranchInput = {
   name: string;
@@ -35,7 +49,9 @@ export type CreateBranchInput = {
   target_company?: string;
   target_requirements?: string;
   branch_instructions?: string;
+  custom_directives?: string;
   preset_id?: string;
+  tailoring_strategy_id?: string;
   template_set_id: string;
   provider_override?: string;
   model_override?: string;
@@ -207,8 +223,15 @@ export function useCreateBranchMutation(): UseMutationResult<
 
   return useMutation({
     mutationFn: async (input: CreateBranchInput) => {
+      const payload = {
+        ...input,
+        preset_id: input.preset_id || input.tailoring_strategy_id,
+        tailoring_strategy_id: input.tailoring_strategy_id || input.preset_id,
+        branch_instructions: input.branch_instructions || input.custom_directives,
+        custom_directives: input.custom_directives || input.branch_instructions,
+      };
       const { data, error } = await api.POST("/branches", {
-        body: input,
+        body: payload,
       });
       if (error) {
         throw new Error(
@@ -230,8 +253,14 @@ export function useCreateBranchMutation(): UseMutationResult<
         target_role: newBranchInput.target_role,
         target_company: newBranchInput.target_company,
         target_requirements: newBranchInput.target_requirements,
-        branch_instructions: newBranchInput.branch_instructions,
-        preset_id: newBranchInput.preset_id,
+        branch_instructions:
+          newBranchInput.custom_directives || newBranchInput.branch_instructions,
+        custom_directives:
+          newBranchInput.custom_directives || newBranchInput.branch_instructions,
+        preset_id:
+          newBranchInput.tailoring_strategy_id || newBranchInput.preset_id,
+        tailoring_strategy_id:
+          newBranchInput.tailoring_strategy_id || newBranchInput.preset_id,
         template_set_id: newBranchInput.template_set_id,
         is_default: false,
         status: "active",

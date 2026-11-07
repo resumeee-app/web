@@ -115,11 +115,11 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
 
       <section
         aria-label="Branch Actions and Overview"
-        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
+        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-6"
       >
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          {/* Left: Metadata & Context */}
-          <div className="space-y-2">
+        {/* Top: Metadata & Context */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 dark:border-slate-800/80 pb-4">
+          <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                 {branch.name}
@@ -145,15 +145,46 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Interactive Selectors for Target Preset and Template Set */}
-            <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-slate-600 dark:text-slate-300">
+          {!branch.is_default && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onSyncMaster}
+              disabled={isSyncing || isTailoring}
+              aria-busy={isSyncing}
+              className="flex items-center gap-2 self-start sm:self-auto shrink-0"
+            >
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`}
+                aria-hidden="true"
+              />
+              <span>{isSyncing ? "Syncing..." : "Sync with Master"}</span>
+            </Button>
+          )}
+        </div>
+
+        {/* RFC-005 Segregated Columns: Content & AI Strategy vs Document Appearance */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* Column 1: Content & AI Strategy */}
+          <div className="rounded-md border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-4 flex flex-col justify-between space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Sliders className="h-4 w-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Content & AI Strategy
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Choose the tailoring strategy and LLM density directives for this target opportunity.
+              </p>
+
               {!branch.is_default && (
-                <div className="flex items-center gap-1.5">
-                  <Sliders className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+                <div className="flex flex-col gap-1.5 pt-1">
                   <label
                     htmlFor="workbench-preset-select"
-                    className="font-medium text-slate-700 dark:text-slate-300"
+                    className="text-xs font-medium text-slate-700 dark:text-slate-300"
                   >
                     Preset:
                   </label>
@@ -163,7 +194,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                     value={branch.preset_id || ""}
                     onChange={(e) => onUpdatePreset?.(e.target.value)}
                     disabled={isUpdating || isTailoring}
-                    className="rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2 py-1 text-xs text-slate-800 dark:text-slate-200 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-200 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
                     {presets.map((preset) => (
                       <option key={preset.id} value={preset.id}>
@@ -178,12 +209,56 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                   </select>
                 </div>
               )}
+            </div>
 
-              <div className="flex items-center gap-1.5">
-                <Layers className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+            <div className="pt-2">
+              <Button
+                onClick={onTailorResume}
+                disabled={isTailoring}
+                aria-busy={isTailoring}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                {branch.is_default ? (
+                  <RefreshCw
+                    className={`h-4 w-4 ${isTailoring ? "animate-spin" : ""}`}
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <Sparkles
+                    className={`h-4 w-4 ${isTailoring ? "animate-spin" : ""}`}
+                    aria-hidden="true"
+                  />
+                )}
+                <span>
+                  {branch.is_default
+                    ? isTailoring
+                      ? "Refreshing..."
+                      : "Refresh from Master Profile"
+                    : isTailoring
+                    ? "Tailoring..."
+                    : "Tailor Resume"}
+                </span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Column 2: Document Appearance */}
+          <div className="rounded-md border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-4 flex flex-col justify-between space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Document Appearance
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Choose the visual layout and ATS formatting without triggering LLM re-tailoring.
+              </p>
+
+              <div className="flex flex-col gap-1.5 pt-1">
                 <label
                   htmlFor="workbench-template-select"
-                  className="font-medium text-slate-700 dark:text-slate-300"
+                  className="text-xs font-medium text-slate-700 dark:text-slate-300"
                 >
                   Template:
                 </label>
@@ -193,7 +268,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                   value={branch.template_set_id || ""}
                   onChange={(e) => onUpdateTemplate?.(e.target.value)}
                   disabled={isUpdating || isTailoring}
-                  className="rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2 py-1 text-xs text-slate-800 dark:text-slate-200 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-200 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 >
                   {templates.map((template) => (
                     <option key={template.id} value={template.id}>
@@ -208,63 +283,18 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                 </select>
               </div>
             </div>
-          </div>
 
-          {/* Right: Actions */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Button asChild variant="secondary" className="flex items-center gap-2">
-              <Link
-                to={`/branches/${branch.id}/preview`}
-                aria-label={`Inspect resume for ${branch.name}`}
-              >
-                <Eye className="h-4 w-4" aria-hidden="true" />
-                <span>Inspect Resume</span>
-              </Link>
-            </Button>
-
-            {!branch.is_default && (
-              <Button
-                variant="outline"
-                onClick={onSyncMaster}
-                disabled={isSyncing || isTailoring}
-                aria-busy={isSyncing}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw
-                  className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
-                  aria-hidden="true"
-                />
-                <span>{isSyncing ? "Syncing..." : "Sync with Master"}</span>
+            <div className="pt-2">
+              <Button asChild variant="secondary" className="w-full flex items-center justify-center gap-2">
+                <Link
+                  to={`/branches/${branch.id}/preview`}
+                  aria-label={`Inspect resume for ${branch.name}`}
+                >
+                  <Eye className="h-4 w-4" aria-hidden="true" />
+                  <span>Inspect Resume</span>
+                </Link>
               </Button>
-            )}
-
-            <Button
-              onClick={onTailorResume}
-              disabled={isTailoring}
-              aria-busy={isTailoring}
-              className="flex items-center gap-2"
-            >
-              {branch.is_default ? (
-                <RefreshCw
-                  className={`h-4 w-4 ${isTailoring ? "animate-spin" : ""}`}
-                  aria-hidden="true"
-                />
-              ) : (
-                <Sparkles
-                  className={`h-4 w-4 ${isTailoring ? "animate-spin" : ""}`}
-                  aria-hidden="true"
-                />
-              )}
-              <span>
-                {branch.is_default
-                  ? isTailoring
-                    ? "Refreshing..."
-                    : "Refresh from Master Profile"
-                  : isTailoring
-                  ? "Tailoring..."
-                  : "Tailor Resume"}
-              </span>
-            </Button>
+            </div>
           </div>
         </div>
       </section>

@@ -167,9 +167,11 @@ describe("CreateBranchModal Component", () => {
       target_company: "Google",
       target_role: "Staff Software Engineer",
       preset_id: "preset-staff",
+      tailoring_strategy_id: "preset-staff",
       template_set_id: "tmpl-clean",
       target_requirements: "",
       branch_instructions: "",
+      custom_directives: "",
     });
   });
 
@@ -187,5 +189,103 @@ describe("CreateBranchModal Component", () => {
 
     const results = await axe(container);
     expect(results).toHaveNoViolations();
+  });
+
+  it("handles 3-step progressive wizard flow and theme auto-suggestion without clobbering manual choice", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+
+    const multiPresets: Preset[] = [
+      {
+        id: "preset-staff",
+        user_id: "system",
+        name: "Staff Engineer",
+        system_instructions: "Emphasize leadership",
+        template_set_id: "tmpl-clean",
+        suggested_theme_id: "tmpl-clean",
+        is_built_in: true,
+      },
+      {
+        id: "preset-academic",
+        user_id: "system",
+        name: "Academic Researcher",
+        system_instructions: "Emphasize publications",
+        template_set_id: "tmpl-academic",
+        suggested_theme_id: "tmpl-academic",
+        is_built_in: false,
+      },
+    ];
+
+    render(
+      <CreateBranchModal
+        open={true}
+        onOpenChange={vi.fn()}
+        existingBranches={existingBranches}
+        presets={multiPresets}
+        templates={templates}
+        onSubmit={onSubmit}
+      />
+    );
+
+    // Step 1: Fill opportunity context
+    await user.type(screen.getByLabelText(/branch name \*/i), "Meta Research Scientist");
+    await user.type(screen.getByLabelText(/target company/i), "Meta");
+    await user.type(screen.getByLabelText(/target role/i), "Research Scientist");
+
+    // Click Next to advance to Step 2: AI Tailoring
+    const nextBtn = screen.getByRole("button", { name: /next: ai tailoring/i });
+    await user.click(nextBtn);
+
+    expect(screen.getByText(/step 2: ai tailoring strategy/i)).toBeInTheDocument();
+
+    // Select Academic Researcher strategy which suggests tmpl-academic
+    const academicStrategyCard = screen.getByLabelText(/academic researcher/i);
+    await user.click(academicStrategyCard);
+
+    // Click Next to advance to Step 3: Visual Design
+    const nextDesignBtn = screen.getByRole("button", { name: /next: visual design/i });
+    await user.click(nextDesignBtn);
+
+    expect(screen.getByText(/step 3: visual layout & design/i)).toBeInTheDocument();
+
+    // Verify template was auto-suggested to tmpl-academic
+    const templateSelect = screen.getByLabelText(/template set \*/i) as HTMLSelectElement;
+    expect(templateSelect.value).toBe("tmpl-academic");
+
+    // User explicitly changes template to tmpl-clean (manual selection)
+    const cleanThemeCard = screen.getByLabelText(/clean modern ats/i);
+    await user.click(cleanThemeCard);
+    expect(templateSelect.value).toBe("tmpl-clean");
+
+    // User navigates back to Step 2
+    const backBtn = screen.getByRole("button", { name: /back/i });
+    await user.click(backBtn);
+    expect(screen.getByText(/step 2: ai tailoring strategy/i)).toBeInTheDocument();
+
+    // User selects Staff Engineer strategy (which suggests tmpl-clean, but manual choice should be preserved)
+    const staffStrategyCard = screen.getByLabelText(/staff engineer/i);
+    await user.click(staffStrategyCard);
+
+    // Advance to Step 3 again
+    await user.click(screen.getByRole("button", { name: /next: visual design/i }));
+
+    // User manual choice tmpl-clean was preserved
+    expect(templateSelect.value).toBe("tmpl-clean");
+
+    // Submit form
+    const submitBtn = screen.getByRole("button", { name: /create branch/i });
+    await user.click(submitBtn);
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      name: "Meta Research Scientist",
+      target_company: "Meta",
+      target_role: "Research Scientist",
+      preset_id: "preset-staff",
+      tailoring_strategy_id: "preset-staff",
+      template_set_id: "tmpl-clean",
+      target_requirements: "",
+      branch_instructions: "",
+      custom_directives: "",
+    });
   });
 });

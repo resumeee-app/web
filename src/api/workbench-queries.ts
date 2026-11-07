@@ -29,7 +29,10 @@ export type SyncBranchesResponse =
 /**
  * UpdateBranchRequest payload for updating branch metadata or active version pointer.
  */
-export type UpdateBranchRequest = components["schemas"]["UpdateBranchRequest"];
+export type UpdateBranchRequest = components["schemas"]["UpdateBranchRequest"] & {
+  tailoring_strategy_id?: string | null;
+  custom_directives?: string;
+};
 
 /**
  * TanStack Query key factory for branch workbench server state.
@@ -351,3 +354,64 @@ export function usePromptPreview(
     enabled: options?.enabled ?? Boolean(branchId),
   });
 }
+
+/**
+ * Ephemeral layout render preview response artifact.
+ */
+export type RenderPreviewResponse = components["schemas"]["RenderOutput"] & {
+  template_set_id?: string;
+  html_output?: string;
+  markdown_output?: string;
+  plain_text_output?: string;
+};
+
+/**
+ * Ephemerally renders a resume version under a specified visual template set with zero LLM calls and zero persistence.
+ *
+ * @param resumeId - Unique UUID of the target resume (or branch).
+ * @param versionId - Unique UUID or sequential version number.
+ * @param templateSetId - Target visual layout template set ID.
+ */
+export async function renderPreviewEphemeral(
+  resumeId: string,
+  versionId: string | number,
+  templateSetId: string
+): Promise<RenderPreviewResponse> {
+  const { data, error } = await api.POST(
+    "/branches/{id}/versions/{v}/render-preview",
+    {
+      params: {
+        path: {
+          id: resumeId,
+          v: String(versionId),
+        },
+      },
+      body: {
+        template_set_id: templateSetId,
+      },
+    }
+  );
+
+  if (error || !data) {
+    throw new Error(extractApiErrorMessage(error, "Failed to render preview"));
+  }
+
+  return {
+    ...data,
+    template_set_id: templateSetId,
+    html_output: data.html,
+    markdown_output: data.markdown,
+    plain_text_output: data.plain_text,
+  };
+}
+
+/**
+ * Mutation hook for triggering ephemeral fast render previews when switching templates in the workbench.
+ */
+export function useEphemeralPreviewMutation(resumeId: string, versionId: string | number) {
+  return useMutation({
+    mutationFn: (templateSetId: string) =>
+      renderPreviewEphemeral(resumeId, versionId, templateSetId),
+  });
+}
+

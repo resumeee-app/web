@@ -498,6 +498,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tailoring-strategies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List tailoring strategies
+         * @description Lists Tier-2 reusable AI prompt and tailoring strategies.
+         */
+        get: operations["listTailoringStrategies"];
+        put?: never;
+        /** Create tailoring strategy */
+        post: operations["createTailoringStrategy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tailoring-strategies/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        /** Get tailoring strategy by ID */
+        get: operations["getTailoringStrategy"];
+        /** Update tailoring strategy */
+        put: operations["updateTailoringStrategy"];
+        post?: never;
+        /** Delete tailoring strategy */
+        delete: operations["deleteTailoringStrategy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/templates": {
         parameters: {
             query?: never;
@@ -867,6 +910,56 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/branches/{id}/versions/{v}/render-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+                /** @description Sequential version number or version UUID */
+                v: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ephemeral fast layout render preview
+         * @description Synchronously renders snapshot TailoredContent JSON under a requested template_set_id with zero LLM provider calls and zero persistent side effects.
+         */
+        post: operations["renderBranchVersionPreviewEphemeral"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/resumes/{id}/versions/{v}/render-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+                /** @description Sequential version number or version UUID */
+                v: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ephemeral fast layout render preview for target resume
+         * @description Synchronously renders snapshot TailoredContent JSON under a requested template_set_id with zero LLM provider calls and zero persistent side effects.
+         */
+        post: operations["renderResumeVersionPreviewEphemeral"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1187,6 +1280,7 @@ export interface components {
             name: string;
             description?: string;
             system_instructions: string;
+            suggested_theme_id?: string | null;
             template_set_id: string;
             provider_override?: string;
             model_override?: string;
@@ -1207,6 +1301,7 @@ export interface components {
             name: string;
             description?: string;
             system_instructions: string;
+            suggested_theme_id?: string | null;
             template_set_id: string;
             provider_override?: string;
             model_override?: string;
@@ -1221,6 +1316,60 @@ export interface components {
             name?: string;
             description?: string;
             system_instructions?: string;
+            suggested_theme_id?: string | null;
+            template_set_id?: string;
+            provider_override?: string;
+            model_override?: string;
+            /**
+             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
+             * @enum {string}
+             */
+            reasoning_level?: "" | "none" | "low" | "medium" | "high";
+            include_admin_fields?: boolean;
+        };
+        TailoringStrategy: {
+            id: string;
+            user_id: string;
+            name: string;
+            description?: string;
+            system_instructions: string;
+            suggested_theme_id?: string | null;
+            template_set_id?: string;
+            provider_override?: string;
+            model_override?: string;
+            /**
+             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
+             * @enum {string}
+             */
+            reasoning_level?: "" | "none" | "low" | "medium" | "high";
+            include_admin_fields?: boolean;
+            /** @description Whether this is a system-provided built-in tailoring strategy */
+            readonly is_built_in?: boolean;
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+        };
+        CreateStrategyRequest: {
+            name: string;
+            description?: string;
+            system_instructions: string;
+            suggested_theme_id?: string | null;
+            template_set_id?: string;
+            provider_override?: string;
+            model_override?: string;
+            /**
+             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
+             * @enum {string}
+             */
+            reasoning_level?: "" | "none" | "low" | "medium" | "high";
+            include_admin_fields?: boolean;
+        };
+        UpdateStrategyRequest: {
+            name?: string;
+            description?: string;
+            system_instructions?: string;
+            suggested_theme_id?: string | null;
             template_set_id?: string;
             provider_override?: string;
             model_override?: string;
@@ -1271,7 +1420,9 @@ export interface components {
             target_company?: string;
             target_requirements?: string;
             branch_instructions?: string;
+            custom_directives?: string;
             preset_id?: string | null;
+            tailoring_strategy_id?: string | null;
             template_set_id: string;
             provider_override?: string;
             model_override?: string;
@@ -1294,7 +1445,9 @@ export interface components {
             target_company?: string;
             target_requirements?: string;
             branch_instructions?: string;
-            preset_id?: string;
+            custom_directives?: string;
+            preset_id?: string | null;
+            tailoring_strategy_id?: string | null;
             template_set_id: string;
             provider_override?: string;
             model_override?: string;
@@ -1307,7 +1460,9 @@ export interface components {
             target_company?: string;
             target_requirements?: string;
             branch_instructions?: string;
-            preset_id?: string;
+            custom_directives?: string;
+            preset_id?: string | null;
+            tailoring_strategy_id?: string | null;
             template_set_id?: string;
             provider_override?: string;
             model_override?: string;
@@ -1330,8 +1485,12 @@ export interface components {
             target_requirements?: string;
             /** @description Optional override for custom branch instructions. */
             branch_instructions?: string;
+            /** @description Optional override for custom branch instructions. */
+            custom_directives?: string;
             /** @description Optional override for formatting preset ID. */
             preset_id?: string | null;
+            /** @description Optional override for tailoring strategy ID. */
+            tailoring_strategy_id?: string | null;
             /** @description Optional override for pinned entity IDs. */
             pinned_entity_ids?: string[];
             /** @description Optional override for excluded entity IDs. */
@@ -1527,6 +1686,10 @@ export interface components {
             /** @description Rendered plain text ATS output */
             plain_text: string;
         };
+        RenderPreviewRequest: {
+            /** @description Template set ID to ephemerally render with */
+            template_set_id: string;
+        };
         RenderTemplatePreviewRequest: {
             template_id?: string;
             html_template?: string;
@@ -1651,6 +1814,40 @@ export interface components {
                  *       "error": {
                  *         "code": "INTERNAL_ERROR",
                  *         "message": "An internal error occurred while processing the request"
+                 *       }
+                 *     }
+                 */
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description Resource state conflict */
+        Conflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "error": {
+                 *         "code": "CONFLICT",
+                 *         "message": "Version generation is still in progress"
+                 *       }
+                 *     }
+                 */
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description Unprocessable entity state */
+        UnprocessableEntity: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "error": {
+                 *         "code": "UNPROCESSABLE_ENTITY",
+                 *         "message": "Version does not have tailored content to render"
                  *       }
                  *     }
                  */
@@ -2812,6 +3009,134 @@ export interface operations {
             500: components["responses"]["InternalError"];
         };
     };
+    listTailoringStrategies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of tailoring strategies */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoringStrategy"][];
+                };
+            };
+            500: components["responses"]["InternalError"];
+        };
+    };
+    createTailoringStrategy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateStrategyRequest"];
+            };
+        };
+        responses: {
+            /** @description Tailoring strategy created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoringStrategy"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getTailoringStrategy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tailoring strategy details */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoringStrategy"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    updateTailoringStrategy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateStrategyRequest"];
+            };
+        };
+        responses: {
+            /** @description Tailoring strategy updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoringStrategy"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    deleteTailoringStrategy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tailoring strategy deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
     listTemplates: {
         parameters: {
             query?: never;
@@ -3409,6 +3734,76 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             422: components["responses"]["ProvenanceError"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    renderBranchVersionPreviewEphemeral: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+                /** @description Sequential version number or version UUID */
+                v: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenderPreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Ephemerally rendered resume outputs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderOutput"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["UnprocessableEntity"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    renderResumeVersionPreviewEphemeral: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+                /** @description Sequential version number or version UUID */
+                v: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenderPreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Ephemerally rendered resume outputs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderOutput"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["UnprocessableEntity"];
             500: components["responses"]["InternalError"];
         };
     };

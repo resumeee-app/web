@@ -33,11 +33,11 @@ export interface CreateBranchModalProps {
    */
   existingBranches: Branch[];
   /**
-   * Available presets loaded from the API.
+   * Available presets / tailoring strategies loaded from the API.
    */
   presets: Preset[];
   /**
-   * Available template sets loaded from the API.
+   * Available visual layout template sets loaded from the API.
    */
   templates: TemplateSet[];
   /**
@@ -53,21 +53,22 @@ export interface CreateBranchModalProps {
 /**
  * CreateBranchModal Component
  *
- * Accessible modal dialog for creating a new resume branch.
+ * Implements RFC-005 Section 6.1 Progressive 3-Step Creation Wizard:
+ * - Step 1: Opportunity Context (Name, target company, target role, job description / requirements).
+ * - Step 2: AI Tailoring Strategy (LLM prompt guidelines, density, custom instructions).
+ * - Step 3: Visual Layout & Design (ATS layout, styling themes).
  *
- * Architectural Role:
- * - Collects branch configuration: Name, target company, role, preset, template set,
- *   requirements, and custom LLM prompt instructions.
- * - Performs client-side validation to ensure branch names are non-empty and unique.
- * - Automatically cascades preset defaults: selecting a preset with an associated template
- *   auto-populates the template selector.
- * - Sized responsively to at least 720px on desktop and tablet viewports while preserving mobile fluidity.
+ * Workflow Invariant:
+ * Selecting a strategy in Step 2 automatically suggests its `suggested_theme_id` in Step 3
+ * without overwriting an explicit user selection in Step 3.
  *
  * Accessibility & WAI-ARIA Considerations:
  * - Uses Radix UI Dialog primitives (`role="dialog"`).
- * - Implements automatic focus trapping and focus restoration upon dismiss.
+ * - Step indicator navigation with `aria-current="step"`.
+ * - Radio groups with `<fieldset>` and `<legend>` for strategy and theme cards.
  * - Form labels explicitly bound to input IDs (`htmlFor`).
- * - Validation errors announced with `role="alert"` and associated via `aria-describedby` and `aria-invalid`.
+ * - Validation errors announced with `role="alert"`.
+ * - Sized responsively (`sm:max-w-[720px]`).
  *
  * @param {CreateBranchModalProps} props Component properties.
  * @returns {JSX.Element} The rendered modal dialog.
@@ -81,6 +82,10 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
   onSubmit,
   isSubmitting = false,
 }) => {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [hasManuallySelectedTheme, setHasManuallySelectedTheme] = useState(false);
+
+  // Form State
   const [name, setName] = useState("");
   const [targetCompany, setTargetCompany] = useState("");
   const [targetRole, setTargetRole] = useState("");
@@ -90,9 +95,11 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
   const [branchInstructions, setBranchInstructions] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
 
-  // Initialize or reset defaults when modal opens or options change
+  // Initialize or reset defaults when modal opens
   useEffect(() => {
     if (open) {
+      setStep(1);
+      setHasManuallySelectedTheme(false);
       setName("");
       setTargetCompany("");
       setTargetRole("");
@@ -106,9 +113,9 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
       const initialPresetId = defaultPreset ? defaultPreset.id : "";
       setPresetId(initialPresetId);
 
-      // Default template to preset's template or first available template
+      // Default template to preset's suggested theme or template, or first available template
       const initialTemplateId =
-        (defaultPreset && defaultPreset.template_set_id) ||
+        (defaultPreset && (defaultPreset.suggested_theme_id || defaultPreset.template_set_id)) ||
         (templates[0] && templates[0].id) ||
         "standard";
       setTemplateSetId(initialTemplateId);
@@ -116,28 +123,13 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
   }, [open, presets, templates]);
 
   /**
-   * Handles preset selection changes, auto-selecting the preset's default template.
+   * Validates Step 1 inputs (required name and unique name check).
    */
-  const handlePresetChange = (newPresetId: string) => {
-    setPresetId(newPresetId);
-    if (newPresetId) {
-      const selected = presets.find((p) => p.id === newPresetId);
-      if (selected && selected.template_set_id) {
-        setTemplateSetId(selected.template_set_id);
-      }
-    }
-  };
-
-  /**
-   * Validates form state and dispatches creation callback.
-   */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateStep1 = (): boolean => {
     const trimmedName = name.trim();
-
     if (!trimmedName) {
       setNameError("Branch name is required.");
-      return;
+      return false;
     }
 
     const isDuplicate = existingBranches.some(
@@ -145,19 +137,78 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
     );
     if (isDuplicate) {
       setNameError("A branch with this name already exists. Please choose a unique name.");
-      return;
+      return false;
     }
 
     setNameError(null);
+    return true;
+  };
 
+  /**
+   * Handles preset selection changes, auto-suggesting the preset's theme if not manually chosen.
+   */
+  const handlePresetChange = (newPresetId: string) => {
+    setPresetId(newPresetId);
+    if (newPresetId && !hasManuallySelectedTheme) {
+      const selected = presets.find((p) => p.id === newPresetId);
+      const suggested = selected?.suggested_theme_id || selected?.template_set_id;
+      if (suggested && templates.some((t) => t.id === suggested)) {
+        setTemplateSetId(suggested);
+      }
+    }
+  };
+
+  /**
+   * Handles template selection changes, recording user manual intent.
+   */
+  const handleTemplateChange = (newTemplateId: string, isManual = true) => {
+    setTemplateSetId(newTemplateId);
+    if (isManual) {
+      setHasManuallySelectedTheme(true);
+    }
+  };
+
+  /**
+   * Advances wizard forward.
+   */
+  const handleNext = () => {
+    if (step === 1) {
+      if (!validateStep1()) return;
+      setStep(2);
+    } else if (step === 2) {
+      setStep(3);
+    }
+  };
+
+  /**
+   * Moves wizard backward.
+   */
+  const handleBack = () => {
+    if (step === 3) setStep(2);
+    else if (step === 2) setStep(1);
+  };
+
+  /**
+   * Validates form state and dispatches creation callback.
+   */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateStep1()) {
+      setStep(1);
+      return;
+    }
+
+    const trimmedName = name.trim();
     await onSubmit({
       name: trimmedName,
       target_company: targetCompany.trim(),
       target_role: targetRole.trim(),
       preset_id: presetId || undefined,
+      tailoring_strategy_id: presetId || undefined,
       template_set_id: templateSetId,
       target_requirements: targetRequirements.trim(),
       branch_instructions: branchInstructions.trim(),
+      custom_directives: branchInstructions.trim(),
     });
 
     onOpenChange(false);
@@ -173,79 +224,163 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form noValidate onSubmit={handleSubmit} className="space-y-4 py-2">
-          {/* Branch Name Field */}
-          <div>
-            <label
-              htmlFor="create-branch-name"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-            >
-              Branch Name *
-            </label>
-            <input
-              id="create-branch-name"
-              type="text"
-              aria-required="true"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (nameError) setNameError(null);
-              }}
-              placeholder="e.g. Stripe - Staff Backend Engineer"
-              aria-invalid={nameError ? "true" : undefined}
-              aria-describedby={nameError ? "name-error" : undefined}
-              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-            {nameError && (
-              <p id="name-error" role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">
-                {nameError}
+        {/* Wizard Step Indicator */}
+        <nav aria-label="Creation Steps" className="border-b border-slate-200 dark:border-slate-800 pb-3 my-2">
+          <ol className="flex w-full items-center justify-between gap-2 text-xs sm:text-sm">
+            <li className="flex-1">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className={`w-full py-1.5 px-2.5 rounded-md text-left font-medium transition-colors ${
+                  step === 1
+                    ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
+                aria-current={step === 1 ? "step" : undefined}
+              >
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Step 1</span>
+                <span>The Opportunity</span>
+              </button>
+            </li>
+            <li className="flex-1">
+              <button
+                type="button"
+                onClick={() => {
+                  if (validateStep1()) setStep(2);
+                }}
+                className={`w-full py-1.5 px-2.5 rounded-md text-left font-medium transition-colors ${
+                  step === 2
+                    ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
+                aria-current={step === 2 ? "step" : undefined}
+              >
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Step 2</span>
+                <span>AI Tailoring</span>
+              </button>
+            </li>
+            <li className="flex-1">
+              <button
+                type="button"
+                onClick={() => {
+                  if (validateStep1()) setStep(3);
+                }}
+                className={`w-full py-1.5 px-2.5 rounded-md text-left font-medium transition-colors ${
+                  step === 3
+                    ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
+                aria-current={step === 3 ? "step" : undefined}
+              >
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Step 3</span>
+                <span>Visual Design</span>
+              </button>
+            </li>
+          </ol>
+        </nav>
+
+        <form noValidate onSubmit={handleSubmit} className="space-y-4 py-1">
+          {/* STEP 1: The Opportunity */}
+          <div className={step === 1 ? "space-y-4" : "hidden"}>
+            <div>
+              <label
+                htmlFor="create-branch-name"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Branch Name *
+              </label>
+              <input
+                id="create-branch-name"
+                type="text"
+                aria-required="true"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (nameError) setNameError(null);
+                }}
+                placeholder="e.g. Stripe - Staff Backend Engineer"
+                aria-invalid={nameError ? "true" : undefined}
+                aria-describedby={nameError ? "name-error" : undefined}
+                className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+              {nameError && (
+                <p id="name-error" role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">
+                  {nameError}
+                </p>
+              )}
+            </div>
+
+            {/* Grid of Company & Role */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="create-target-company"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                >
+                  Target Company
+                </label>
+                <input
+                  id="create-target-company"
+                  type="text"
+                  value={targetCompany}
+                  onChange={(e) => setTargetCompany(e.target.value)}
+                  placeholder="e.g. Stripe"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="create-target-role"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                >
+                  Target Role
+                </label>
+                <input
+                  id="create-target-role"
+                  type="text"
+                  value={targetRole}
+                  onChange={(e) => setTargetRole(e.target.value)}
+                  placeholder="e.g. Staff Backend Engineer"
+                  className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            {/* Target Requirements (Job Description) */}
+            <div>
+              <label
+                htmlFor="create-target-requirements"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Target Requirements (Job Description)
+              </label>
+              <textarea
+                id="create-target-requirements"
+                rows={3}
+                value={targetRequirements}
+                onChange={(e) => setTargetRequirements(e.target.value)}
+                placeholder="Paste job description or requirements to guide LLM alignment..."
+                className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          {/* STEP 2: AI Tailoring Strategy */}
+          <div className={step === 2 ? "space-y-4" : "hidden"}>
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-2">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Step 2: AI Tailoring Strategy
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Choose how AI analyzes and presents your career achievements:
               </p>
-            )}
-          </div>
-
-          {/* Grid of Company & Role */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="create-target-company"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-              >
-                Target Company
-              </label>
-              <input
-                id="create-target-company"
-                type="text"
-                value={targetCompany}
-                onChange={(e) => setTargetCompany(e.target.value)}
-                placeholder="e.g. Stripe"
-                className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              />
             </div>
 
-            <div>
-              <label
-                htmlFor="create-target-role"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-              >
-                Target Role
-              </label>
-              <input
-                id="create-target-role"
-                type="text"
-                value={targetRole}
-                onChange={(e) => setTargetRole(e.target.value)}
-                placeholder="e.g. Staff Backend Engineer"
-                className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              />
-            </div>
-          </div>
-
-          {/* Grid of Preset & Template */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label
                 htmlFor="create-preset-id"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
               >
                 Preset
               </label>
@@ -253,7 +388,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 id="create-preset-id"
                 value={presetId}
                 onChange={(e) => handlePresetChange(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 <option value="">-- Generic (No Preset) --</option>
                 {presets.map((preset) => (
@@ -265,10 +400,95 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
               </select>
             </div>
 
+            {/* Selectable Strategy Cards */}
+            <fieldset className="space-y-2">
+              <legend className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                Strategy Options
+              </legend>
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                {presets.map((preset) => {
+                  const isSelected = presetId === preset.id;
+                  return (
+                    <label
+                      key={preset.id}
+                      htmlFor={`strategy-card-${preset.id}`}
+                      className={`flex cursor-pointer flex-col justify-between rounded-lg border p-3 text-xs transition-all ${
+                        isSelected
+                          ? "border-indigo-600 bg-indigo-50/50 dark:border-indigo-500 dark:bg-indigo-950/30 ring-1 ring-indigo-500"
+                          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">
+                          {preset.name}
+                        </span>
+                        <input
+                          type="radio"
+                          id={`strategy-card-${preset.id}`}
+                          name="tailoring-strategy-card"
+                          value={preset.id}
+                          checked={isSelected}
+                          onChange={() => handlePresetChange(preset.id)}
+                          className="mt-0.5 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700"
+                        />
+                      </div>
+                      {preset.system_instructions && (
+                        <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2">
+                          {preset.system_instructions}
+                        </p>
+                      )}
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {preset.is_built_in && (
+                          <span className="inline-flex items-center rounded bg-indigo-100 dark:bg-indigo-900/60 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300">
+                            Built-in
+                          </span>
+                        )}
+                        {preset.suggested_theme_id && (
+                          <span className="inline-flex items-center rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-600 dark:text-slate-400">
+                            Suggests: {preset.suggested_theme_id}
+                          </span>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            {/* Custom LLM Instructions */}
+            <div>
+              <label
+                htmlFor="create-branch-instructions"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Custom Instructions (Tier 3 Prompt)
+              </label>
+              <textarea
+                id="create-branch-instructions"
+                rows={2}
+                value={branchInstructions}
+                onChange={(e) => setBranchInstructions(e.target.value)}
+                placeholder="e.g. Prioritize distributed systems, Kubernetes, and Go architecture..."
+                className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          {/* STEP 3: Visual Layout & Design */}
+          <div className={step === 3 ? "space-y-4" : "hidden"}>
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-2">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Step 3: Visual Layout & Design
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Choose visual appearance and ATS formatting:
+              </p>
+            </div>
+
             <div>
               <label
                 htmlFor="create-template-set-id"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
               >
                 Template Set *
               </label>
@@ -276,8 +496,8 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 id="create-template-set-id"
                 aria-required="true"
                 value={templateSetId}
-                onChange={(e) => setTemplateSetId(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                onChange={(e) => handleTemplateChange(e.target.value, true)}
+                className="block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 {templates.map((template) => (
                   <option key={template.id} value={template.id}>
@@ -289,45 +509,59 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 )}
               </select>
             </div>
+
+            {/* Selectable Theme Cards */}
+            <fieldset className="space-y-2">
+              <legend className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                Theme Options
+              </legend>
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                {templates.map((template) => {
+                  const isSelected = templateSetId === template.id;
+                  return (
+                    <label
+                      key={template.id}
+                      htmlFor={`template-card-${template.id}`}
+                      className={`flex cursor-pointer flex-col justify-between rounded-lg border p-3 text-xs transition-all ${
+                        isSelected
+                          ? "border-indigo-600 bg-indigo-50/50 dark:border-indigo-500 dark:bg-indigo-950/30 ring-1 ring-indigo-500"
+                          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">
+                          {template.name}
+                        </span>
+                        <input
+                          type="radio"
+                          id={`template-card-${template.id}`}
+                          name="visual-theme-card"
+                          value={template.id}
+                          checked={isSelected}
+                          onChange={() => handleTemplateChange(template.id, true)}
+                          className="mt-0.5 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700"
+                        />
+                      </div>
+                      {template.description && (
+                        <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2">
+                          {template.description}
+                        </p>
+                      )}
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {template.is_built_in && (
+                          <span className="inline-flex items-center rounded bg-emerald-100 dark:bg-emerald-900/60 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
+                            Built-in Theme
+                          </span>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
           </div>
 
-          {/* Job Requirements */}
-          <div>
-            <label
-              htmlFor="create-target-requirements"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-            >
-              Target Requirements (Job Description)
-            </label>
-            <textarea
-              id="create-target-requirements"
-              rows={3}
-              value={targetRequirements}
-              onChange={(e) => setTargetRequirements(e.target.value)}
-              placeholder="Paste job description or requirements to guide LLM alignment..."
-              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-          </div>
-
-          {/* Custom LLM Instructions */}
-          <div>
-            <label
-              htmlFor="create-branch-instructions"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-            >
-              Custom Instructions (Tier 3 Prompt)
-            </label>
-            <textarea
-              id="create-branch-instructions"
-              rows={2}
-              value={branchInstructions}
-              onChange={(e) => setBranchInstructions(e.target.value)}
-              placeholder="e.g. Prioritize distributed systems, Kubernetes, and Go architecture..."
-              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-          </div>
-
-          <DialogFooter className="pt-4">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
             <Button
               type="button"
               variant="outline"
@@ -336,9 +570,31 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Branch"}
-            </Button>
+            <div className="flex items-center gap-2">
+              {step > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isSubmitting}
+                  onClick={handleBack}
+                >
+                  Back
+                </Button>
+              )}
+              {step < 3 && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={isSubmitting}
+                  onClick={handleNext}
+                >
+                  Next: {step === 1 ? "AI Tailoring" : "Visual Design"}
+                </Button>
+              )}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create Branch"}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>
