@@ -108,6 +108,7 @@ export const PresetEditorPage: React.FC = () => {
         provider_override: clonedPreset.provider_override,
         model_override: clonedPreset.model_override,
         reasoning_level: clonedPreset.reasoning_level,
+        language: clonedPreset.language,
         include_admin_fields: clonedPreset.include_admin_fields,
         is_built_in: false,
       };

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Copy, Edit3, Trash2, Eye, Shield, Cpu, Layers } from "lucide-react";
+import { Copy, Edit3, Trash2, Eye, Shield, Cpu, Layers, Globe } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -75,6 +75,12 @@ export const PresetCard: React.FC<PresetCardProps> = ({
                 Admin Fields
               </span>
             )}
+            {preset.language && preset.language !== "English" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-700/10 dark:ring-emerald-400/20">
+                <Globe className="h-3 w-3" aria-hidden="true" />
+                <span>{preset.language}</span>
+              </span>
+            )}
           </div>
         </div>
 
@@ -98,6 +104,10 @@ export const PresetCard: React.FC<PresetCardProps> = ({
           <span className="inline-flex items-center gap-1">
             <Layers className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
             <span>{templateName || preset.template_set_id}</span>
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Globe className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+            <span>{preset.language || "English"}</span>
           </span>
           {preset.model_override && (
             <span className="inline-flex items-center gap-1">

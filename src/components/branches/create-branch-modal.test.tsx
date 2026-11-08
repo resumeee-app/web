@@ -348,4 +348,44 @@ describe("CreateBranchModal Component", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(openBtn).toHaveFocus();
   });
+
+  it("displays non-default language indicator in option label and preset card badge", async () => {
+    const user = userEvent.setup();
+    const spanishPresets: Preset[] = [
+      {
+        id: "preset-spanish",
+        user_id: "user-1",
+        name: "Spanish Tech Lead",
+        system_instructions: "Emphasize leadership in Spanish",
+        template_set_id: "tmpl-clean",
+        language: "Spanish",
+      },
+    ];
+
+    render(
+      <CreateBranchModal
+        open={true}
+        onOpenChange={vi.fn()}
+        existingBranches={existingBranches}
+        presets={spanishPresets}
+        templates={templates}
+        onSubmit={vi.fn()}
+      />
+    );
+
+    // Verify option label in dropdown on Step 1
+    const option = screen.getByRole("option", { name: /Spanish Tech Lead \(Spanish\)/i });
+    expect(option).toBeInTheDocument();
+
+    // Fill valid branch name and advance to Step 2
+    const nameInput = screen.getByLabelText(/Branch Name/i);
+    await user.type(nameInput, "New Spanish Branch");
+
+    const nextBtn = screen.getByRole("button", { name: /Next/i });
+    await user.click(nextBtn);
+
+    // Verify preset card renders language badge
+    expect(screen.getByText("Spanish Tech Lead")).toBeInTheDocument();
+    expect(screen.getByText("Spanish")).toBeInTheDocument();
+  });
 });

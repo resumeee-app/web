@@ -10,6 +10,35 @@ import type {
 } from "@/api/preset-queries";
 
 /**
+ * Broadly supported left-to-right (LTR) languages for contextual LLM translation.
+ */
+export const SUPPORTED_LANGUAGES = [
+  "English",
+  "Spanish",
+  "French",
+  "German",
+  "Portuguese",
+  "Italian",
+  "Dutch",
+  "Polish",
+  "Swedish",
+  "Danish",
+  "Norwegian",
+  "Finnish",
+  "Czech",
+  "Romanian",
+  "Hungarian",
+  "Turkish",
+  "Vietnamese",
+  "Indonesian",
+  "Japanese",
+  "Korean",
+  "Chinese (Simplified)",
+  "Chinese (Traditional)",
+  "Hindi",
+] as const;
+
+/**
  * Props for the PresetForm component.
  */
 export interface PresetFormProps {
@@ -74,6 +103,9 @@ export const PresetForm: React.FC<PresetFormProps> = ({
   );
   const [reasoningLevel, setReasoningLevel] = useState(
     initialValues?.reasoning_level || ""
+  );
+  const [language, setLanguage] = useState(
+    initialValues?.language || "English"
   );
   const [includeAdminFields, setIncludeAdminFields] = useState<boolean>(
     initialValues?.include_admin_fields || false
@@ -218,6 +250,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
       reasoning_level: (isEditing
         ? reasoningLevel.trim()
         : reasoningLevel.trim() || undefined) as CreatePresetRequest["reasoning_level"],
+      language: language.trim() || "English",
       include_admin_fields: includeAdminFields,
     });
   };
@@ -375,6 +408,32 @@ export const PresetForm: React.FC<PresetFormProps> = ({
               <span>{errors.templateSetId}</span>
             </p>
           )}
+        </div>
+
+        {/* Target Language selection */}
+        <div>
+          <label
+            htmlFor="preset-language"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+          >
+            Language
+          </label>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+            Language for contextual translation of tailored resume content (summary, accomplishments, projects). Defaults to English.
+          </p>
+          <select
+            id="preset-language"
+            value={language}
+            disabled={isBuiltIn}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
+          >
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <option key={lang} value={lang}>
+                {lang} {lang === "English" ? "(Default)" : ""}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

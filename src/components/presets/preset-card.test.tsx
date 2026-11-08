@@ -13,6 +13,7 @@ const systemPreset: Preset = {
   description: "Strict 1-page max format for engineering roles.",
   system_instructions: "Focus on high-impact quantitative engineering accomplishments.",
   template_set_id: "builtin-standard-clean",
+  language: "English",
   include_admin_fields: false,
   is_built_in: true,
 };
@@ -27,6 +28,7 @@ const customPreset: Preset = {
   provider_override: "gemini",
   model_override: "gemini-4-argon",
   reasoning_level: "high",
+  language: "Spanish",
   include_admin_fields: true,
   is_built_in: false,
 };
@@ -47,6 +49,7 @@ describe("PresetCard Component", () => {
       screen.getByRole("heading", { level: 2, name: /1-page tech resume/i })
     ).toBeInTheDocument();
     expect(screen.getByText("System Strategy")).toBeInTheDocument();
+    expect(screen.getByText("English")).toBeInTheDocument();
     expect(
       screen.getByText("Strict 1-page max format for engineering roles.")
     ).toBeInTheDocument();
@@ -88,6 +91,7 @@ describe("PresetCard Component", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Custom Strategy")).toBeInTheDocument();
     expect(screen.getByText("Admin Fields")).toBeInTheDocument();
+    expect(screen.getAllByText("Spanish").length).toBeGreaterThan(0);
     expect(screen.getByText(/gemini-4-argon/i)).toBeInTheDocument();
     expect(screen.getByText(/reasoning: high/i)).toBeInTheDocument();
 

@@ -72,6 +72,10 @@ describe("PresetForm Component", () => {
     expect(screen.getByLabelText(/template set/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/system instructions/i)).toBeInTheDocument();
 
+    const languageSelect = screen.getByLabelText(/^language/i);
+    expect(languageSelect.tagName).toBe("SELECT");
+    expect(languageSelect).toHaveValue("English");
+
     // Provider, Model, and Reasoning Level must be constrained <select> dropdowns, not text inputs
     const providerSelect = screen.getByLabelText(/provider override/i);
     expect(providerSelect.tagName).toBe("SELECT");
@@ -208,6 +212,7 @@ describe("PresetForm Component", () => {
       provider_override: "anthropic",
       model_override: "claude-3-7-sonnet-20250219",
       reasoning_level: "high",
+      language: "English",
       include_admin_fields: true,
     });
   });
@@ -266,6 +271,7 @@ describe("PresetForm Component", () => {
     expect(screen.getByLabelText(/strategy name/i)).toBeDisabled();
     expect(screen.getByLabelText(/^description/i)).toBeDisabled();
     expect(screen.getByLabelText(/template set/i)).toBeDisabled();
+    expect(screen.getByLabelText(/^language/i)).toBeDisabled();
     expect(screen.getByLabelText(/system instructions/i)).toBeDisabled();
     expect(screen.getByLabelText(/provider override/i)).toBeDisabled();
     expect(screen.getByLabelText(/model override/i)).toBeDisabled();
@@ -337,6 +343,36 @@ describe("PresetForm Component", () => {
 
     const results = await axe(container);
     expect(results).toHaveNoViolations();
+  });
+
+  it("allows selecting a supported language and submits it", async () => {
+    const user = userEvent.setup();
+    const handleSubmit = vi.fn();
+
+    render(
+      <PresetForm
+        templateSets={mockTemplates}
+        availableModels={mockAvailableModels}
+        onSubmit={handleSubmit}
+      />
+    );
+
+    await user.type(screen.getByLabelText(/strategy name/i), "Multilingual Strategy");
+    await user.type(screen.getByLabelText(/system instructions/i), "Instructions in Spanish.");
+
+    const languageSelect = screen.getByLabelText(/^language/i);
+    await user.selectOptions(languageSelect, "Spanish");
+    expect(languageSelect).toHaveValue("Spanish");
+
+    await user.click(screen.getByRole("button", { name: /save tailoring strategy/i }));
+
+    expect(handleSubmit).toHaveBeenCalledTimes(1);
+    expect(handleSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Multilingual Strategy",
+        language: "Spanish",
+      })
+    );
   });
 
   it("renders admin fields subtext with dark mode contrast classes", () => {

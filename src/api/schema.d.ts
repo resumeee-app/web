@@ -1375,6 +1375,8 @@ export interface components {
              * @enum {string}
              */
             reasoning_level?: "" | "none" | "low" | "medium" | "high";
+            /** @description Target language for contextual translation (defaults to English) */
+            language?: string;
             include_admin_fields?: boolean;
             /** @description Whether this is a system-provided built-in preset */
             readonly is_built_in?: boolean;
@@ -1396,6 +1398,8 @@ export interface components {
              * @enum {string}
              */
             reasoning_level?: "" | "none" | "low" | "medium" | "high";
+            /** @description Target language for contextual translation (defaults to English) */
+            language?: string;
             include_admin_fields?: boolean;
         };
         UpdatePresetRequest: {
@@ -1411,6 +1415,8 @@ export interface components {
              * @enum {string}
              */
             reasoning_level?: "" | "none" | "low" | "medium" | "high";
+            /** @description Target language for contextual translation */
+            language?: string;
             include_admin_fields?: boolean;
         };
         TailoringStrategy: {
@@ -1428,6 +1434,8 @@ export interface components {
              * @enum {string}
              */
             reasoning_level?: "" | "none" | "low" | "medium" | "high";
+            /** @description Target language for contextual translation (defaults to English) */
+            language?: string;
             include_admin_fields?: boolean;
             /** @description Whether this is a system-provided built-in tailoring strategy */
             readonly is_built_in?: boolean;
@@ -1449,6 +1457,8 @@ export interface components {
              * @enum {string}
              */
             reasoning_level?: "" | "none" | "low" | "medium" | "high";
+            /** @description Target language for contextual translation (defaults to English) */
+            language?: string;
             include_admin_fields?: boolean;
         };
         UpdateStrategyRequest: {
@@ -1464,6 +1474,8 @@ export interface components {
              * @enum {string}
              */
             reasoning_level?: "" | "none" | "low" | "medium" | "high";
+            /** @description Target language for contextual translation */
+            language?: string;
             include_admin_fields?: boolean;
         };
         TemplateSet: {

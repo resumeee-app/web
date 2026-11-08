@@ -413,6 +413,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 {presets.map((preset) => (
                   <option key={preset.id} value={preset.id}>
                     {preset.name}
+                    {preset.language && preset.language !== "English" ? ` (${preset.language})` : ""}
                     {preset.is_built_in ? " (System Default)" : ""}
                   </option>
                 ))}
@@ -460,6 +461,11 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                         {preset.is_built_in && (
                           <span className="inline-flex items-center rounded bg-indigo-100 dark:bg-indigo-900/60 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300">
                             Built-in
+                          </span>
+                        )}
+                        {preset.language && (
+                          <span className="inline-flex items-center rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-600 dark:text-slate-400">
+                            {preset.language}
                           </span>
                         )}
                         {preset.suggested_theme_id && (

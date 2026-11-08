@@ -35,6 +35,7 @@ const mockBuiltinPreset: apiHooks.Preset = {
   description: "Strict 1-page max format for engineering roles.",
   system_instructions: "Focus on impact.",
   template_set_id: "builtin-standard-clean",
+  language: "English",
   is_built_in: true,
 };
 
@@ -48,6 +49,7 @@ const mockCustomPreset: apiHooks.Preset = {
   provider_override: "gemini",
   model_override: "gemini-3.8-flash",
   reasoning_level: "high",
+  language: "Spanish",
   is_built_in: false,
 };
 
@@ -187,6 +189,7 @@ describe("PresetEditorPage Component", () => {
       id: "preset-custom-001",
       data: expect.objectContaining({
         name: "Updated Staff Preset",
+        language: "Spanish",
         provider_override: "gemini",
         model_override: "gemini-3.8-flash",
         reasoning_level: "high",
@@ -217,6 +220,8 @@ describe("PresetEditorPage Component", () => {
 
     const nameInput = screen.getByLabelText(/strategy name/i) as HTMLInputElement;
     expect(nameInput.value).toBe("Copy of 1-Page Tech Resume");
+    const languageSelect = screen.getByLabelText(/^language/i) as HTMLSelectElement;
+    expect(languageSelect.value).toBe("English");
   });
 
   it("renders error alert when preset fails to load", () => {
