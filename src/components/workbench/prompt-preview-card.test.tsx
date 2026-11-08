@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -67,6 +67,47 @@ describe("PromptPreviewCard", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("suppresses rendering when isAdmin={false} is explicitly passed even if admin mode is true", () => {
+    vi.stubEnv("ADMIN_MODE", "true");
+    const { Wrapper } = createTestWrapper();
+
+    const { container } = render(
+      <Wrapper>
+        <PromptPreviewCard
+          branch={mockBranch}
+          defaultExpanded={true}
+          isAdmin={false}
+        />
+      </Wrapper>
+    );
+
+    expect(container.firstChild).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: /llm prompt preview/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders when isAdmin={true} is explicitly passed even if admin mode is false", () => {
+    vi.stubEnv("ADMIN_MODE", "false");
+    vi.stubEnv("VITE_ADMIN_MODE", "false");
+    setAuthToken(null);
+    const { Wrapper } = createTestWrapper();
+
+    render(
+      <Wrapper>
+        <PromptPreviewCard
+          branch={mockBranch}
+          defaultExpanded={true}
+          isAdmin={true}
+        />
+      </Wrapper>
+    );
+
+    expect(
+      screen.getByRole("heading", { name: /llm prompt preview/i })
+    ).toBeInTheDocument();
+  });
+
   it("renders collapsed by default and expands upon user click", async () => {
     const user = userEvent.setup();
     const { Wrapper } = createTestWrapper();
@@ -104,7 +145,47 @@ describe("PromptPreviewCard", () => {
     });
   });
 
-  it("renders monospaced code blocks and allows copying to clipboard", async () => {
+  it("renders single combined prompt preview and does not render filter tabs", async () => {
+    const { Wrapper } = createTestWrapper();
+
+    vi.spyOn(api, "GET").mockResolvedValue({
+      data: {
+        system_prompt: "You are Resumeee AI. Anti-Hallucination rules.",
+        user_prompt: "Target Role: Staff Engineer. Target Company: Stripe.",
+      },
+      error: undefined,
+      response: new Response(),
+    } as never);
+
+    render(
+      <Wrapper>
+        <PromptPreviewCard branch={mockBranch} defaultExpanded={true} />
+      </Wrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/anti-hallucination rules/i)).toBeInTheDocument();
+    });
+
+    // Verify filter tabs are completely removed
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /all prompts/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^system prompt$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^user prompt$/i })).not.toBeInTheDocument();
+
+    // Verify system and user prompt are combined in a single pre block with keyboard focusability
+    const preElement = screen.getByLabelText(/compiled prompt preview/i);
+    expect(preElement).toBeInTheDocument();
+    expect(preElement).toHaveAttribute("tabindex", "0");
+    expect(preElement.textContent).toContain("You are Resumeee AI. Anti-Hallucination rules.");
+    expect(preElement.textContent).toContain("Target Role: Staff Engineer. Target Company: Stripe.");
+    expect(preElement.textContent).toBe(
+      "You are Resumeee AI. Anti-Hallucination rules.\n\nTarget Role: Staff Engineer. Target Company: Stripe."
+    );
+  });
+
+  it("renders monospaced code blocks and allows copying combined prompt to clipboard with dynamic aria-label", async () => {
     const user = userEvent.setup();
     const { Wrapper } = createTestWrapper();
 
@@ -117,7 +198,6 @@ describe("PromptPreviewCard", () => {
       response: new Response(),
     } as never);
 
-    // Mock clipboard API
     const writeTextMock = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", {
       value: { writeText: writeTextMock },
@@ -132,16 +212,127 @@ describe("PromptPreviewCard", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("System Prompt Content")).toBeInTheDocument();
+      expect(screen.getByText(/system prompt content/i)).toBeInTheDocument();
     });
 
-    const copySystemBtn = screen.getByRole("button", {
-      name: /copy system prompt/i,
+    const copyBtn = screen.getByRole("button", {
+      name: /copy prompt/i,
     });
-    await user.click(copySystemBtn);
+    expect(copyBtn).toHaveAttribute("aria-label", "Copy prompt to clipboard");
 
-    expect(writeTextMock).toHaveBeenCalledWith("System Prompt Content");
+    await user.click(copyBtn);
+
+    expect(writeTextMock).toHaveBeenCalledWith(
+      "System Prompt Content\n\nUser Prompt Content"
+    );
     expect(screen.getByText(/copied!/i)).toBeInTheDocument();
+    expect(copyBtn).toHaveAttribute("aria-label", "Prompt copied to clipboard");
+  });
+
+  it("resets copy button state and aria-label after 2000ms timeout", async () => {
+    const { Wrapper } = createTestWrapper();
+
+    vi.spyOn(api, "GET").mockResolvedValue({
+      data: {
+        system_prompt: "System Prompt Content",
+        user_prompt: "User Prompt Content",
+      },
+      error: undefined,
+      response: new Response(),
+    } as never);
+
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText: writeTextMock },
+      writable: true,
+      configurable: true,
+    });
+
+    render(
+      <Wrapper>
+        <PromptPreviewCard branch={mockBranch} defaultExpanded={true} />
+      </Wrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/system prompt content/i)).toBeInTheDocument();
+    });
+
+    vi.useFakeTimers();
+
+    const copyBtn = screen.getByRole("button", {
+      name: /copy prompt/i,
+    });
+    expect(copyBtn).toHaveAttribute("aria-label", "Copy prompt to clipboard");
+
+    await act(async () => {
+      fireEvent.click(copyBtn);
+    });
+
+    expect(screen.getByText(/copied!/i)).toBeInTheDocument();
+    expect(copyBtn).toHaveAttribute("aria-label", "Prompt copied to clipboard");
+
+    // Advance timer past the 2000ms timeout
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(screen.getByText(/copy prompt/i)).toBeInTheDocument();
+    expect(copyBtn).toHaveAttribute("aria-label", "Copy prompt to clipboard");
+
+    vi.useRealTimers();
+  });
+
+  it("handles combining when only user_prompt is present and system_prompt is empty", async () => {
+    const { Wrapper } = createTestWrapper();
+
+    vi.spyOn(api, "GET").mockResolvedValue({
+      data: {
+        system_prompt: "",
+        user_prompt: "Only User Prompt Content",
+      },
+      error: undefined,
+      response: new Response(),
+    } as never);
+
+    render(
+      <Wrapper>
+        <PromptPreviewCard branch={mockBranch} defaultExpanded={true} />
+      </Wrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Only User Prompt Content")).toBeInTheDocument();
+    });
+
+    const preElement = screen.getByLabelText(/compiled prompt preview/i);
+    expect(preElement.textContent).toBe("Only User Prompt Content");
+  });
+
+  it("handles combining when only system_prompt is present and user_prompt is empty", async () => {
+    const { Wrapper } = createTestWrapper();
+
+    vi.spyOn(api, "GET").mockResolvedValue({
+      data: {
+        system_prompt: "Only System Prompt Content",
+        user_prompt: "",
+      },
+      error: undefined,
+      response: new Response(),
+    } as never);
+
+    render(
+      <Wrapper>
+        <PromptPreviewCard branch={mockBranch} defaultExpanded={true} />
+      </Wrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Only System Prompt Content")).toBeInTheDocument();
+    });
+
+    const preElement = screen.getByLabelText(/compiled prompt preview/i);
+    expect(preElement.textContent).toBe("Only System Prompt Content");
   });
 
   it("updates reactively when draft overrides change", async () => {
@@ -200,7 +391,7 @@ describe("PromptPreviewCard", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("System Prompt Content")).toBeInTheDocument();
+      expect(screen.getByText(/system prompt content/i)).toBeInTheDocument();
     });
 
     const results = await axe(container);

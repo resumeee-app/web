@@ -28,26 +28,28 @@ export interface PromptPreviewCardProps {
   draftOverrides?: PromptPreviewRequest | null;
   /** Whether the card starts expanded by default. Defaults to false. */
   defaultExpanded?: boolean;
+  /** Optional explicit override for admin status; defaults to isUserAdmin(). */
+  isAdmin?: boolean;
 }
 
 /**
  * PromptPreviewCard renders an accessible, collapsible inspector for viewing
- * the assembled system and user prompt templates before and during tailoring.
+ * the assembled LLM prompt compiled for resume tailoring.
  *
  * Accessibility / WAI-ARIA Considerations:
  * - Semantic `<section>` landmark with programmatic `aria-labelledby`.
  * - Disclosure button utilizes `aria-expanded` and `aria-controls`.
- * - Preformatted prompt blocks have accessible labels and keyboard focusability (`tabIndex={0}`).
+ * - Preformatted prompt block has accessible label and keyboard focusability (`tabIndex={0}`).
  * - Copy button provides dynamic screen reader feedback and visual confirmation.
  */
 export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
   branch,
   draftOverrides,
   defaultExpanded = false,
+  isAdmin: propIsAdmin,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
-  const [copiedKey, setCopiedKey] = React.useState<string | null>(null);
-  const [activeTab, setActiveTab] = React.useState<"all" | "system" | "user">("all");
+  const [isCopied, setIsCopied] = React.useState(false);
 
   const panelId = React.useId();
   const headingId = React.useId();
@@ -79,7 +81,7 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
     return () => clearTimeout(timer);
   }, [draftOverrides]);
 
-  const isAdmin = isUserAdmin();
+  const isAdmin = propIsAdmin ?? isUserAdmin();
 
   const {
     data: promptPreview,
@@ -92,15 +94,22 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
     enabled: isAdmin && isExpanded && Boolean(branch?.id),
   });
 
-  const handleCopy = async (text: string, key: string) => {
+  const combinedPrompt = React.useMemo(() => {
+    if (!promptPreview) return "";
+    return [promptPreview.system_prompt, promptPreview.user_prompt]
+      .filter(Boolean)
+      .join("\n\n");
+  }, [promptPreview]);
+
+  const handleCopy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopiedKey(key);
+      setIsCopied(true);
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
       copyTimeoutRef.current = setTimeout(() => {
-        setCopiedKey(null);
+        setIsCopied(false);
       }, 2000);
     } catch {
       // Clipboard write failure fallback
@@ -130,7 +139,7 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
               LLM Prompt Preview
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Inspect the assembled system and user prompt drafts compiled for resume tailoring.
+              Inspect the assembled prompt drafts compiled for resume tailoring.
             </p>
           </div>
         </div>
@@ -157,39 +166,15 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
           id={panelId}
           className="mt-6 space-y-4 border-t border-slate-100 dark:border-slate-800 pt-4"
         >
-          {/* Controls Header: Tabs and Refresh */}
+          {/* Controls Header: Status and Copy */}
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5" role="tablist" aria-label="Prompt Views">
-              <Button
-                variant={activeTab === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveTab("all")}
-                role="tab"
-                aria-selected={activeTab === "all"}
-                className="h-7 text-xs px-2.5"
-              >
-                All Prompts
-              </Button>
-              <Button
-                variant={activeTab === "system" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveTab("system")}
-                role="tab"
-                aria-selected={activeTab === "system"}
-                className="h-7 text-xs px-2.5"
-              >
-                System Prompt
-              </Button>
-              <Button
-                variant={activeTab === "user" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveTab("user")}
-                role="tab"
-                aria-selected={activeTab === "user"}
-                className="h-7 text-xs px-2.5"
-              >
-                User Prompt
-              </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Compiled Prompt
+              </span>
+              <Badge variant="outline" className="text-[10px] py-0 px-1.5">
+                Full LLM Context
+              </Badge>
             </div>
 
             <div className="flex items-center gap-2">
@@ -203,24 +188,23 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    handleCopy(
-                      `=== SYSTEM PROMPT ===\n${promptPreview.system_prompt}\n\n=== USER PROMPT ===\n${promptPreview.user_prompt}`,
-                      "all"
-                    )
-                  }
+                  onClick={() => handleCopy(combinedPrompt)}
                   className="h-7 text-xs flex items-center gap-1 px-2.5"
-                  aria-label="Copy all prompts to clipboard"
+                  aria-label={
+                    isCopied
+                      ? "Prompt copied to clipboard"
+                      : "Copy prompt to clipboard"
+                  }
                 >
-                  {copiedKey === "all" ? (
+                  {isCopied ? (
                     <>
                       <Check className="h-3.5 w-3.5 text-emerald-600" aria-hidden="true" />
-                      <span className="text-emerald-600">Copied All!</span>
+                      <span className="text-emerald-600 font-medium">Copied!</span>
                     </>
                   ) : (
                     <>
                       <Copy className="h-3.5 w-3.5 text-slate-500" aria-hidden="true" />
-                      <span>Copy All</span>
+                      <span>Copy Prompt</span>
                     </>
                   )}
                 </Button>
@@ -272,92 +256,14 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
 
           {/* Prompt Content */}
           {promptPreview && !isLoading && (
-            <div className="space-y-6">
-              {/* System Prompt View */}
-              {(activeTab === "all" || activeTab === "system") && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        System Prompt
-                      </span>
-                      <Badge variant="outline" className="text-[10px] py-0 px-1.5">
-                        Grounding & Provenance
-                      </Badge>
-                    </div>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCopy(promptPreview.system_prompt, "system")}
-                      className="h-6 text-xs flex items-center gap-1 px-2 text-slate-600 dark:text-slate-300"
-                      aria-label="Copy system prompt"
-                    >
-                      {copiedKey === "system" ? (
-                        <>
-                          <Check className="h-3 w-3 text-emerald-600" aria-hidden="true" />
-                          <span className="text-emerald-600 font-medium">Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-3 w-3 text-slate-400" aria-hidden="true" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
-
-                  <pre
-                    aria-label="System prompt preview"
-                    className="max-h-72 overflow-auto rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3.5 font-mono text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap select-all"
-                  >
-                    <code>{promptPreview.system_prompt}</code>
-                  </pre>
-                </div>
-              )}
-
-              {/* User Prompt View */}
-              {(activeTab === "all" || activeTab === "user") && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        User Prompt
-                      </span>
-                      <Badge variant="outline" className="text-[10px] py-0 px-1.5">
-                        Target Context & Master Profile
-                      </Badge>
-                    </div>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCopy(promptPreview.user_prompt, "user")}
-                      className="h-6 text-xs flex items-center gap-1 px-2 text-slate-600 dark:text-slate-300"
-                      aria-label="Copy user prompt"
-                    >
-                      {copiedKey === "user" ? (
-                        <>
-                          <Check className="h-3 w-3 text-emerald-600" aria-hidden="true" />
-                          <span className="text-emerald-600 font-medium">Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-3 w-3 text-slate-400" aria-hidden="true" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
-
-                  <pre
-                    aria-label="User prompt preview"
-                    className="max-h-96 overflow-auto rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3.5 font-mono text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap select-all"
-                  >
-                    <code>{promptPreview.user_prompt}</code>
-                  </pre>
-                </div>
-              )}
+            <div className="space-y-2">
+              {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
+              <pre tabIndex={0}
+                aria-label="Compiled prompt preview"
+                className="max-h-[32rem] overflow-auto rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3.5 font-mono text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap select-all"
+              >
+                <code>{combinedPrompt}</code>
+              </pre>
             </div>
           )}
         </div>
