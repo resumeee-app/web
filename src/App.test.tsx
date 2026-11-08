@@ -53,7 +53,7 @@ describe("Application Root Component", () => {
       render(<App />);
 
       // Hero heading and value proposition
-      expect(screen.getByRole("heading", { level: 1, name: /branch your career like git/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 1, name: /branch your career/i })).toBeInTheDocument();
       expect(screen.getAllByText(/one resume to rule them all/i).length).toBeGreaterThan(0);
 
       // CTA into login
@@ -103,7 +103,7 @@ describe("Application Root Component", () => {
 
       // Verify dashboard heading is rendered, not landing page hero
       expect(screen.getByRole("heading", { level: 1, name: /resume management/i })).toBeInTheDocument();
-      expect(screen.queryByRole("heading", { name: /branch your career like git/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: /branch your career/i })).not.toBeInTheDocument();
 
       // Verify authenticated navigation and user info
       expect(screen.getByRole("navigation", { name: /main navigation/i })).toBeInTheDocument();

@@ -17,8 +17,16 @@ import {
   Sparkles,
   HelpCircle,
   ChevronDown,
+  User,
+  Layers,
+  Clock,
+  Eye,
+  Github,
+  Bot,
+  Accessibility,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DefaultBranchBadge, BranchStatusBadge } from "@/components/branches/branch-shared-elements";
 
 /**
  * Data model for core capability feature cards.
@@ -40,7 +48,7 @@ export const CORE_FEATURES: FeatureItem[] = [
     id: "multi-branch",
     title: "Multi-Branch Career Graph",
     description:
-      "Maintain a single master profile of every skill, project, and experience. Branch out targeted versions for each role without messy copy-paste divergences.",
+      "Maintain a single main profile of every skill, project, and experience. Branch out targeted versions for each role without messy copy-paste divergences.",
     icon: GitBranch,
     colorClass: "text-indigo-600 dark:text-indigo-400",
     bgClass: "bg-indigo-50 dark:bg-indigo-950",
@@ -56,21 +64,39 @@ export const CORE_FEATURES: FeatureItem[] = [
   },
   {
     id: "ats-optimized",
-    title: "ATS-Optimized & Multi-Theme",
+    title: "ATS-Optimized & JSON Resume",
     description:
-      "Engineered for automated parsing bots and human recruiters alike. Clean typography, strict single-page constraints, and instant exports in PDF, Markdown, and JSON Resume.",
+      "Engineered for automated parsing bots and human recruiters alike. Instant export to the well-known JSON Resume standard, clean Markdown, and ATS-optimized PDF layouts.",
     icon: FileText,
     colorClass: "text-sky-600 dark:text-sky-400",
     bgClass: "bg-sky-50 dark:bg-sky-950",
   },
   {
-    id: "local-first",
-    title: "Local-First & Open Source Freedom",
+    id: "ai-freedom",
+    title: "AI Provider Freedom & Local Privacy",
     description:
-      "Run 100% offline with Docker Compose and local Ollama models. Your career history never leaves your hardware unless you explicitly configure cloud backup.",
+      "Connect your personal API keys for Google Gemini, OpenAI, or Anthropic Claude, or run privately with local models like Ollama. Complete freedom over where inference happens.",
     icon: Cpu,
     colorClass: "text-purple-600 dark:text-purple-400",
     bgClass: "bg-purple-50 dark:bg-purple-950",
+  },
+  {
+    id: "mcp-server",
+    title: "Integrated MCP Server & API",
+    description:
+      "Built-in Model Context Protocol (MCP) server and full REST API. Connect directly to Claude Desktop, Cursor, or autonomous AI agents to query and tailor resumes.",
+    icon: Bot,
+    colorClass: "text-amber-600 dark:text-amber-400",
+    bgClass: "bg-amber-50 dark:bg-amber-950",
+  },
+  {
+    id: "accessibility",
+    title: "Accessible by Design",
+    description:
+      "Built so the UI is usable by everyone. Resumeee follows WCAG 2.1 AA standards with screen reader support, keyboard navigation, and high-contrast themes.",
+    icon: Accessibility,
+    colorClass: "text-rose-600 dark:text-rose-400",
+    bgClass: "bg-rose-50 dark:bg-rose-950",
   },
 ];
 
@@ -91,9 +117,9 @@ export interface PrivacyHighlight {
 export const PRIVACY_HIGHLIGHTS: PrivacyHighlight[] = [
   {
     id: "sqlite",
-    title: "Local SQLite Persistence",
+    title: "Storage Agnostic (SQLite Included)",
     description:
-      "All profile data, branches, and version snapshots stay in a single portable SQLite file on your filesystem.",
+      "Modular repository architecture with an out-of-the-box local SQLite connector. All data stays in a portable file on your filesystem.",
     icon: Database,
     iconColorClass: "text-indigo-400",
   },
@@ -109,9 +135,17 @@ export const PRIVACY_HIGHLIGHTS: PrivacyHighlight[] = [
     id: "byok",
     title: "Bring Your Own Key (BYOK)",
     description:
-      "Plug in your personal OpenAI, Anthropic, or Gemini keys, or use local Ollama with zero external API fees.",
+      "Plug in your personal keys for Gemini, OpenAI, or Anthropic Claude, or use local open-weight models via Ollama. No lock-in.",
     icon: KeyRound,
     iconColorClass: "text-purple-400",
+  },
+  {
+    id: "mcp",
+    title: "Integrated MCP Server",
+    description:
+      "Built-in Model Context Protocol server lets AI assistants and agents query your career graph and tailor resumes securely.",
+    icon: Bot,
+    iconColorClass: "text-amber-400",
   },
 ];
 
@@ -149,12 +183,14 @@ export const PRICING_TIERS: PricingTier[] = [
     description: "Everything you need to own your career locally.",
     features: [
       "Unlimited local resume branches",
-      "Self-hosted SQLite & Docker support",
-      "BYOK (OpenAI, Gemini, Ollama)",
-      "ATS-optimized PDF exports",
+      "Storage agnostic (SQLite connector included)",
+      "Integrated MCP server & REST API",
+      "Export to JSON Resume, ATS PDF, & Markdown",
+      "BYOK freedom (Gemini, OpenAI, Claude, Ollama)",
+      "WCAG 2.1 AA accessible interface",
       "Community support via GitHub",
     ],
-    ctaLabel: "Run Locally Free",
+    ctaLabel: "Run it Locally",
     ctaHref: "https://github.com/rrivera/resumeee",
     isExternalCta: true,
     buttonVariant: "outline",
@@ -217,6 +253,12 @@ export interface FaqItem {
  */
 export const FAQ_ITEMS: FaqItem[] = [
   {
+    id: "single-prompt",
+    question: "Can't I do the same with a single prompt?",
+    answer:
+      "Yes, but managing multiple tailored resumes is not simple. Resumeee makes it easy to generate new variants for specific job posts and keep them all updated with a single click as your career progresses. On top of that, the application comes with an integrated REST API and an MCP server to interact with it through your favorite LLM, so you can have the best of both worlds.",
+  },
+  {
     id: "hallucinations",
     question: "How does Resumeee prevent AI hallucinations?",
     answer:
@@ -224,9 +266,9 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     id: "offline",
-    question: "Can I really use Resumeee 100% offline?",
+    question: "Can I use my preferred AI provider or run offline?",
     answer:
-      "Yes. You can run Resumeee on your local machine using Docker Compose or bare-metal binaries connected to local Ollama models (e.g. Llama 3 or Mistral). No external internet access is required, ensuring zero data transmission.",
+      "Yes. You have total freedom over AI inference. You can configure your personal API keys for Google Gemini, OpenAI, or Anthropic Claude, or run completely offline using bare-metal binaries connected to local Ollama models or OpenAI-compatible backends like vLLM. No external network access is required when running locally.",
   },
   {
     id: "ats",
@@ -236,9 +278,15 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     id: "export",
-    question: "Can I export my data if I decide to leave?",
+    question: "Can I export my data to JSON Resume or other formats?",
     answer:
-      "Absolutely. Resumeee provides full one-click JSON Resume and SQLite exports. There is zero proprietary lock-in.",
+      "Absolutely. Resumeee provides full one-click exports to the well-known JSON Resume open standard, SQLite database backups, Markdown, and print-ready ATS PDFs. There is zero proprietary lock-in.",
+  },
+  {
+    id: "vibe-coded",
+    question: "Is it \"vibe-coded\"?",
+    answer:
+      "Yes, but several design iterations took place to make sure it provides real value, not AI slop. Years of engineering experience went into its architecture, fact-checking design, and code quality.",
   },
 ];
 
@@ -339,6 +387,134 @@ export const PricingCard: React.FC<{ tier: PricingTier }> = ({ tier }) => {
 };
 
 /**
+ * Data model for mock tailored branch cards shown in hero visualizer.
+ */
+export interface MockTailoredBranch {
+  id: string;
+  role: string;
+  company: string;
+  department: string;
+  layout: string;
+  modified: string;
+  version: string;
+  strategy: string;
+  atsScore: string;
+}
+
+/**
+ * Preview branch cards demonstrating targeted variants in the hero section.
+ */
+export const MOCK_TAILORED_BRANCHES: MockTailoredBranch[] = [
+  {
+    id: "branch-stripe",
+    role: "Staff Platform Engineer",
+    company: "Stripe",
+    department: "Infrastructure & Observability",
+    layout: "ATS Modern Tech",
+    modified: "Nov 7, 2026",
+    version: "v3",
+    strategy: "Senior Staff Engineering",
+    atsScore: "98%",
+  },
+  {
+    id: "branch-supabase",
+    role: "Founding Systems Architect",
+    company: "Supabase",
+    department: "Cloud Core Team",
+    layout: "Standard Clean",
+    modified: "Nov 7, 2026",
+    version: "v2",
+    strategy: "0-to-1 Startup Velocity",
+    atsScore: "96%",
+  },
+];
+
+/**
+ * Subcomponent rendering an authentic tailored branch card preview in the hero visualizer.
+ */
+export const MockBranchCard: React.FC<{ branch: MockTailoredBranch }> = ({ branch }) => {
+  return (
+    <article
+      data-testid="mock-branch-card"
+      className="flex flex-col justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-4"
+      aria-label={`${branch.role} branch card`}
+    >
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h3 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+              {branch.role}
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+              <strong className="font-medium text-slate-800 dark:text-slate-200">{branch.company}</strong> • {branch.department}
+            </p>
+          </div>
+          <BranchStatusBadge status="active" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-1.5 truncate">
+            <Layers className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
+            <span className="truncate">
+              Layout: <strong className="font-medium text-slate-700 dark:text-slate-300">{branch.layout}</strong>
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 truncate">
+            <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
+            <span className="truncate">
+              Modified: <span className="text-slate-700 dark:text-slate-300">{branch.modified}</span>
+            </span>
+          </div>
+          <div className="col-span-2 flex items-center justify-between pt-1">
+            <span>
+              Active Version: <strong className="font-medium text-slate-700 dark:text-slate-300">{branch.version}</strong>
+            </span>
+            <span className="truncate">
+              Strategy: <strong className="font-medium text-slate-700 dark:text-slate-300">{branch.strategy}</strong>
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] rounded bg-slate-50 dark:bg-slate-950/70 px-2.5 py-1.5 border border-slate-100 dark:border-slate-800">
+          <span className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+            <Check className="h-3 w-3" aria-hidden="true" />
+            ATS Score: {branch.atsScore}
+          </span>
+          <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+            <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+            Verified Facts
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-3">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 text-xs font-medium"
+          disabled
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          Open Workbench
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="h-8 text-xs font-medium flex items-center gap-1"
+          disabled
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>Inspect</span>
+        </Button>
+      </div>
+    </article>
+  );
+};
+
+/**
  * Public Landing Page component showcasing Resumeee.
  *
  * @returns JSX Element rendering the public landing page.
@@ -398,12 +574,12 @@ export const LandingPage: React.FC = () => {
             id="hero-heading"
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.15]"
           >
-            Stop renaming <span className="font-mono text-indigo-600 dark:text-indigo-400 font-bold">Resume_v2.pdf</span>.
+            <span>Branch your career.</span>
             <br />
-            <span>Branch your career like Git.</span>
+            <span className="text-indigo-600 dark:text-indigo-400">Tailor resumes for every role.</span>
           </h1>
           <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
-            One resume to rule them all. Maintain a single source of career truth, branch tailored variants for every role, and eliminate AI hallucinations with cryptographic fact provenance.
+            One resume to rule them all. Maintain a single source of career truth, branch tailored variants for every role, powered by the AI of your choosing.
           </p>
         </div>
 
@@ -428,8 +604,8 @@ export const LandingPage: React.FC = () => {
               rel="noreferrer noopener"
               className="flex items-center justify-center gap-2"
             >
-              <Terminal className="h-4 w-4" aria-hidden="true" />
-              <span>Run Locally on GitHub</span>
+              <Github className="h-4 w-4" aria-hidden="true" />
+              <span>Run it Locally</span>
               <ExternalLink className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
             </a>
           </Button>
@@ -437,88 +613,115 @@ export const LandingPage: React.FC = () => {
 
         {/* Trust & Guarantee Subtitle */}
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Zero tracking cookies • 100% MIT Licensed • Runs offline with Ollama
+          Zero telemetry • 100% MIT Licensed
         </p>
 
-        {/* Hero Visualizer: Git-style Career Branch Graphic */}
+        {/* Hero Visualizer: Authentic Resumeee Branch Workflow */}
         <div
           data-testid="hero-branch-visualizer"
-          className="w-full mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 sm:p-6 shadow-md text-left transition-all"
+          className="w-full mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 p-4 sm:p-6 shadow-md text-left transition-all"
         >
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
-            <div className="flex items-center gap-2">
-              <GitBranch className="h-4 w-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
-              <span className="font-mono text-xs font-semibold text-slate-700 dark:text-slate-200">
-                career.graph / active-branches
-              </span>
+          <h2 className="sr-only">Resume Branch Workflow Preview</h2>
+
+          {/* Top Window Bar */}
+          <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-3 mb-5">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center space-x-1.5" aria-hidden="true">
+                <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                <div className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                <div className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <GitBranch className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+                <span className="text-slate-800 dark:text-slate-200">Resumeee Workspace</span>
+                <span className="text-slate-400">/</span>
+                <span>Resume Branches</span>
+              </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 font-mono text-[11px] font-medium text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+              <span className="inline-flex items-center gap-1 rounded bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                 <Check className="h-3 w-3" aria-hidden="true" />
-                100% Provenance Verified
+                Main In Sync
               </span>
             </div>
           </div>
 
-          {/* Visual Branch Tree */}
-          <div className="space-y-4 font-mono text-xs">
-            {/* Root / Main Branch */}
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/80">
-              <div className="mt-0.5 h-3 w-3 rounded-full bg-indigo-600 dark:bg-indigo-400 shrink-0" />
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900 dark:text-slate-100">
-                    main (Single Source of Truth)
-                  </span>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    rev #14 • 24 total facts
-                  </span>
+          <div className="space-y-4">
+            {/* Trunk: Main Career Profile Card (mirrors home-page.tsx & branch-card.tsx) */}
+            <article
+              className="rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-3"
+              aria-label="Main Career Profile"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100 text-base">
+                      <User className="h-4 w-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+                      <span>Main Career Profile</span>
+                    </h3>
+                    <DefaultBranchBadge iconSize="sm" />
+                    <span className="inline-flex items-center rounded-md bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-700/10 dark:ring-indigo-700/30">
+                      Rev #14
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Direct Main Profile (Untailored) — mirrors canonical main data with zero LLM tailoring.
+                  </p>
                 </div>
-                <p className="text-slate-600 dark:text-slate-400 font-sans text-xs">
-                  Primary career database containing all unedited roles, verified projects, skills, and certifications.
-                </p>
+
+                <div className="flex items-center gap-2 text-xs">
+                  <BranchStatusBadge status="active" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-600 dark:text-slate-300">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">5</span>
+                  <span className="text-slate-500 dark:text-slate-400">Experiences</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">24</span>
+                  <span className="text-slate-500 dark:text-slate-400">Skills</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">6</span>
+                  <span className="text-slate-500 dark:text-slate-400">Projects</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">2</span>
+                  <span className="text-slate-500 dark:text-slate-400">Education</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">3</span>
+                  <span className="text-slate-500 dark:text-slate-400">Certs</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-1.5">
+                  <Layers className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+                  <span>Template: <strong className="font-medium text-slate-700 dark:text-slate-300">Standard Clean</strong></span>
+                </div>
+                <div>
+                  Active Version: <strong className="font-medium text-slate-700 dark:text-slate-300">v14</strong>
+                </div>
+              </div>
+            </article>
+
+            {/* Tree Branch Split Connector */}
+            <div className="flex items-center gap-2 pl-4 py-1">
+              <div className="h-4 w-0.5 bg-indigo-300 dark:bg-indigo-700" />
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Tailored Opportunity Branches</span>
               </div>
             </div>
 
-            {/* Fork lines */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4 border-l-2 border-indigo-200 dark:border-indigo-900 ml-1.5">
-              {/* Branch 1 */}
-              <div className="p-3 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-                    feat/lead-infra
-                  </span>
-                  <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-300">
-                    ATS 98%
-                  </span>
-                </div>
-                <p className="text-slate-600 dark:text-slate-400 font-sans text-xs">
-                  Tailored for Senior Platform & SRE roles. Emphasizes Kubernetes, Terraform, and high-scale reliability.
-                </p>
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
-                  <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                  <span>3 bullets rephrased • 0 invented facts</span>
-                </div>
-              </div>
-
-              {/* Branch 2 */}
-              <div className="p-3 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-                    feat/founding-eng
-                  </span>
-                  <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-300">
-                    ATS 96%
-                  </span>
-                </div>
-                <p className="text-slate-600 dark:text-slate-400 font-sans text-xs">
-                  Tailored for Seed/Series A startups. Highlights 0-to-1 product velocity and full-stack ownership.
-                </p>
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
-                  <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                  <span>4 bullets rephrased • 0 invented facts</span>
-                </div>
-              </div>
+            {/* Grid of Tailored Role Branch Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-0 sm:pl-4 border-l-2 border-indigo-200 dark:border-indigo-900/60 ml-2">
+              {MOCK_TAILORED_BRANCHES.map((branch) => (
+                <MockBranchCard key={branch.id} branch={branch} />
+              ))}
             </div>
           </div>
         </div>
@@ -535,14 +738,14 @@ export const LandingPage: React.FC = () => {
             id="features-heading"
             className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl"
           >
-            Engineered for Career Precision
+            A Better Way to Tailor Resumes
           </h2>
           <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg">
             Say goodbye to copy-paste divergences, fabricated resume points, and ATS rejection black holes.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {CORE_FEATURES.map((feature) => (
             <FeatureCard key={feature.id} feature={feature} />
           ))}
@@ -564,10 +767,10 @@ export const LandingPage: React.FC = () => {
             id="open-source-heading"
             className="text-2xl sm:text-3xl font-bold tracking-tight text-white"
           >
-            Run 100% Offline with Docker & Local Ollama
+            Run it Locally, Choose Your AI Provider
           </h2>
           <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-            Resumeee is built for privacy pragmatists. Spin up an isolated instance locally in seconds. Zero telemetry, zero external trackers, and full support for open-weights LLMs.
+            Resumeee gives you complete flexibility. Spin up a local container in seconds with Docker. Connect seamlessly to Google Gemini, OpenAI, or Anthropic Claude—or keep everything offline with local models like Ollama and vLLM. Zero telemetry, zero tracking.
           </p>
         </div>
 
@@ -605,7 +808,7 @@ export const LandingPage: React.FC = () => {
         </div>
 
         {/* Privacy Highlights */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
           {PRIVACY_HIGHLIGHTS.map((item) => {
             const Icon = item.icon;
             return (
@@ -718,7 +921,7 @@ export const LandingPage: React.FC = () => {
             Ready to branch your career?
           </h2>
           <p className="text-indigo-100 text-base">
-            Create your master career graph today. Free, privacy-first, and open source forever.
+            Create your main career graph today. Free, privacy-first, and open source forever.
           </p>
         </div>
 

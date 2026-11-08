@@ -43,13 +43,13 @@ describe("LandingPage Component", () => {
       // Main hero heading
       const heading = within(heroSection).getByRole("heading", {
         level: 1,
-        name: /Branch your career like Git/i,
+        name: /Branch your career/i,
       });
       expect(heading).toBeInTheDocument();
 
       // Value proposition subtitle
       expect(
-        within(heroSection).getByText(/One resume to rule them all/i)
+        within(heroSection).getByText(/powered by the AI of your choosing/i)
       ).toBeInTheDocument();
 
       // Primary CTA: Get Started Free
@@ -57,23 +57,72 @@ describe("LandingPage Component", () => {
       expect(getStartedBtn).toBeInTheDocument();
       expect(getStartedBtn).toHaveAttribute("href", "/login");
 
-      // Secondary CTA: Run Locally on GitHub
-      const githubBtn = within(heroSection).getByRole("link", { name: /run locally on github/i });
+      // Secondary CTA: Run it Locally
+      const githubBtn = within(heroSection).getByRole("link", { name: /run it locally/i });
       expect(githubBtn).toBeInTheDocument();
       expect(githubBtn).toHaveAttribute("href", "https://github.com/rrivera/resumeee");
       expect(githubBtn).toHaveAttribute("target", "_blank");
       expect(githubBtn).toHaveAttribute("rel", "noreferrer noopener");
+
+      // Trust guarantees
+      expect(within(heroSection).getByText(/Zero telemetry/i)).toBeInTheDocument();
+      expect(within(heroSection).queryByText(/Zero tracking cookies/i)).not.toBeInTheDocument();
+      expect(within(heroSection).queryByText(/Runs offline with Ollama/i)).not.toBeInTheDocument();
     });
 
-    it("renders the Git-style career branch visualizer in the hero", () => {
+    it("renders the authentic branch workflow visualizer in the hero with mock cards, ATS scores, and badges", () => {
       renderLandingPage();
 
       const visualizer = screen.getByTestId("hero-branch-visualizer");
       expect(visualizer).toBeInTheDocument();
-      expect(within(visualizer).getByText(/main \(Single Source of Truth\)/i)).toBeInTheDocument();
-      expect(within(visualizer).getByText(/feat\/lead-infra/i)).toBeInTheDocument();
-      expect(within(visualizer).getByText(/feat\/founding-eng/i)).toBeInTheDocument();
-      expect(within(visualizer).getByText(/100% Provenance Verified/i)).toBeInTheDocument();
+
+      // Main trunk profile card
+      expect(within(visualizer).getByText(/Main Career Profile/i)).toBeInTheDocument();
+      expect(within(visualizer).getByText(/Default Branch/i)).toBeInTheDocument();
+      expect(within(visualizer).getByText(/Rev #14/i)).toBeInTheDocument();
+
+      // Mock branch cards count
+      const mockCards = within(visualizer).getAllByTestId("mock-branch-card");
+      expect(mockCards).toHaveLength(2);
+      const card1 = mockCards[0]!;
+      const card2 = mockCards[1]!;
+
+      // Card 1: Staff Platform Engineer at Stripe
+      expect(
+        within(card1).getByRole("heading", { level: 3, name: /Staff Platform Engineer/i })
+      ).toBeInTheDocument();
+      expect(within(card1).getByText(/Stripe/i)).toBeInTheDocument();
+      expect(within(card1).getByText(/Infrastructure & Observability/i)).toBeInTheDocument();
+      expect(within(card1).getByText(/ATS Modern Tech/i)).toBeInTheDocument();
+      expect(within(card1).getByText(/Senior Staff Engineering/i)).toBeInTheDocument();
+      expect(within(card1).getByText(/ATS Score: 98%/i)).toBeInTheDocument();
+
+      // Card 2: Founding Systems Architect at Supabase
+      expect(
+        within(card2).getByRole("heading", { level: 3, name: /Founding Systems Architect/i })
+      ).toBeInTheDocument();
+      expect(within(card2).getByText(/Supabase/i)).toBeInTheDocument();
+      expect(within(card2).getByText(/Cloud Core Team/i)).toBeInTheDocument();
+      expect(within(card2).getByText(/Standard Clean/i)).toBeInTheDocument();
+      expect(within(card2).getByText(/0-to-1 Startup Velocity/i)).toBeInTheDocument();
+      expect(within(card2).getByText(/ATS Score: 96%/i)).toBeInTheDocument();
+
+      // Active status badges count across visualizer (1 trunk + 2 branch cards = 3)
+      const activeBadges = within(visualizer).getAllByText(/^Active$/i);
+      expect(activeBadges).toHaveLength(3);
+
+      // Verified facts badges
+      const verifiedBadges = within(visualizer).getAllByText(/Verified Facts/i);
+      expect(verifiedBadges).toHaveLength(2);
+
+      // Non-interactive mock preview buttons: disabled, aria-hidden="true", and tabIndex="-1"
+      const previewButtons = within(visualizer).getAllByRole("button", { hidden: true });
+      expect(previewButtons.length).toBeGreaterThanOrEqual(4);
+      previewButtons.forEach((btn) => {
+        expect(btn).toBeDisabled();
+        expect(btn).toHaveAttribute("aria-hidden", "true");
+        expect(btn).toHaveAttribute("tabindex", "-1");
+      });
     });
   });
 
@@ -103,20 +152,39 @@ describe("LandingPage Component", () => {
         within(featuresSection).getByText(/short identifier hashes/i)
       ).toBeInTheDocument();
 
-      // Feature 3: ATS Optimization & Multi-Theme
+      // Feature 3: ATS-Optimized & JSON Resume
       expect(
         within(featuresSection).getByRole("heading", {
           level: 3,
-          name: /ATS-Optimized & Multi-Theme/i,
+          name: /ATS-Optimized & JSON Resume/i,
         })
       ).toBeInTheDocument();
 
-      // Feature 4: Local-First & Open Source
+      // Feature 4: AI Provider Freedom & Local Privacy
       expect(
         within(featuresSection).getByRole("heading", {
           level: 3,
-          name: /Local-First & Open Source Freedom/i,
+          name: /AI Provider Freedom & Local Privacy/i,
         })
+      ).toBeInTheDocument();
+
+      // Feature 5: Integrated MCP Server & API
+      expect(
+        within(featuresSection).getByRole("heading", {
+          level: 3,
+          name: /Integrated MCP Server & API/i,
+        })
+      ).toBeInTheDocument();
+
+      // Feature 6: Accessible by Design
+      expect(
+        within(featuresSection).getByRole("heading", {
+          level: 3,
+          name: /Accessible by Design/i,
+        })
+      ).toBeInTheDocument();
+      expect(
+        within(featuresSection).getByText(/usable by everyone/i)
       ).toBeInTheDocument();
     });
   });
@@ -130,7 +198,7 @@ describe("LandingPage Component", () => {
       expect(openSourceSection).toBeInTheDocument();
 
       expect(
-        within(openSourceSection).getByText(/Run 100% Offline with Docker & Local Ollama/i)
+        within(openSourceSection).getByText(/Run it Locally, Choose Your AI Provider/i)
       ).toBeInTheDocument();
 
       // Code snippets / tabs
@@ -146,10 +214,11 @@ describe("LandingPage Component", () => {
       await user.click(copyBtn);
       expect(await within(openSourceSection).findByText(/copied!/i)).toBeInTheDocument();
 
-      // Privacy highlights
-      expect(within(openSourceSection).getByText(/Local SQLite Persistence/i)).toBeInTheDocument();
+      // Privacy and architecture highlights
+      expect(within(openSourceSection).getByText(/Storage Agnostic \(SQLite Included\)/i)).toBeInTheDocument();
       expect(within(openSourceSection).getByText(/Zero Telemetry or Training/i)).toBeInTheDocument();
       expect(within(openSourceSection).getByText(/Bring Your Own Key \(BYOK\)/i)).toBeInTheDocument();
+      expect(within(openSourceSection).getByText(/Integrated MCP Server/i)).toBeInTheDocument();
     });
   });
 
@@ -165,7 +234,10 @@ describe("LandingPage Component", () => {
       expect(within(openSourceCard).getByRole("heading", { level: 3, name: /open source/i })).toBeInTheDocument();
       expect(within(openSourceCard).getByText(/\$0/)).toBeInTheDocument();
       expect(within(openSourceCard).getByText(/free forever/i)).toBeInTheDocument();
-      expect(within(openSourceCard).getByRole("link", { name: /run locally free/i })).toHaveAttribute(
+      expect(within(openSourceCard).getByText(/Storage agnostic \(SQLite connector included\)/i)).toBeInTheDocument();
+      expect(within(openSourceCard).getByText(/Integrated MCP server & REST API/i)).toBeInTheDocument();
+      expect(within(openSourceCard).getByText(/Export to JSON Resume, ATS PDF, & Markdown/i)).toBeInTheDocument();
+      expect(within(openSourceCard).getByRole("link", { name: /run it locally/i })).toHaveAttribute(
         "href",
         "https://github.com/rrivera/resumeee"
       );
@@ -197,48 +269,68 @@ describe("LandingPage Component", () => {
       const faqSection = screen.getByRole("region", { name: /frequently asked questions/i });
       expect(faqSection).toBeInTheDocument();
 
-      const question1Btn = within(faqSection).getByRole("button", {
+      const promptQuestionBtn = within(faqSection).getByRole("button", {
+        name: /Can't I do the same with a single prompt\?/i,
+      });
+      const hallucinationBtn = within(faqSection).getByRole("button", {
         name: /How does Resumeee prevent AI hallucinations\?/i,
       });
-      const question2Btn = within(faqSection).getByRole("button", {
-        name: /Can I really use Resumeee 100% offline\?/i,
+      const providerBtn = within(faqSection).getByRole("button", {
+        name: /Can I use my preferred AI provider or run offline\?/i,
+      });
+      const vibeCodedBtn = within(faqSection).getByRole("button", {
+        name: /Is it "vibe-coded"\?/i,
       });
 
       // 1. Initial collapsed state: aria-expanded="false" and answer content not in document
-      expect(question1Btn).toHaveAttribute("aria-expanded", "false");
-      expect(question2Btn).toHaveAttribute("aria-expanded", "false");
+      expect(promptQuestionBtn).toHaveAttribute("aria-expanded", "false");
+      expect(hallucinationBtn).toHaveAttribute("aria-expanded", "false");
+      expect(providerBtn).toHaveAttribute("aria-expanded", "false");
+      expect(vibeCodedBtn).toHaveAttribute("aria-expanded", "false");
+      expect(
+        within(faqSection).queryByText(/managing multiple tailored resumes is not simple/i)
+      ).not.toBeInTheDocument();
       expect(
         within(faqSection).queryByText(/immutable relational graph/i)
       ).not.toBeInTheDocument();
       expect(
-        within(faqSection).queryByText(/bare-metal binaries connected to local Ollama/i)
+        within(faqSection).queryByText(/total freedom over AI inference/i)
+      ).not.toBeInTheDocument();
+      expect(
+        within(faqSection).queryByText(/not AI slop/i)
       ).not.toBeInTheDocument();
 
-      // 2. Click question 1 to expand: aria-expanded="true" and answer content becomes visible
-      await user.click(question1Btn);
-      expect(question1Btn).toHaveAttribute("aria-expanded", "true");
+      // 2. Click prompt question to expand: aria-expanded="true" and answer content becomes visible
+      await user.click(promptQuestionBtn);
+      expect(promptQuestionBtn).toHaveAttribute("aria-expanded", "true");
       expect(
-        within(faqSection).getByText(/immutable relational graph/i)
+        within(faqSection).getByText(/managing multiple tailored resumes is not simple/i)
+      ).toBeInTheDocument();
+      expect(
+        within(faqSection).getByText(/integrated REST API and an MCP server/i)
       ).toBeInTheDocument();
 
-      // 3. Click question 1 again to collapse
-      await user.click(question1Btn);
-      expect(question1Btn).toHaveAttribute("aria-expanded", "false");
+      // 3. Click prompt question again to collapse
+      await user.click(promptQuestionBtn);
+      expect(promptQuestionBtn).toHaveAttribute("aria-expanded", "false");
       expect(
-        within(faqSection).queryByText(/immutable relational graph/i)
+        within(faqSection).queryByText(/managing multiple tailored resumes is not simple/i)
       ).not.toBeInTheDocument();
 
-      // 4. Opening a second FAQ item collapses the first
-      await user.click(question1Btn);
-      expect(question1Btn).toHaveAttribute("aria-expanded", "true");
+      // 4. Opening another FAQ item expands it and collapses others
+      await user.click(hallucinationBtn);
+      expect(hallucinationBtn).toHaveAttribute("aria-expanded", "true");
       expect(within(faqSection).getByText(/immutable relational graph/i)).toBeInTheDocument();
 
-      await user.click(question2Btn);
-      expect(question1Btn).toHaveAttribute("aria-expanded", "false");
+      await user.click(vibeCodedBtn);
+      expect(hallucinationBtn).toHaveAttribute("aria-expanded", "false");
       expect(within(faqSection).queryByText(/immutable relational graph/i)).not.toBeInTheDocument();
-      expect(question2Btn).toHaveAttribute("aria-expanded", "true");
+      expect(vibeCodedBtn).toHaveAttribute("aria-expanded", "true");
       expect(
-        within(faqSection).getByText(/bare-metal binaries connected to local Ollama/i)
+        within(faqSection).getByText(/not AI slop/i)
+      ).toBeInTheDocument();
+      expect(
+        within(faqSection).getByText(/several design iterations took place/i)
       ).toBeInTheDocument();
     });
   });
