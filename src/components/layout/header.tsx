@@ -35,6 +35,7 @@ export const Header: React.FC = () => {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const { user, adminMode, signOut } = useAuth();
   const userIdentifier = user?.email || user?.displayName || user?.uid || "User";
+  const showNav = Boolean(adminMode || user);
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 transition-colors">
@@ -55,39 +56,41 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Desktop Navigation - In-flow Central Track */}
-          <div className="hidden md:flex flex-1 items-center justify-center min-[1600px]:justify-start min-w-0 px-1 sm:px-2 lg:px-4">
-            <nav
-              aria-label="Main Navigation"
-              className="flex items-center space-x-0.5 lg:space-x-1 xl:space-x-2 min-[1600px]:ml-[calc((100vw-80rem)/2-137px)]"
-            >
-              {mainNavItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.href}
-                    to={item.href}
-                    end={item.href === "/"}
-                    className={({ isActive }) =>
-                      cn(
-                        "flex items-center space-x-1 px-1 sm:px-1.5 lg:px-2.5 xl:px-3 py-1 lg:py-2 text-xs lg:text-sm font-medium tracking-tight rounded-md transition-colors whitespace-nowrap",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                        isActive
-                          ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100"
-                      )
-                    }
-                  >
-                    {Icon && <Icon className="hidden xl:block h-4 w-4" aria-hidden="true" />}
-                    <span>{item.title}</span>
-                  </NavLink>
-                );
-              })}
-            </nav>
-          </div>
+          {showNav && (
+            <div className="hidden md:flex flex-1 items-center justify-center min-[1600px]:justify-start min-w-0 px-1 sm:px-2 lg:px-4">
+              <nav
+                aria-label="Main Navigation"
+                className="flex items-center space-x-0.5 lg:space-x-1 xl:space-x-2 min-[1600px]:ml-[calc((100vw-80rem)/2-137px)]"
+              >
+                {mainNavItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.href}
+                      to={item.href}
+                      end={item.href === "/"}
+                      className={({ isActive }) =>
+                        cn(
+                          "flex items-center space-x-1 px-1 sm:px-1.5 lg:px-2.5 xl:px-3 py-1 lg:py-2 text-xs lg:text-sm font-medium tracking-tight rounded-md transition-colors whitespace-nowrap",
+                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                          isActive
+                            ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100"
+                        )
+                      }
+                    >
+                      {Icon && <Icon className="hidden xl:block h-4 w-4" aria-hidden="true" />}
+                      <span>{item.title}</span>
+                    </NavLink>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
 
           {/* Right Utilities & Actions - Far Right */}
           <div className="flex items-center space-x-1 sm:space-x-1.5 lg:space-x-3 shrink-0">
-            <QuotaMeter />
+            {showNav && <QuotaMeter />}
             <ThemeToggle />
 
             {!adminMode && user && (
@@ -113,99 +116,101 @@ export const Header: React.FC = () => {
             )}
 
             {/* Mobile Navigation Trigger */}
-            <div className="md:hidden">
-            <DialogPrimitive.Root open={mobileOpen} onOpenChange={setMobileOpen}>
-              <DialogPrimitive.Trigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Open navigation menu"
-                  className="h-9 w-9 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
-                >
-                  <Menu className="h-5 w-5" aria-hidden="true" />
-                  <span className="sr-only">Open navigation menu</span>
-                </Button>
-              </DialogPrimitive.Trigger>
+            {showNav && (
+              <div className="md:hidden">
+                <DialogPrimitive.Root open={mobileOpen} onOpenChange={setMobileOpen}>
+                  <DialogPrimitive.Trigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Open navigation menu"
+                      className="h-9 w-9 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+                    >
+                      <Menu className="h-5 w-5" aria-hidden="true" />
+                      <span className="sr-only">Open navigation menu</span>
+                    </Button>
+                  </DialogPrimitive.Trigger>
 
-              <DialogPrimitive.Portal>
-                <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-                <DialogPrimitive.Content
-                  className="fixed inset-y-0 left-0 z-50 flex w-3/4 max-w-xs flex-col border-r border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950 transition-transform duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left"
-                >
-                  <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
-                    <DialogPrimitive.Title className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-                      Navigation
-                    </DialogPrimitive.Title>
-                    <DialogPrimitive.Close asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label="Close navigation menu"
-                        className="h-8 w-8 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-                      >
-                        <X className="h-4 w-4" aria-hidden="true" />
-                        <span className="sr-only">Close navigation menu</span>
-                      </Button>
-                    </DialogPrimitive.Close>
-                  </div>
-
-                  <nav
-                    aria-label="Mobile Navigation"
-                    className="flex flex-col space-y-1.5 mt-6"
-                  >
-                    {mainNavItems.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <NavLink
-                          key={item.href}
-                          to={item.href}
-                          end={item.href === "/"}
-                          onClick={() => setMobileOpen(false)}
-                          className={({ isActive }) =>
-                            cn(
-                              "flex items-center space-x-3 px-3 py-2.5 text-base font-medium rounded-md transition-colors",
-                              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                              isActive
-                                ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100"
-                            )
-                          }
-                        >
-                          {Icon && <Icon className="h-5 w-5" aria-hidden="true" />}
-                          <span>{item.title}</span>
-                        </NavLink>
-                      );
-                    })}
-                  </nav>
-
-                  {!adminMode && user && (
-                    <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col space-y-3">
-                      <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400">
-                        <User className="h-4 w-4 shrink-0" aria-hidden="true" />
-                        <span className="truncate">{userIdentifier}</span>
+                  <DialogPrimitive.Portal>
+                    <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+                    <DialogPrimitive.Content
+                      className="fixed inset-y-0 left-0 z-50 flex w-3/4 max-w-xs flex-col border-r border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950 transition-transform duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left"
+                    >
+                      <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                        <DialogPrimitive.Title className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+                          Navigation
+                        </DialogPrimitive.Title>
+                        <DialogPrimitive.Close asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Close navigation menu"
+                            className="h-8 w-8 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                          >
+                            <X className="h-4 w-4" aria-hidden="true" />
+                            <span className="sr-only">Close navigation menu</span>
+                          </Button>
+                        </DialogPrimitive.Close>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setMobileOpen(false);
-                          void signOut();
-                        }}
-                        className="w-full justify-center"
-                        aria-label="Sign out"
+
+                      <nav
+                        aria-label="Mobile Navigation"
+                        className="flex flex-col space-y-1.5 mt-6"
                       >
-                        <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
-                        <span>Sign Out</span>
-                      </Button>
-                    </div>
-                  )}
-                </DialogPrimitive.Content>
-              </DialogPrimitive.Portal>
-            </DialogPrimitive.Root>
+                        {mainNavItems.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <NavLink
+                              key={item.href}
+                              to={item.href}
+                              end={item.href === "/"}
+                              onClick={() => setMobileOpen(false)}
+                              className={({ isActive }) =>
+                                cn(
+                                  "flex items-center space-x-3 px-3 py-2.5 text-base font-medium rounded-md transition-colors",
+                                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                                  isActive
+                                    ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100"
+                                )
+                              }
+                            >
+                              {Icon && <Icon className="h-5 w-5" aria-hidden="true" />}
+                              <span>{item.title}</span>
+                            </NavLink>
+                          );
+                        })}
+                      </nav>
+
+                      {!adminMode && user && (
+                        <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col space-y-3">
+                          <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400">
+                            <User className="h-4 w-4 shrink-0" aria-hidden="true" />
+                            <span className="truncate">{userIdentifier}</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setMobileOpen(false);
+                              void signOut();
+                            }}
+                            className="w-full justify-center"
+                            aria-label="Sign out"
+                          >
+                            <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
+                            <span>Sign Out</span>
+                          </Button>
+                        </div>
+                      )}
+                    </DialogPrimitive.Content>
+                  </DialogPrimitive.Portal>
+                </DialogPrimitive.Root>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </div>
-  </header>
+    </header>
   );
 };

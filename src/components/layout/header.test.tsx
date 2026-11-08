@@ -20,7 +20,7 @@ function renderHeader(
     <QueryClientProvider client={queryClient}>
       <AuthProvider
         initialUser={authOptions?.initialUser}
-        initialAdminMode={authOptions?.initialAdminMode}
+        initialAdminMode={authOptions?.initialAdminMode ?? true}
       >
         <ThemeProvider>
           <MemoryRouter initialEntries={[initialRoute]}>
@@ -213,6 +213,85 @@ describe("Header and Navigation", () => {
       await user.click(mobileSignOut);
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Header Visibility Based on Authentication and Admin Mode", () => {
+    const mockUser: AuthUser = {
+      uid: "tenant-user-123",
+      email: "engineer@resumeee.io",
+      displayName: "Jane Engineer",
+    };
+
+    it("hides navigation items, quota meter, and mobile menu when logged off and not admin", () => {
+      renderHeader("/", {
+        initialUser: null,
+        initialAdminMode: false,
+      });
+
+      // The logo and theme toggle should be visible
+      expect(screen.getByRole("banner")).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Resumeee Home" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /theme/i })).toBeInTheDocument();
+
+      // Navigation links should be hidden
+      expect(screen.queryByRole("navigation", { name: "Main Navigation" })).not.toBeInTheDocument();
+      for (const item of mainNavItems) {
+        expect(screen.queryByRole("link", { name: new RegExp(item.title, "i") })).not.toBeInTheDocument();
+      }
+
+      // Quota meter should be hidden
+      expect(screen.queryByLabelText(/quota/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/quota/i)).not.toBeInTheDocument();
+
+      // Mobile navigation trigger should be hidden
+      expect(screen.queryByRole("button", { name: /open navigation menu/i })).not.toBeInTheDocument();
+
+      // Sign Out and user identity should be hidden
+      expect(screen.queryByRole("button", { name: /sign out/i })).not.toBeInTheDocument();
+    });
+
+    it("renders navigation items, quota meter, and mobile menu when authenticated in non-admin mode", () => {
+      renderHeader("/", {
+        initialUser: mockUser,
+        initialAdminMode: false,
+      });
+
+      expect(screen.getByRole("link", { name: "Resumeee Home" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /theme/i })).toBeInTheDocument();
+      expect(screen.getByRole("navigation", { name: "Main Navigation" })).toBeInTheDocument();
+      for (const item of mainNavItems) {
+        const links = screen.getAllByRole("link", { name: new RegExp(item.title, "i") });
+        expect(links.length).toBeGreaterThan(0);
+      }
+      expect(screen.getByRole("button", { name: /open navigation menu/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
+    });
+
+    it("renders navigation items, quota meter, and mobile menu when running in admin mode", () => {
+      renderHeader("/", {
+        initialAdminMode: true,
+      });
+
+      expect(screen.getByRole("link", { name: "Resumeee Home" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /theme/i })).toBeInTheDocument();
+      expect(screen.getByRole("navigation", { name: "Main Navigation" })).toBeInTheDocument();
+      for (const item of mainNavItems) {
+        const links = screen.getAllByRole("link", { name: new RegExp(item.title, "i") });
+        expect(links.length).toBeGreaterThan(0);
+      }
+      expect(screen.getByRole("button", { name: /open navigation menu/i })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /sign out/i })).not.toBeInTheDocument();
+    });
+
+    it("passes accessibility check when logged off and not admin", async () => {
+      const { container } = renderHeader("/", {
+        initialUser: null,
+        initialAdminMode: false,
+      });
+
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
     });
   });
 });

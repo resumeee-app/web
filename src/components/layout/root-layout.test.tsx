@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor, act, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { axe } from "vitest-axe";
 import { RootLayout } from "./root-layout";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { AuthProvider } from "@/context/auth-context";
 
 function renderRootLayout(initialRoute = "/", customQueryClient?: QueryClient) {
   const queryClient =
@@ -91,5 +92,39 @@ describe("RootLayout Landmark Structure", () => {
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["quota"] });
+  });
+
+  it("renders header without navigation and displays login page when unauthenticated in non-admin mode", () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider initialUser={null} initialAdminMode={false}>
+          <ThemeProvider>
+            <MemoryRouter initialEntries={["/"]}>
+              <Routes>
+                <Route path="/" element={<RootLayout />}>
+                  <Route index element={<h1>Test Dashboard</h1>} />
+                </Route>
+              </Routes>
+            </MemoryRouter>
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    // Header checks
+    const banner = screen.getByRole("banner");
+    expect(banner).toBeInTheDocument();
+    expect(within(banner).getByRole("link", { name: "Resumeee Home" })).toBeInTheDocument();
+    expect(within(banner).getByRole("button", { name: /theme/i })).toBeInTheDocument();
+    expect(within(banner).queryByRole("navigation", { name: "Main Navigation" })).not.toBeInTheDocument();
+    expect(within(banner).queryByText(/quota/i)).not.toBeInTheDocument();
+    expect(within(banner).queryByLabelText(/quota/i)).not.toBeInTheDocument();
+
+    // Login page displayed in main
+    expect(screen.getByRole("heading", { name: /sign in to resumeee/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Test Dashboard" })).not.toBeInTheDocument();
   });
 });

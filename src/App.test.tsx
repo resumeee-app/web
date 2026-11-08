@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { axe } from "vitest-axe";
 import App from "./App";
 
@@ -48,11 +48,18 @@ describe("Application Root Component", () => {
       vi.stubEnv("ADMIN_MODE", "false");
     });
 
-    it("renders login screen when unauthenticated", () => {
+    it("renders login screen and hides header navigation links and quota meter when unauthenticated", () => {
       render(<App />);
 
       expect(screen.getByRole("heading", { name: /sign in to resumeee/i })).toBeInTheDocument();
       expect(screen.getByText(/multi-tenant resume tailoring powered by firebase/i)).toBeInTheDocument();
+
+      const banner = screen.getByRole("banner");
+      expect(banner).toBeInTheDocument();
+      expect(within(banner).getByRole("link", { name: "Resumeee Home" })).toBeInTheDocument();
+      expect(within(banner).getByRole("button", { name: /theme/i })).toBeInTheDocument();
+      expect(within(banner).queryByRole("navigation", { name: "Main Navigation" })).not.toBeInTheDocument();
+      expect(within(banner).queryByLabelText(/quota/i)).not.toBeInTheDocument();
     });
 
     it("passes axe-core accessibility audit on login screen render", async () => {
