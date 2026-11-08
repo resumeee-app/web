@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -306,38 +306,19 @@ describe("HomePage Dashboard Integration & Views", () => {
     expect(headerProfileLink).toHaveAttribute("href", "/profile");
   });
 
-  it("renders recent branches with real links to workbench and preview", async () => {
+  it("does not render the removed Recent Resume Branches section on the dashboard", async () => {
     renderHomePage();
 
-    // Check branch names rendered
-    expect(await screen.findByText("Master Profile (Default)")).toBeInTheDocument();
-    expect(screen.getByText("Netflix - Senior Platform Engineer")).toBeInTheDocument();
+    await screen.findByText(/Alex Morgan/i);
 
-    // Verify workbench link
-    const workbenchLink = screen.getByRole("link", {
-      name: /open workbench for netflix - senior platform engineer/i,
-    });
-    expect(workbenchLink).toHaveAttribute("href", "/branches/branch-tailored-2");
+    expect(
+      screen.queryByRole("heading", { name: /recent resume branches/i })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("recent-branches-list")).not.toBeInTheDocument();
 
-    // Verify preview link
-    const previewLink = screen.getByRole("link", {
-      name: /preview resume for netflix - senior platform engineer/i,
-    });
-    expect(previewLink).toHaveAttribute("href", "/branches/branch-tailored-2/preview");
-
-    // Verify "View All Branches" links (stat card and section header)
-    const allBranchesLinks = screen.getAllByRole("link", { name: /view all branches/i });
-    expect(allBranchesLinks).toHaveLength(2);
-    expect(allBranchesLinks[0]).toHaveAttribute("href", "/branches");
-    expect(allBranchesLinks[1]).toHaveAttribute("href", "/branches");
-
-    // Verify active version status on recent branch cards
-    expect(screen.getByText("Untailored")).toBeInTheDocument();
-    expect(screen.getByText("v2 (Active)")).toBeInTheDocument();
-
-    // Verify RFC-005 Tailoring Strategy terminology
-    expect(screen.getByText("Strategy:")).toBeInTheDocument();
-    expect(screen.queryByText("Preset:")).not.toBeInTheDocument();
+    // Verify the Resume Branches stat card still links to /branches
+    const allBranchesLink = screen.getByRole("link", { name: /^view all branches$/i });
+    expect(allBranchesLink).toHaveAttribute("href", "/branches");
   });
 
   it("renders live stats for total branches, templates, and presets", async () => {
@@ -438,23 +419,6 @@ describe("HomePage Dashboard Integration & Views", () => {
     expect(await screen.findByTestId("branch-workbench-view")).toBeInTheDocument();
   });
 
-  it("displays accessible empty state when there are no branches and opens modal from CTA", async () => {
-    mockBranches = [];
-    const user = userEvent.setup();
-    renderHomePage();
-
-    expect(await screen.findByText(/no resume branches yet/i)).toBeInTheDocument();
-    const emptyStateBtn = screen.getByRole("button", { name: /create your first branch/i });
-    expect(emptyStateBtn).toBeInTheDocument();
-
-    // Click empty state CTA button and verify modal opens
-    await user.click(emptyStateBtn);
-    expect(await screen.findByRole("dialog")).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { level: 2, name: /create new resume branch/i })
-    ).toBeInTheDocument();
-  });
-
   it("displays accessible loading indicators with specific aria-labels while queries are pending", () => {
     vi.spyOn(api, "GET").mockReturnValue(new Promise(() => {}));
     renderHomePage();
@@ -463,7 +427,6 @@ describe("HomePage Dashboard Integration & Views", () => {
     expect(screen.getByRole("status", { name: /loading branch counts/i })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: /loading template counts/i })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: /loading preset counts/i })).toBeInTheDocument();
-    expect(screen.getByRole("status", { name: /loading resume branches/i })).toBeInTheDocument();
   });
 
   it("displays aggregated error banner when queries fail", async () => {
@@ -510,103 +473,6 @@ describe("HomePage Dashboard Integration & Views", () => {
     expect(alert).toHaveTextContent(/Master Profile: Profile database timeout/i);
     expect(alert).toHaveTextContent(/Templates: Templates DB unreachable/i);
     expect(alert).toHaveTextContent(/Presets: Presets service unavailable/i);
-  });
-
-  it("sorts recent branches in descending updated_at order and caps display to 4 items", async () => {
-    mockBranches = [
-      {
-        id: "br-1-oldest",
-        user_id: "u1",
-        name: "Branch 1 - Oldest",
-        template_set_id: "tmpl-clean",
-        updated_at: "2026-11-01T10:00:00Z",
-      },
-      {
-        id: "br-2",
-        user_id: "u1",
-        name: "Branch 2",
-        template_set_id: "tmpl-clean",
-        updated_at: "2026-11-02T10:00:00Z",
-      },
-      {
-        id: "br-3",
-        user_id: "u1",
-        name: "Branch 3",
-        template_set_id: "tmpl-clean",
-        updated_at: "2026-11-03T10:00:00Z",
-      },
-      {
-        id: "br-4",
-        user_id: "u1",
-        name: "Branch 4",
-        template_set_id: "tmpl-clean",
-        updated_at: "2026-11-04T10:00:00Z",
-      },
-      {
-        id: "br-5-newest",
-        user_id: "u1",
-        name: "Branch 5 - Newest",
-        template_set_id: "tmpl-clean",
-        updated_at: "2026-11-05T10:00:00Z",
-      },
-    ];
-
-    renderHomePage();
-
-    const branchList = await screen.findByTestId("recent-branches-list");
-    const branchArticles = within(branchList).getAllByRole("article");
-    expect(branchArticles).toHaveLength(4);
-
-    // Verify descending order
-    expect(branchArticles[0]).toHaveTextContent("Branch 5 - Newest");
-    expect(branchArticles[1]).toHaveTextContent("Branch 4");
-    expect(branchArticles[2]).toHaveTextContent("Branch 3");
-    expect(branchArticles[3]).toHaveTextContent("Branch 2");
-
-    // Verify 5th (oldest) branch is omitted
-    expect(within(branchList).queryByText("Branch 1 - Oldest")).not.toBeInTheDocument();
-  });
-
-  it("renders branches gracefully when updated_at is missing and handles untargeted branch", async () => {
-    mockBranches = [
-      {
-        id: "branch-no-date",
-        user_id: "u1",
-        name: "General Untargeted Branch",
-        template_set_id: "tmpl-unknown",
-        is_default: false,
-        status: "active",
-      },
-    ];
-
-    renderHomePage();
-
-    expect(await screen.findByText("General Untargeted Branch")).toBeInTheDocument();
-    expect(screen.getByText("Untargeted role")).toBeInTheDocument();
-    expect(screen.getByText("Not tailored yet")).toBeInTheDocument();
-  });
-
-  it("renders Out of Sync badge rather than pulsing Tailoring badge for stale branches", async () => {
-    mockBranches = [
-      {
-        id: "branch-stale-1",
-        user_id: "u1",
-        name: "Stale Resume Line",
-        template_set_id: "tmpl-clean",
-        is_default: false,
-        active_version_id: "v1",
-        is_stale: true,
-        status: "active",
-      },
-    ];
-
-    renderHomePage();
-
-    expect(await screen.findByText("Stale Resume Line")).toBeInTheDocument();
-    // Out of Sync badge rendered
-    expect(screen.getByText("Out of Sync")).toBeInTheDocument();
-    // Must NOT display animated Tailoring badge
-    expect(screen.queryByText("Tailoring")).not.toBeInTheDocument();
   });
 
   it("renders the workflow orientation guide and interactive readiness milestones", async () => {

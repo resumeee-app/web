@@ -29,20 +29,11 @@ import {
   Layers,
   Sliders,
   AlertCircle,
-  Clock,
-  Eye,
   ArrowRight,
-  BookOpen,
   LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/page-header";
-import {
-  DefaultBranchBadge,
-  BranchStatusBadge,
-  formatBranchDate,
-  BranchTargetDisplay,
-} from "@/components/branches/branch-shared-elements";
 import { CreateBranchModal } from "@/components/branches/create-branch-modal";
 import { WorkflowGuide } from "@/components/dashboard/workflow-guide";
 import {
@@ -50,34 +41,9 @@ import {
   usePresetsQuery,
   useTemplatesQuery,
   useCreateBranchMutation,
-  isDefaultBranch,
-  getBranchStatus,
-  formatBranchVersionStatus,
   type CreateBranchInput,
 } from "@/api/branch-queries";
 import { useFullProfile } from "@/api/profile-queries";
-
-/**
- * Constructs a fast-lookup dictionary mapping entity identifiers to human-readable names.
- *
- * @template T An object type containing optional `id` and `name` string attributes.
- * @param {ReadonlyArray<T>} [items] Collection of entities to index.
- * @returns {Record<string, string>} Dictionary mapping ID to display name.
- */
-export function buildIdNameMap<T extends { id?: string; name?: string }>(
-  items?: ReadonlyArray<T>
-): Record<string, string> {
-  if (!items || items.length === 0) {
-    return {};
-  }
-  const map: Record<string, string> = {};
-  for (const item of items) {
-    if (item.id && item.name) {
-      map[item.id] = item.name;
-    }
-  }
-  return map;
-}
 
 /**
  * Props for the {@link DashboardStatCard} component.
@@ -206,24 +172,6 @@ export const HomePage: React.FC = () => {
 
   const navigate = useNavigate();
   const createMutation = useCreateBranchMutation();
-
-  /**
-   * Fast lookup dictionaries mapping entity IDs to human-readable names.
-   */
-  const templatesMap = useMemo(() => buildIdNameMap(templates), [templates]);
-  const presetsMap = useMemo(() => buildIdNameMap(presets), [presets]);
-
-  /**
-   * Recent branches sorted by updated_at descending, capped to top 4 for dashboard display.
-   */
-  const recentBranches = useMemo(() => {
-    const sorted = [...branches].sort((a, b) => {
-      const dateA = a.updated_at ? new Date(a.updated_at).getTime() : 0;
-      const dateB = b.updated_at ? new Date(b.updated_at).getTime() : 0;
-      return dateB - dateA;
-    });
-    return sorted.slice(0, 4);
-  }, [branches]);
 
   /**
    * Aggregates active query error messages to prevent masking failures.
@@ -450,176 +398,6 @@ export const HomePage: React.FC = () => {
         presets={presets}
         onCreateBranch={() => setIsCreateModalOpen(true)}
       />
-
-      {/* Recent Resume Branches Section */}
-      <section aria-labelledby="recent-branches-heading" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2
-            id="recent-branches-heading"
-            className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100"
-          >
-            Recent Resume Branches
-          </h2>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/branches" className="text-xs flex items-center space-x-1">
-              <span>View All Branches</span>
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
-          </Button>
-        </div>
-
-        {isBranchesLoading ? (
-          <div
-            role="status"
-            aria-label="Loading resume branches"
-            className="grid gap-4 sm:grid-cols-2"
-          >
-            {[1, 2].map((idx) => (
-              <div
-                key={idx}
-                className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 animate-pulse space-y-4"
-              >
-                <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-1/2"></div>
-                <div className="h-4 bg-slate-100 dark:bg-slate-800/60 rounded w-3/4"></div>
-                <div className="h-8 bg-slate-100 dark:bg-slate-800/40 rounded w-full"></div>
-              </div>
-            ))}
-          </div>
-        ) : branches.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/50 p-8 text-center space-y-3">
-            <BookOpen className="mx-auto h-8 w-8 text-slate-400 dark:text-slate-500" aria-hidden="true" />
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              No resume branches yet
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-              Create your first branch to start tailoring your resume for target job postings with automated AI models.
-            </p>
-            <Button
-              size="sm"
-              onClick={() => setIsCreateModalOpen(true)}
-              className="mt-2"
-            >
-              <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
-              <span>Create your first branch</span>
-            </Button>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2" data-testid="recent-branches-list">
-            {recentBranches.map((branch) => {
-              const isDefault = isDefaultBranch(branch);
-              const status = getBranchStatus(branch);
-              const versionStatus = formatBranchVersionStatus(branch);
-              const formattedDate = formatBranchDate(branch.updated_at);
-              const templateName = templatesMap[branch.template_set_id] || branch.template_set_id;
-              const presetName = branch.preset_id ? presetsMap[branch.preset_id] : undefined;
-
-              return (
-                <article
-                  key={branch.id}
-                  aria-labelledby={`branch-heading-${branch.id}`}
-                  className="flex flex-col justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3
-                            id={`branch-heading-${branch.id}`}
-                            className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100"
-                          >
-                            <Link
-                              to={`/branches/${branch.id}`}
-                              className="hover:text-indigo-600 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-sm"
-                            >
-                              {branch.name}
-                            </Link>
-                          </h3>
-                          {isDefault && <DefaultBranchBadge iconSize="md" />}
-                        </div>
-
-                        {isDefault ? (
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
-                            Direct Master Profile (Untailored) — mirrors canonical master data with zero LLM tailoring.
-                          </p>
-                        ) : (
-                          <p className="text-sm text-slate-600 dark:text-slate-300">
-                            <BranchTargetDisplay
-                              targetCompany={branch.target_company}
-                              targetRole={branch.target_role}
-                              emptyFallback="Untargeted role"
-                              companyClassName="font-medium text-slate-700 dark:text-slate-200"
-                            />
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <BranchStatusBadge status={status} />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400">
-                      <div className="flex items-center gap-1.5 truncate">
-                        <Layers className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
-                        <span className="truncate">
-                          Template: <strong className="font-medium text-slate-700 dark:text-slate-300">{templateName}</strong>
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 truncate">
-                        <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
-                        <span className="truncate">
-                          Updated: <span className="text-slate-700 dark:text-slate-300">{formattedDate}</span>
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 truncate">
-                        <GitBranch className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
-                        <span className="truncate">
-                          Version: <strong className="font-medium text-slate-700 dark:text-slate-300">{versionStatus}</strong>
-                        </span>
-                      </div>
-
-                      {presetName && (
-                        <div className="flex items-center gap-1.5 truncate text-slate-500 dark:text-slate-400">
-                          <Sliders className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
-                          <span className="truncate">
-                            Strategy: <strong className="font-medium text-slate-700 dark:text-slate-300">{presetName}</strong>
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-5 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-4">
-                    <Button asChild variant="outline" size="sm">
-                      <Link
-                        to={`/branches/${branch.id}`}
-                        aria-label={`Open workbench for ${branch.name}`}
-                        className="flex items-center gap-1.5"
-                      >
-                        <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
-                        <span>Workbench</span>
-                      </Link>
-                    </Button>
-
-                    <Button asChild variant="secondary" size="sm">
-                      <Link
-                        to={`/branches/${branch.id}/preview`}
-                        aria-label={`Preview resume for ${branch.name}`}
-                        className="flex items-center gap-1.5"
-                      >
-                        <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-                        <span>Preview</span>
-                      </Link>
-                    </Button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </section>
 
       {/* Accessible Create Branch Modal */}
       <CreateBranchModal
