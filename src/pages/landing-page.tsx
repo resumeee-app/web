@@ -209,7 +209,7 @@ export const PRICING_TIERS: PricingTier[] = [
       "Managed cloud sync & multi-device backup",
       "Included monthly Gemini & Claude generation quotas",
       "Serverless high-fidelity PDF rendering engine",
-      "Automated ATS score scanner & keyword gap check",
+      "Automated target match analysis & keyword gap check",
       "Priority email & ticket support",
     ],
     ctaLabel: "Start 14-Day Trial",
@@ -398,7 +398,7 @@ export interface MockTailoredBranch {
   modified: string;
   version: string;
   strategy: string;
-  atsScore: string;
+  matchScore: string;
 }
 
 /**
@@ -414,7 +414,7 @@ export const MOCK_TAILORED_BRANCHES: MockTailoredBranch[] = [
     modified: "Nov 7, 2026",
     version: "v3",
     strategy: "Senior Staff Engineering",
-    atsScore: "98%",
+    matchScore: "98%",
   },
   {
     id: "branch-supabase",
@@ -425,7 +425,7 @@ export const MOCK_TAILORED_BRANCHES: MockTailoredBranch[] = [
     modified: "Nov 7, 2026",
     version: "v2",
     strategy: "0-to-1 Startup Velocity",
-    atsScore: "96%",
+    matchScore: "96%",
   },
 ];
 
@@ -478,7 +478,7 @@ export const MockBranchCard: React.FC<{ branch: MockTailoredBranch }> = ({ branc
         <div className="flex items-center justify-between text-[11px] rounded bg-slate-50 dark:bg-slate-950/70 px-2.5 py-1.5 border border-slate-100 dark:border-slate-800">
           <span className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
             <Check className="h-3 w-3" aria-hidden="true" />
-            ATS Score: {branch.atsScore}
+            Match Score: {branch.matchScore}
           </span>
           <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
             <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />

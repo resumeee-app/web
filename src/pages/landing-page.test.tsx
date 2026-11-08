@@ -70,7 +70,7 @@ describe("LandingPage Component", () => {
       expect(within(heroSection).queryByText(/Runs offline with Ollama/i)).not.toBeInTheDocument();
     });
 
-    it("renders the authentic branch workflow visualizer in the hero with mock cards, ATS scores, and badges", () => {
+    it("renders the authentic branch workflow visualizer in the hero with mock cards, match scores, and badges", () => {
       renderLandingPage();
 
       const visualizer = screen.getByTestId("hero-branch-visualizer");
@@ -95,7 +95,8 @@ describe("LandingPage Component", () => {
       expect(within(card1).getByText(/Infrastructure & Observability/i)).toBeInTheDocument();
       expect(within(card1).getByText(/ATS Modern Tech/i)).toBeInTheDocument();
       expect(within(card1).getByText(/Senior Staff Engineering/i)).toBeInTheDocument();
-      expect(within(card1).getByText(/ATS Score: 98%/i)).toBeInTheDocument();
+      expect(within(card1).getByText(/Match Score: 98%/i)).toBeInTheDocument();
+      expect(within(card1).queryByText(/ATS Score/i)).not.toBeInTheDocument();
 
       // Card 2: Founding Systems Architect at Supabase
       expect(
@@ -105,7 +106,8 @@ describe("LandingPage Component", () => {
       expect(within(card2).getByText(/Cloud Core Team/i)).toBeInTheDocument();
       expect(within(card2).getByText(/Standard Clean/i)).toBeInTheDocument();
       expect(within(card2).getByText(/0-to-1 Startup Velocity/i)).toBeInTheDocument();
-      expect(within(card2).getByText(/ATS Score: 96%/i)).toBeInTheDocument();
+      expect(within(card2).getByText(/Match Score: 96%/i)).toBeInTheDocument();
+      expect(within(card2).queryByText(/ATS Score/i)).not.toBeInTheDocument();
 
       // Active status badges count across visualizer (1 trunk + 2 branch cards = 3)
       const activeBadges = within(visualizer).getAllByText(/^Active$/i);
@@ -247,6 +249,8 @@ describe("LandingPage Component", () => {
       expect(within(cloudCard).getByRole("heading", { level: 3, name: /cloud hosted/i })).toBeInTheDocument();
       expect(within(cloudCard).getByText(/\$12/)).toBeInTheDocument();
       expect(within(cloudCard).getByText(/most popular/i)).toBeInTheDocument();
+      expect(within(cloudCard).getByText(/Automated target match analysis & keyword gap check/i)).toBeInTheDocument();
+      expect(within(cloudCard).queryByText(/Automated ATS score scanner/i)).not.toBeInTheDocument();
       expect(within(cloudCard).getByRole("link", { name: /start 14-day trial/i })).toHaveAttribute(
         "href",
         "/login"

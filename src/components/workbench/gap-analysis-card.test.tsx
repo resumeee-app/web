@@ -31,8 +31,17 @@ const mockGapReport: GapReport = {
 };
 
 describe("GapAnalysisCard", () => {
-  it("renders match score and toggle button", () => {
+  it("renders match score and toggle button with target match heading and accessible meter", () => {
     render(<GapAnalysisCard gapReport={mockGapReport} versionNumber={2} />);
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: /Target Match & Gap Analysis \(v2\)/i })
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/ATS Match/i)).not.toBeInTheDocument();
+
+    const meter = screen.getByRole("meter");
+    expect(meter).toHaveAttribute("aria-label", "Target Match Score");
+    expect(meter).not.toHaveAttribute("aria-label", "ATS Match Score");
 
     expect(screen.getByText("87.5%")).toBeInTheDocument();
     expect(
@@ -69,6 +78,10 @@ describe("GapAnalysisCard", () => {
     expect(
       screen.getByText(/no gap analysis report available/i)
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(/target match scoring and identified qualification gaps/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/ATS match/i)).not.toBeInTheDocument();
   });
 
   it("passes accessibility audit with 0 violations in both collapsed and expanded states", async () => {

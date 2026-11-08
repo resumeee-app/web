@@ -74,7 +74,7 @@ export interface BranchWorkbenchPageProps {
  * 4. Double-click prevention by locking the tailoring button during active generation mutations and polling.
  * 5. Upstream main profile sync trigger (`POST /branches/sync`).
  * 6. Historical version timeline with active version pointer promotion (`PUT /branches/{id}`).
- * 7. LLM gap analysis inspection with ATS match score and recommendations.
+ * 7. LLM gap analysis inspection with target match score and recommendations.
  *
  * Accessibility / WAI-ARIA Considerations:
  * - Landmark `<main>` region with logical heading hierarchy (`h1` for branch name, `h2` for sections).

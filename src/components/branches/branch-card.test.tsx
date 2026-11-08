@@ -170,7 +170,7 @@ describe("BranchCard Component", () => {
     expect(screen.getByText(/strategy:/i)).toBeInTheDocument();
   });
 
-  it("renders ATS score when gap_report match_score is present", () => {
+  it("renders match score when gap_report match_score is present", () => {
     const branchWithScore: Branch = {
       ...customBranch,
       gap_report: {
@@ -185,23 +185,25 @@ describe("BranchCard Component", () => {
       </MemoryRouter>
     );
 
-    const scoreElement = screen.getByTestId(`branch-ats-score-${branchWithScore.id}`);
+    const scoreElement = screen.getByTestId(`branch-match-score-${branchWithScore.id}`);
     expect(scoreElement).toBeInTheDocument();
-    expect(scoreElement).toHaveTextContent("ATS Score: 96%");
+    expect(scoreElement).toHaveTextContent("Match Score: 96%");
     expect(scoreElement).toHaveTextContent("Verified Facts");
+    expect(scoreElement).not.toHaveTextContent("ATS Score");
   });
 
-  it("renders ATS score N/A when gap_report or match_score is omitted", () => {
+  it("renders match score N/A when gap_report or match_score is omitted", () => {
     render(
       <MemoryRouter>
         <BranchCard branch={defaultBranch} />
       </MemoryRouter>
     );
 
-    const scoreElement = screen.getByTestId(`branch-ats-score-${defaultBranch.id}`);
+    const scoreElement = screen.getByTestId(`branch-match-score-${defaultBranch.id}`);
     expect(scoreElement).toBeInTheDocument();
-    expect(scoreElement).toHaveTextContent("ATS Score: N/A");
+    expect(scoreElement).toHaveTextContent("Match Score: N/A");
     expect(scoreElement).toHaveTextContent("Verified Facts");
+    expect(scoreElement).not.toHaveTextContent("ATS Score");
   });
 
   it("has zero accessibility violations according to axe-core", async () => {
