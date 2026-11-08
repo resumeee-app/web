@@ -1,24 +1,33 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { axe } from "vitest-axe";
 import { Header } from "./header";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { AuthProvider, type AuthUser } from "@/context/auth-context";
 import { mainNavItems } from "./nav-config";
 
-function renderHeader(initialRoute = "/") {
+function renderHeader(
+  initialRoute = "/",
+  authOptions?: { initialUser?: AuthUser | null; initialAdminMode?: boolean }
+) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <MemoryRouter initialEntries={[initialRoute]}>
-          <Header />
-        </MemoryRouter>
-      </ThemeProvider>
+      <AuthProvider
+        initialUser={authOptions?.initialUser}
+        initialAdminMode={authOptions?.initialAdminMode}
+      >
+        <ThemeProvider>
+          <MemoryRouter initialEntries={[initialRoute]}>
+            <Header />
+          </MemoryRouter>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
@@ -110,5 +119,67 @@ describe("Header and Navigation", () => {
 
     results = await axe(container);
     expect(results).toHaveNoViolations();
+  });
+
+  describe("Multi-Tenant Authentication & Sign Out", () => {
+    const mockUser: AuthUser = {
+      uid: "tenant-user-123",
+      email: "engineer@resumeee.io",
+      displayName: "Jane Engineer",
+    };
+
+    it("renders user identity and Sign Out button in non-admin mode when user is authenticated", () => {
+      renderHeader("/", {
+        initialUser: mockUser,
+        initialAdminMode: false,
+      });
+
+      expect(screen.getByText("engineer@resumeee.io")).toBeInTheDocument();
+      const signOutButton = screen.getByRole("button", { name: /sign out/i });
+      expect(signOutButton).toBeInTheDocument();
+    });
+
+    it("does not render Sign Out button when in single-user admin mode", () => {
+      renderHeader("/", {
+        initialUser: { uid: "default", email: "admin@resumeee.local", displayName: "Admin" },
+        initialAdminMode: true,
+      });
+
+      expect(screen.queryByRole("button", { name: /sign out/i })).not.toBeInTheDocument();
+    });
+
+    it("handles sign out flow when user clicks desktop Sign Out button", async () => {
+      const user = userEvent.setup();
+      renderHeader("/", {
+        initialUser: mockUser,
+        initialAdminMode: false,
+      });
+
+      const signOutButton = screen.getByRole("button", { name: /sign out/i });
+      await user.click(signOutButton);
+
+      expect(screen.queryByText("engineer@resumeee.io")).not.toBeInTheDocument();
+    });
+
+    it("renders Sign Out button in mobile drawer and triggers sign out", async () => {
+      const user = userEvent.setup();
+      renderHeader("/", {
+        initialUser: mockUser,
+        initialAdminMode: false,
+      });
+
+      const menuButton = screen.getByRole("button", { name: /open navigation menu/i });
+      await user.click(menuButton);
+
+      const dialog = await screen.findByRole("dialog");
+      expect(dialog).toBeInTheDocument();
+
+      const mobileSignOut = await within(dialog).findByRole("button", { name: /sign out/i });
+      expect(mobileSignOut).toBeInTheDocument();
+
+      await user.click(mobileSignOut);
+
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
   });
 });

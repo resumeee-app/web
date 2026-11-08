@@ -9,7 +9,7 @@ const rootEnvDir = path.resolve(__dirname, '..');
 // https://vitejs.dev/config/
 export default defineConfig({
   envDir: fs.existsSync(path.join(rootEnvDir, '.env')) ? rootEnvDir : __dirname,
-  envPrefix: ['VITE_', 'ADMIN_MODE'],
+  envPrefix: ['VITE_', 'ADMIN_MODE', 'FIREBASE_'],
   plugins: [react()],
   resolve: {
     alias: {

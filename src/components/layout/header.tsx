@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { FileText, Menu, X } from "lucide-react";
+import { FileText, Menu, X, User, LogOut } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
 import { SkipLink } from "./skip-link";
@@ -8,6 +8,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { QuotaMeter } from "@/components/quota/quota-meter";
 import { mainNavItems } from "./nav-config";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/auth-context";
 
 /**
  * Primary application header and navigation shell.
@@ -27,6 +28,8 @@ import { Button } from "@/components/ui/button";
  */
 export const Header: React.FC = () => {
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const { user, adminMode, signOut } = useAuth();
+  const userIdentifier = user?.email || user?.displayName || user?.uid || "User";
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 transition-colors">
@@ -76,6 +79,28 @@ export const Header: React.FC = () => {
         <div className="flex items-center space-x-2 sm:space-x-4">
           <QuotaMeter />
           <ThemeToggle />
+
+          {!adminMode && user && (
+            <div className="flex items-center space-x-2 border-l border-slate-200 dark:border-slate-800 pl-2 sm:pl-4">
+              <div
+                className="hidden lg:flex items-center space-x-1.5 text-xs text-slate-600 dark:text-slate-400"
+                title={userIdentifier}
+              >
+                <User className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span className="max-w-[140px] truncate">{userIdentifier}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void signOut()}
+                className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 text-xs px-2 sm:px-3 h-8"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4 sm:mr-1.5" aria-hidden="true" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
+            </div>
+          )}
 
           {/* Mobile Navigation Trigger */}
           <div className="md:hidden">
@@ -142,6 +167,28 @@ export const Header: React.FC = () => {
                       );
                     })}
                   </nav>
+
+                  {!adminMode && user && (
+                    <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col space-y-3">
+                      <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400">
+                        <User className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        <span className="truncate">{userIdentifier}</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setMobileOpen(false);
+                          void signOut();
+                        }}
+                        className="w-full justify-center"
+                        aria-label="Sign out"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
+                        <span>Sign Out</span>
+                      </Button>
+                    </div>
+                  )}
                 </DialogPrimitive.Content>
               </DialogPrimitive.Portal>
             </DialogPrimitive.Root>

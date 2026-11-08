@@ -1,10 +1,13 @@
 import * as React from "react";
 import { Outlet } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { AlertCircle, X } from "lucide-react";
 import { Header } from "./header";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
 import { QUOTA_QUERY_KEY } from "@/api/quota-queries";
+import { useAuth } from "@/context/auth-context";
+import { LoginPage } from "@/components/auth/login-page";
 
 /**
  * Root application layout shell rendering standard landmark hierarchy.
@@ -23,6 +26,7 @@ import { QUOTA_QUERY_KEY } from "@/api/quota-queries";
 export const RootLayout: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, loading, adminMode, quotaExceededWarning, dismissQuotaWarning } = useAuth();
 
   React.useEffect(() => {
     const handleQuotaExceeded = () => {
@@ -41,15 +45,45 @@ export const RootLayout: React.FC = () => {
     };
   }, [toast, queryClient]);
 
+  const showLogin = !adminMode && !user;
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
       <Header />
+      {quotaExceededWarning && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="bg-amber-500 text-white px-4 py-2.5 text-sm font-medium flex items-center justify-between"
+        >
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>LLM Quota Exceeded: Operations are temporarily limited until the rolling window resets.</span>
+          </div>
+          <button
+            type="button"
+            onClick={dismissQuotaWarning}
+            className="rounded p-1 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-white"
+            aria-label="Dismiss quota alert"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
       <main
         id="main-content"
         tabIndex={-1}
         className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 focus:outline-none"
       >
-        <Outlet />
+        {loading ? (
+          <div className="flex min-h-[50vh] items-center justify-center text-slate-500 dark:text-slate-400">
+            <p>Loading session...</p>
+          </div>
+        ) : showLogin ? (
+          <LoginPage />
+        ) : (
+          <Outlet />
+        )}
       </main>
       <footer
         role="contentinfo"

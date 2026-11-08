@@ -3,6 +3,7 @@ import { RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { AuthProvider } from "@/context/auth-context";
 import { router as defaultRouter, type createAppRouter } from "./router";
 
 /**
@@ -58,9 +59,11 @@ export const App: React.FC<AppProps> = ({
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <RouterProvider router={activeRouter} />
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <RouterProvider router={activeRouter} />
+          </TooltipProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );
