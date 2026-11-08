@@ -378,32 +378,40 @@ describe("ResumePreviewPage Component", () => {
     expect(renderQueries.useBranchVersion).toHaveBeenCalledWith("b-123", 2);
   });
 
-  it("renders export actions for Plain Text, JSON Resume, and HTML in toolbar with valid endpoint URLs", () => {
+  it("renders export actions for HTML, Markdown, Plain Text, and JSON Resume in toolbar with valid endpoint URLs and copy actions", () => {
     render(<ResumePreviewPage />, { wrapper: createTestWrapper() });
+
+    const htmlLink = screen.getByRole("link", { name: /download html/i });
+    expect(htmlLink).toBeInTheDocument();
+    expect(htmlLink).toHaveAttribute(
+      "href",
+      "/api/v1/branches/b-123/versions/1/export?format=html&template_set_id=tmpl-1"
+    );
+
+    const markdownLink = screen.getByRole("link", { name: /download markdown/i });
+    expect(markdownLink).toBeInTheDocument();
+    expect(markdownLink).toHaveAttribute(
+      "href",
+      "/api/v1/branches/b-123/versions/1/export?format=markdown&template_set_id=tmpl-1"
+    );
 
     const textLink = screen.getByRole("link", { name: /download plain text/i });
     expect(textLink).toBeInTheDocument();
     expect(textLink).toHaveAttribute(
       "href",
-      "/api/v1/branches/b-123/versions/1/export?format=text"
+      "/api/v1/branches/b-123/versions/1/export?format=text&template_set_id=tmpl-1"
     );
 
     const jsonLink = screen.getByRole("link", { name: /export json resume/i });
     expect(jsonLink).toBeInTheDocument();
     expect(jsonLink).toHaveAttribute(
       "href",
-      "/api/v1/branches/b-123/versions/1/export?format=jsonresume"
+      "/api/v1/branches/b-123/versions/1/export?format=jsonresume&template_set_id=tmpl-1"
     );
 
-    const htmlLink = screen.getByRole("link", { name: /download html/i });
-    expect(htmlLink).toBeInTheDocument();
-    expect(htmlLink).toHaveAttribute(
-      "href",
-      "/api/v1/branches/b-123/versions/1/export?format=html"
-    );
-
+    expect(screen.getByRole("button", { name: /copy markdown/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /copy plain text/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /print to pdf/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /copy plain text/i })).not.toBeInTheDocument();
   });
 
   it("safely handles Tailoring Diff tab for main profile branch without crashing", () => {
@@ -568,5 +576,19 @@ describe("ResumePreviewPage Component", () => {
     expect(mockUpdateBranchMutate).toHaveBeenCalledWith({
       template_set_id: "tmpl-2",
     });
+
+    // Verify download options update to the selected template
+    expect(screen.getByRole("link", { name: /download html/i })).toHaveAttribute(
+      "href",
+      "/api/v1/branches/b-123/versions/1/export?format=html&template_set_id=tmpl-2"
+    );
+    expect(screen.getByRole("link", { name: /download markdown/i })).toHaveAttribute(
+      "href",
+      "/api/v1/branches/b-123/versions/1/export?format=markdown&template_set_id=tmpl-2"
+    );
+    expect(screen.getByRole("link", { name: /download plain text/i })).toHaveAttribute(
+      "href",
+      "/api/v1/branches/b-123/versions/1/export?format=text&template_set_id=tmpl-2"
+    );
   });
 });

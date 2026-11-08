@@ -884,6 +884,8 @@ export interface paths {
             query?: {
                 /** @description Desired export format (defaults to html) */
                 format?: "html" | "markdown" | "text" | "jsonresume";
+                /** @description Optional visual template set ID override for dynamic export rendering */
+                template_set_id?: string;
             };
             header?: never;
             path: {
@@ -3843,6 +3845,8 @@ export interface operations {
             query?: {
                 /** @description Desired export format (defaults to html) */
                 format?: "html" | "markdown" | "text" | "jsonresume";
+                /** @description Optional visual template set ID override for dynamic export rendering */
+                template_set_id?: string;
             };
             header?: never;
             path: {

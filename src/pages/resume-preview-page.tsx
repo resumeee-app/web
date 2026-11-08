@@ -16,7 +16,7 @@
 
 import * as React from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
-import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, AlertCircle, Loader2, LayoutTemplate, History } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useQueryClient } from "@tanstack/react-query";
 import { ExportToolbar } from "@/components/preview/export-toolbar";
@@ -247,13 +247,19 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
 
   /**
    * Constructs the export download URL for a specified format, or '#' if no version is selected.
+   * Dynamically incorporates the currently selected template override.
    *
    * @param format - Export format ('html' | 'markdown' | 'text' | 'jsonresume')
    * @returns Fully qualified relative URL or fallback anchor
    */
   const getExportUrl = (format: ExportFormat): string => {
     return selectedVersionNumber !== undefined
-      ? getBranchVersionExportUrl(branchId, selectedVersionNumber, format)
+      ? getBranchVersionExportUrl(
+          branchId,
+          selectedVersionNumber,
+          format,
+          selectedTemplateId || branch?.template_set_id
+        )
       : "#";
   };
 
@@ -291,8 +297,8 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
         </ol>
       </nav>
 
-      {/* Top Header Section: Title, Target Details, Version Picker, Export Toolbar */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-200 dark:border-slate-800 mb-6">
+      {/* Top Header Section: Title and Target Details */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800 mb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             {branch.name}
@@ -315,19 +321,34 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
                 </span>
               </>
             )}
+            {selectedVersionNumber !== undefined && (
+              <>
+                <span className="text-slate-300 dark:text-slate-600">•</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                  v{selectedVersionNumber}
+                </span>
+              </>
+            )}
           </div>
         </div>
+      </header>
 
-        {/* Right side: Template Selector, Version Selection Dropdown & Export Toolbar */}
-        <div className="flex flex-wrap items-center gap-3">
+      {/* Unified Controls & Action Bar: Template Picker, Version Picker, and Export Toolbar */}
+      <section
+        aria-label="Resume preview controls and export actions"
+        className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl mb-6 shadow-sm"
+      >
+        {/* Left Side: Cleanly Aligned Selection Controls */}
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           {/* Template Selector */}
           {templates.length > 0 && (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <label
                 htmlFor="resume-template-select"
-                className="text-xs font-medium text-slate-600 dark:text-slate-300"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 whitespace-nowrap"
               >
-                Template:
+                <LayoutTemplate className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                <span>Template:</span>
               </label>
               <select
                 id="resume-template-select"
@@ -335,7 +356,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
                 onChange={(e) => handleTemplateChange(e.target.value)}
                 aria-label="Select resume template"
                 disabled={isEphemeralRendering}
-                className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs font-medium text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="h-8 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1 text-xs font-medium text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer disabled:opacity-50"
               >
                 {templates.map((tpl) => (
                   <option key={tpl.id} value={tpl.id}>
@@ -346,21 +367,30 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
             </div>
           )}
 
-          {/* Version Selector (if multiple versions exist) */}
+          {/* Visual Divider between Selectors */}
+          {templates.length > 0 && versions.length > 0 && (
+            <div
+              className="hidden sm:block h-4 w-px bg-slate-200 dark:bg-slate-700"
+              aria-hidden="true"
+            />
+          )}
+
+          {/* Version Selector */}
           {versions.length > 0 && (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <label
                 htmlFor="resume-version-select"
-                className="text-xs font-medium text-slate-600 dark:text-slate-300"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 whitespace-nowrap"
               >
-                Version:
+                <History className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                <span>Version:</span>
               </label>
               <select
                 id="resume-version-select"
                 value={selectedVersionNumber ?? ""}
                 onChange={(e) => setSelectedVersionNumber(Number(e.target.value))}
                 aria-label="Select resume version"
-                className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs font-medium text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="h-8 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1 text-xs font-medium text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer"
               >
                 {versions.map((ver) => (
                   <option key={ver.id} value={ver.version_number}>
@@ -371,17 +401,20 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
               </select>
             </div>
           )}
-
-          {/* ATS Export Toolbar */}
-          <ExportToolbar
-            htmlDownloadUrl={getExportUrl("html")}
-            textDownloadUrl={getExportUrl("text")}
-            jsonResumeDownloadUrl={getExportUrl("jsonresume")}
-            branchName={branch.name}
-            versionNumber={selectedVersionNumber ?? 1}
-          />
         </div>
-      </header>
+
+        {/* Right Side: ATS Export & Clipboard Toolbar */}
+        <ExportToolbar
+          htmlDownloadUrl={getExportUrl("html")}
+          markdownDownloadUrl={getExportUrl("markdown")}
+          textDownloadUrl={getExportUrl("text")}
+          jsonResumeDownloadUrl={getExportUrl("jsonresume")}
+          markdownContent={previewOutputs?.markdown || activeVersion?.markdown_output || ""}
+          plainTextContent={previewOutputs?.plain_text || activeVersion?.plain_text_output || ""}
+          branchName={branch.name}
+          versionNumber={selectedVersionNumber ?? 1}
+        />
+      </section>
 
       {/* Main Tabs Container: Rendered Resume vs Tailoring Diff */}
       <Tabs

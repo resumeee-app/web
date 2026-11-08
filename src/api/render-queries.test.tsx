@@ -59,6 +59,11 @@ describe("render-queries API hooks", () => {
       const urlMarkdown = getBranchVersionExportUrl("branch-123", "v2", "markdown");
       expect(urlMarkdown).toBe("/api/v1/branches/branch-123/versions/v2/export?format=markdown");
     });
+
+    it("constructs export URL with template_set_id query parameter when provided", () => {
+      const url = getBranchVersionExportUrl("branch-123", "v2", "markdown", "tmpl-custom");
+      expect(url).toBe("/api/v1/branches/branch-123/versions/v2/export?format=markdown&template_set_id=tmpl-custom");
+    });
   });
 
   describe("getBranchVersionPreviewUrl", () => {

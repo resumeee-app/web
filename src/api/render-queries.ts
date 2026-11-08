@@ -72,17 +72,23 @@ export type ExportFormat = "html" | "markdown" | "text" | "jsonresume";
  * @param branchId - Unique UUID identifier of the parent resume branch.
  * @param versionNumberOrId - Sequential version number (e.g. 1) or version UUID.
  * @param format - Desired export format: 'html', 'markdown', 'text', or 'jsonresume'. Defaults to 'html'.
+ * @param templateSetId - Optional visual layout template set ID override for dynamic export rendering.
  * @returns Fully qualified relative URL for downloading the artifact from the backend API.
  */
 export function getBranchVersionExportUrl(
   branchId: string,
   versionNumberOrId: string | number,
-  format: ExportFormat = "html"
+  format: ExportFormat = "html",
+  templateSetId?: string
 ): string {
   const base = API_BASE_URL.replace(/\/$/, "");
+  const query = new URLSearchParams({ format });
+  if (templateSetId) {
+    query.set("template_set_id", templateSetId);
+  }
   return `${base}/branches/${encodeURIComponent(branchId)}/versions/${encodeURIComponent(
     String(versionNumberOrId)
-  )}/export?format=${encodeURIComponent(format)}`;
+  )}/export?${query.toString()}`;
 }
 
 /**
