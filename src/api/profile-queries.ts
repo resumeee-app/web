@@ -9,18 +9,18 @@ import { api } from "./client";
 import type { components } from "./schema";
 
 /**
- * Canonical TanStack Query cache key for the full Master Profile career graph snapshot.
+ * Canonical TanStack Query cache key for the full Main Profile career graph snapshot.
  */
 export const PROFILE_FULL_QUERY_KEY = ["profile", "full"] as const;
 
 /**
- * Hook to retrieve the complete master profile career graph snapshot via GET /profile/full.
+ * Hook to retrieve the complete main profile career graph snapshot via GET /profile/full.
  * Returns profile contact info, skills, experiences, projects, education, certifications, and facts.
  *
- * @returns TanStack UseQueryResult wrapping MasterProfileSnapshot
+ * @returns TanStack UseQueryResult wrapping MainProfileSnapshot
  */
 export function useFullProfile(): UseQueryResult<
-  components["schemas"]["MasterProfileSnapshot"],
+  components["schemas"]["MainProfileSnapshot"],
   Error
 > {
   return useQuery({
@@ -30,7 +30,7 @@ export function useFullProfile(): UseQueryResult<
       if (error || !data) {
         throw new Error(
           (error as { error?: { message?: string } })?.error?.message ||
-            "Failed to fetch master profile graph"
+            "Failed to fetch main profile graph"
         );
       }
       return data;
@@ -39,15 +39,15 @@ export function useFullProfile(): UseQueryResult<
 }
 
 /**
- * Mutation context for optimistic updates on MasterProfileSnapshot.
+ * Mutation context for optimistic updates on MainProfileSnapshot.
  */
 interface ProfileMutationContext {
-  previousSnapshot?: components["schemas"]["MasterProfileSnapshot"];
+  previousSnapshot?: components["schemas"]["MainProfileSnapshot"];
 }
 
 /**
  * Hook to update core profile contact and identity details via PUT /profile.
- * Optimistically updates the cached MasterProfileSnapshot in TanStack Query for immediate UI feedback.
+ * Optimistically updates the cached MainProfileSnapshot in TanStack Query for immediate UI feedback.
  *
  * @returns TanStack UseMutationResult for updating profile
  */
@@ -75,12 +75,12 @@ export function useUpdateProfile(): UseMutationResult<
     onMutate: async (newProfile) => {
       await queryClient.cancelQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
       const previousSnapshot =
-        queryClient.getQueryData<components["schemas"]["MasterProfileSnapshot"]>(
+        queryClient.getQueryData<components["schemas"]["MainProfileSnapshot"]>(
           PROFILE_FULL_QUERY_KEY
         );
 
       if (previousSnapshot) {
-        queryClient.setQueryData<components["schemas"]["MasterProfileSnapshot"]>(
+        queryClient.setQueryData<components["schemas"]["MainProfileSnapshot"]>(
           PROFILE_FULL_QUERY_KEY,
           {
             ...previousSnapshot,
@@ -914,13 +914,13 @@ export function useParsePDFResume(): UseMutationResult<
 }
 
 /**
- * Hook to commit a reviewed candidate JSON Resume into the Master Profile via POST /profile/pdf/commit.
- * Ingests the candidate resume graph, updates the Master Profile snapshot, and invalidates TanStack Query cache.
+ * Hook to commit a reviewed candidate JSON Resume into the Main Profile via POST /profile/pdf/commit.
+ * Ingests the candidate resume graph, updates the Main Profile snapshot, and invalidates TanStack Query cache.
  *
  * @returns TanStack UseMutationResult for committing candidate resume
  */
 export function useCommitPDFResume(): UseMutationResult<
-  components["schemas"]["MasterProfileSnapshot"],
+  components["schemas"]["MainProfileSnapshot"],
   Error,
   JSONResume
 > {
@@ -935,7 +935,7 @@ export function useCommitPDFResume(): UseMutationResult<
       if (error || !data) {
         throw new Error(
           (error as { error?: { message?: string } })?.error?.message ||
-            "Failed to commit parsed resume into master profile"
+            "Failed to commit parsed resume into main profile"
         );
       }
 

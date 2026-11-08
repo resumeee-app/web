@@ -15,7 +15,7 @@ import type { Branch, Preset, TemplateSet } from "@/api/branch-queries";
 import type { components } from "@/api/schema";
 
 describe("WorkflowGuide Component", () => {
-  const mockProfileComplete: components["schemas"]["MasterProfileSnapshot"] = {
+  const mockProfileComplete: components["schemas"]["MainProfileSnapshot"] = {
     profile: {
       id: "p1",
       user_id: "u1",
@@ -23,11 +23,11 @@ describe("WorkflowGuide Component", () => {
       headline: "Senior Cloud Architect",
       default_provider: "gemini",
       default_model: "gemini-3.8-flash",
-      master_revision: 3,
+      main_revision: 3,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
     },
-    master_revision: 3,
+    main_revision: 3,
     experiences: [
       {
         id: "e1",
@@ -56,7 +56,7 @@ describe("WorkflowGuide Component", () => {
     {
       id: "b-default",
       user_id: "u1",
-      name: "Master Profile (Default)",
+      name: "Main Profile (Default)",
       template_set_id: "tmpl-clean",
       is_default: true,
     },
@@ -118,7 +118,7 @@ describe("WorkflowGuide Component", () => {
     ).toBeInTheDocument();
 
     // 3 pillars
-    expect(screen.getByText(/master career graph/i)).toBeInTheDocument();
+    expect(screen.getByText(/main career graph/i)).toBeInTheDocument();
     expect(screen.getByText(/targeting presets & templates/i)).toBeInTheDocument();
     expect(screen.getByText(/branch, tailor & verify/i)).toBeInTheDocument();
 
@@ -137,7 +137,7 @@ describe("WorkflowGuide Component", () => {
   });
 
   it("calculates partial readiness when profile data and branches are incomplete", () => {
-    const incompleteProfile: components["schemas"]["MasterProfileSnapshot"] = {
+    const incompleteProfile: components["schemas"]["MainProfileSnapshot"] = {
       profile: {
         id: "p1",
         user_id: "u1",
@@ -145,11 +145,11 @@ describe("WorkflowGuide Component", () => {
         headline: "",
         default_provider: "gemini",
         default_model: "gemini-3.8-flash",
-        master_revision: 1,
+        main_revision: 1,
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-01T00:00:00Z",
       },
-      master_revision: 1,
+      main_revision: 1,
       experiences: [],
       skills: [],
       projects: [],
@@ -218,7 +218,7 @@ describe("WorkflowGuide Component", () => {
     );
 
     // Initial state: expanded
-    expect(screen.getByText(/master career graph/i)).toBeInTheDocument();
+    expect(screen.getByText(/main career graph/i)).toBeInTheDocument();
     const toggleButton = screen.getByRole("button", { name: /hide guide/i });
     expect(toggleButton).toHaveAttribute("aria-expanded", "true");
 
@@ -226,7 +226,7 @@ describe("WorkflowGuide Component", () => {
     await user.click(toggleButton);
 
     expect(localStorage.getItem("resumeee_hide_workflow_guide")).toBe("true");
-    expect(screen.queryByText(/master career graph/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/main career graph/i)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /show guide/i })).toHaveAttribute(
       "aria-expanded",
       "false"
@@ -239,13 +239,13 @@ describe("WorkflowGuide Component", () => {
       </MemoryRouter>
     );
 
-    expect(screen.queryByText(/master career graph/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/main career graph/i)).not.toBeInTheDocument();
     const expandButton = screen.getByRole("button", { name: /show guide/i });
 
     // Click to expand again
     await user.click(expandButton);
     expect(localStorage.getItem("resumeee_hide_workflow_guide")).toBe("false");
-    expect(screen.getByText(/master career graph/i)).toBeInTheDocument();
+    expect(screen.getByText(/main career graph/i)).toBeInTheDocument();
   });
 
   it("gracefully toggles state and renders when localStorage.setItem throws an error", async () => {
@@ -261,14 +261,14 @@ describe("WorkflowGuide Component", () => {
     );
 
     // Initial state: expanded
-    expect(screen.getByText(/master career graph/i)).toBeInTheDocument();
+    expect(screen.getByText(/main career graph/i)).toBeInTheDocument();
     const toggleButton = screen.getByRole("button", { name: /hide guide/i });
     expect(toggleButton).toHaveAttribute("aria-expanded", "true");
 
     // Click to collapse should update UI without throwing
     await user.click(toggleButton);
 
-    expect(screen.queryByText(/master career graph/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/main career graph/i)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /show guide/i })).toHaveAttribute(
       "aria-expanded",
       "false"

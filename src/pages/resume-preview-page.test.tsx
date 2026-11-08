@@ -136,8 +136,8 @@ describe("ResumePreviewPage Component", () => {
     status: "completed",
   };
 
-  const mockMasterProfile: renderQueries.MasterProfileSnapshot = {
-    master_revision: 2,
+  const mockMainProfile: renderQueries.MainProfileSnapshot = {
+    main_revision: 2,
     exported_at: "2026-11-01T00:00:00Z",
     profile: {
       id: "p-1",
@@ -147,7 +147,7 @@ describe("ResumePreviewPage Component", () => {
       summary: "General software engineer.",
       default_provider: "anthropic",
       default_model: "claude-3-5-sonnet-20241022",
-      master_revision: 2,
+      main_revision: 2,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
     },
@@ -212,8 +212,8 @@ describe("ResumePreviewPage Component", () => {
     );
 
     vi.mocked(renderQueries.useFullProfile).mockReturnValue(
-      mockQueryResult<renderQueries.MasterProfileSnapshot>({
-        data: mockMasterProfile,
+      mockQueryResult<renderQueries.MainProfileSnapshot>({
+        data: mockMainProfile,
         isLoading: false,
         isError: false,
       })
@@ -383,20 +383,20 @@ describe("ResumePreviewPage Component", () => {
     expect(screen.queryByRole("button", { name: /copy plain text/i })).not.toBeInTheDocument();
   });
 
-  it("safely handles Tailoring Diff tab for master profile branch without crashing", () => {
-    const masterBranch: renderQueries.Branch = {
-      id: "b-master",
+  it("safely handles Tailoring Diff tab for main profile branch without crashing", () => {
+    const mainBranch: renderQueries.Branch = {
+      id: "b-main",
       user_id: "u-1",
-      name: "Master Profile (Default)",
+      name: "Main Profile (Default)",
       target_role: "",
       target_company: "",
       template_set_id: "tmpl-1",
-      active_version_id: "v-master",
+      active_version_id: "v-main",
     };
 
-    const masterVersion: renderQueries.BranchVersion = {
-      id: "v-master",
-      branch_id: "b-master",
+    const mainVersion: renderQueries.BranchVersion = {
+      id: "v-main",
+      branch_id: "b-main",
       version_number: 1,
       status: "completed",
       source_type: "manual_edit",
@@ -410,17 +410,17 @@ describe("ResumePreviewPage Component", () => {
     };
 
     vi.mocked(renderQueries.useBranch).mockReturnValue(
-      mockQueryResult<renderQueries.Branch>({ data: masterBranch })
+      mockQueryResult<renderQueries.Branch>({ data: mainBranch })
     );
     vi.mocked(renderQueries.useBranchVersions).mockReturnValue(
-      mockQueryResult<renderQueries.BranchVersion[]>({ data: [masterVersion] })
+      mockQueryResult<renderQueries.BranchVersion[]>({ data: [mainVersion] })
     );
     vi.mocked(renderQueries.useBranchVersion).mockReturnValue(
-      mockQueryResult<renderQueries.BranchVersion>({ data: masterVersion })
+      mockQueryResult<renderQueries.BranchVersion>({ data: mainVersion })
     );
 
     render(<ResumePreviewPage />, {
-      wrapper: createTestWrapper(["/branches/b-master/preview?tab=diff"]),
+      wrapper: createTestWrapper(["/branches/b-main/preview?tab=diff"]),
     });
 
     expect(

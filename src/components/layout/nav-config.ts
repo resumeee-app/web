@@ -33,7 +33,7 @@ export const mainNavItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: "Master Profile",
+    title: "Main Profile",
     href: "/profile",
     icon: User,
   },

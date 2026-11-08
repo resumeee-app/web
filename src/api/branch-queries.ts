@@ -64,7 +64,7 @@ export type CreateBranchInput = {
  * - `active`: Branch is ready, tailored, or default un-tailored.
  * - `tailoring`: Asynchronous LLM tailoring job is in progress.
  * - `error`: Tailoring or synchronization failed.
- * - `stale`: Branch is out of sync with the latest master profile revision.
+ * - `stale`: Branch is out of sync with the latest main profile revision.
  * - `needs_sync`: Alias for stale status.
  */
 export type BranchStatus = "active" | "tailoring" | "error" | "stale" | "needs_sync";
@@ -98,7 +98,7 @@ export function isDefaultBranch(branch: Branch): boolean {
   if (branch.id && branch.id.startsWith("branch-default-")) {
     return true;
   }
-  if (branch.name && branch.name === "Master Profile (Default)") {
+  if (branch.name && branch.name === "Main Profile (Default)") {
     return true;
   }
   return false;
@@ -135,7 +135,7 @@ export function getBranchStatus(branch: Branch): BranchStatus {
 
 /**
  * Formats the active version state for branch display:
- * - Default branch displays "Untailored" (mirrors master profile without LLM tailoring).
+ * - Default branch displays "Untailored" (mirrors main profile without LLM tailoring).
  * - Custom tailored branch with active version displays "v<N> (Active)".
  * - Custom branch without an active version displays "Not tailored yet".
  */

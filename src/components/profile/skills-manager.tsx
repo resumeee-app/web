@@ -92,7 +92,7 @@ type UsageFilter = "all" | "attached" | "unattached";
 type OriginFilter = "all" | "custom" | "global";
 
 /**
- * Enhanced SkillsManager component for the Master Profile and Career Graph.
+ * Enhanced SkillsManager component for the Main Profile and Career Graph.
  *
  * Implements:
  * - Clear Career Graph context explaining the role of skills as evidence anchors.

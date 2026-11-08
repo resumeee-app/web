@@ -20,7 +20,7 @@ function renderRootLayout(initialRoute = "/", customQueryClient?: QueryClient) {
           <Routes>
             <Route path="/" element={<RootLayout />}>
               <Route index element={<h1>Test Dashboard</h1>} />
-              <Route path="profile" element={<h1>Master Profile</h1>} />
+              <Route path="profile" element={<h1>Main Profile</h1>} />
             </Route>
           </Routes>
         </MemoryRouter>

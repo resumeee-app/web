@@ -50,7 +50,7 @@ export interface BranchCardProps {
  * Architectural Role:
  * - Highlights the branch title, target role/company, active template, version, and timestamps.
  * - Enforces the Default Branch Invariant: renders a prominent "Default Branch" badge,
- *   displays clarifying text explaining its un-tailored master nature, and suppresses deletion actions.
+ *   displays clarifying text explaining its un-tailored main nature, and suppresses deletion actions.
  * - Communicates tailoring lifecycle state through colored status indicators.
  * - Provides navigation seam to `/branches/:id` (the branch workbench).
  *
@@ -99,7 +99,7 @@ export const BranchCard: React.FC<BranchCardProps> = ({
 
             {isDefault ? (
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Direct Master Profile (Untailored) — mirrors canonical master data with zero LLM tailoring.
+                Direct Main Profile (Untailored) — mirrors canonical main data with zero LLM tailoring.
               </p>
             ) : (
               <p className="text-sm text-slate-600 dark:text-slate-300">

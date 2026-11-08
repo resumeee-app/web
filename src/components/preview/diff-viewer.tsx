@@ -3,12 +3,12 @@
  * @description Visual Tailored Diff Viewer component.
  *
  * Compares an active tailored branch version against either:
- * 1. The Master Career Profile snapshot (comparing tailored bullets to raw career facts and base skills).
+ * 1. The Main Career Profile snapshot (comparing tailored bullets to raw career facts and base skills).
  * 2. A historical previous version (v1, v2, etc.).
  *
  * Visual Highlighting & ATS Semantics:
  * - Green additions for tailored bullet points (`data-diff-type="addition"`).
- * - Struck-through deletions for omitted master career facts (`data-diff-type="deletion"`).
+ * - Struck-through deletions for omitted main career facts (`data-diff-type="deletion"`).
  * - Blue pill badges for targeted and prioritized skills (`data-skill-badge="highlighted"`).
  * - Side-by-side comparison for headline and professional summary.
  *
@@ -22,7 +22,7 @@
 
 import * as React from "react";
 import { GitCompare, PlusCircle, MinusCircle, Sparkles, Check, Info } from "lucide-react";
-import type { BranchVersion, MasterProfileSnapshot } from "@/api/render-queries";
+import type { BranchVersion, MainProfileSnapshot } from "@/api/render-queries";
 
 /**
  * Configuration props for the DiffViewer component.
@@ -30,8 +30,8 @@ import type { BranchVersion, MasterProfileSnapshot } from "@/api/render-queries"
 export interface DiffViewerProps {
   /** Active tailored branch version containing tailored_content to inspect */
   currentVersion?: BranchVersion;
-  /** Full master profile snapshot used as the primary baseline for career facts */
-  masterProfile?: MasterProfileSnapshot | null;
+  /** Full main profile snapshot used as the primary baseline for career facts */
+  mainProfile?: MainProfileSnapshot | null;
   /** Array of all historical versions for the branch (to compare against prior versions) */
   previousVersions?: BranchVersion[];
   /** Optional additional CSS class names */
@@ -66,18 +66,18 @@ function getExperienceBullets(exp: unknown): unknown[] {
 }
 
 /**
- * DiffViewer component providing visual comparison between tailored versions and master profile.
+ * DiffViewer component providing visual comparison between tailored versions and main profile.
  *
  * @param props - Component configuration props.
  * @returns Accessible visual diff viewer with additions, omissions, and skill highlights.
  */
 export const DiffViewer: React.FC<DiffViewerProps> = ({
   currentVersion,
-  masterProfile,
+  mainProfile,
   previousVersions = [],
   className = "",
 }) => {
-  const [baselineId, setBaselineId] = React.useState<string>("master");
+  const [baselineId, setBaselineId] = React.useState<string>("main");
 
   const tailored = currentVersion?.tailored_content;
 
@@ -104,16 +104,16 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
     (v) => v && v.id !== currentVersion?.id && v.status === "completed" && v.tailored_content
   );
 
-  const isComparingMaster = baselineId === "master";
+  const isComparingMain = baselineId === "main";
   const baselineVersion = candidateVersions.find((v) => v.id === baselineId);
 
   // Extract baseline headline & summary
-  const baselineHeadline = isComparingMaster
-    ? masterProfile?.profile?.headline || ""
+  const baselineHeadline = isComparingMain
+    ? mainProfile?.profile?.headline || ""
     : baselineVersion?.tailored_content?.headline || "";
 
-  const baselineSummary = isComparingMaster
-    ? masterProfile?.profile?.summary || ""
+  const baselineSummary = isComparingMain
+    ? mainProfile?.profile?.summary || ""
     : baselineVersion?.tailored_content?.summary || "";
 
   // Defensively extract skill groups
@@ -122,9 +122,9 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   // Defensively extract experiences
   const experiences = tailored.experiences ?? [];
 
-  const isMasterProjection =
+  const isMainProjection =
     Boolean(typeof currentVersion?.id === "string" && currentVersion.id.startsWith("ver-default-")) ||
-    (currentVersion as { source_type?: string })?.source_type === "master_profile";
+    (currentVersion as { source_type?: string })?.source_type === "main_profile";
 
   return (
     <div
@@ -132,17 +132,17 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       aria-label="Tailored resume diff viewer"
       className={`flex flex-col gap-6 ${className}`}
     >
-      {/* Informational banner when viewing Master Profile direct projection */}
-      {isMasterProjection && (
+      {/* Informational banner when viewing Main Profile direct projection */}
+      {isMainProjection && (
         <div
           role="note"
-          aria-label="Master Profile Direct Projection Note"
+          aria-label="Main Profile Direct Projection Note"
           className="flex items-start gap-3 p-3.5 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-900 dark:text-blue-200"
         >
           <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" aria-hidden="true" />
           <div>
-            <span className="font-semibold">Master Profile Direct Projection:</span> This version
-            mirrors your canonical master profile facts with 100% fidelity. All statements below reflect
+            <span className="font-semibold">Main Profile Direct Projection:</span> This version
+            mirrors your canonical main profile facts with 100% fidelity. All statements below reflect
             canonical facts without LLM modifications.
           </div>
         </div>
@@ -168,7 +168,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
             onChange={(e) => setBaselineId(e.target.value)}
             className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
-            <option value="master">Master Career Profile</option>
+            <option value="main">Main Career Profile</option>
             {candidateVersions.map((v) => (
               <option key={v.id} value={v.id}>
                 Version v{v.version_number} ({v.id.slice(0, 8)})
@@ -188,7 +188,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           {/* Baseline Column */}
           <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-md">
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase block mb-1">
-              Baseline ({isComparingMaster ? "Master Profile" : `v${baselineVersion?.version_number}`})
+              Baseline ({isComparingMain ? "Main Profile" : `v${baselineVersion?.version_number}`})
             </span>
             <p className="text-sm font-medium text-slate-800 dark:text-slate-200 mb-2">
               {baselineHeadline || "No headline set"}
@@ -256,8 +256,8 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         ) : (
           <div className="space-y-6">
             {experiences.map((exp) => {
-              // Find baseline master experience or baseline version experience
-              const masterExp = masterProfile?.experiences?.find(
+              // Find baseline main experience or baseline version experience
+              const mainExp = mainProfile?.experiences?.find(
                 (m) => m && (m.id === exp.source_entity_id || m.company === exp.company)
               );
               const baselineVersionExp = baselineVersion?.tailored_content?.experiences?.find(
@@ -265,19 +265,19 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               );
 
               // Collect baseline statements defensively
-              const masterFacts =
-                masterExp?.facts ??
-                masterProfile?.facts?.filter(
+              const mainFacts =
+                mainExp?.facts ??
+                mainProfile?.facts?.filter(
                   (f) =>
                     f &&
-                    (f.owner_id === exp.source_entity_id || (masterExp?.id && f.owner_id === masterExp.id))
+                    (f.owner_id === exp.source_entity_id || (mainExp?.id && f.owner_id === mainExp.id))
                 ) ??
                 [];
 
               const baselineBulletsList = getExperienceBullets(baselineVersionExp);
 
-              const baselineStatements: string[] = isComparingMaster
-                ? masterFacts.map((f) => f.statement || "")
+              const baselineStatements: string[] = isComparingMain
+                ? mainFacts.map((f) => f.statement || "")
                 : baselineBulletsList.map(extractBulletText).filter(Boolean);
 
               // Bullets in current tailored version (handling both bullet_points and bullets)

@@ -18,7 +18,7 @@ vi.mock("@/api/client", () => ({
   },
 }));
 
-const mockFullSnapshot: components["schemas"]["MasterProfileSnapshot"] = {
+const mockFullSnapshot: components["schemas"]["MainProfileSnapshot"] = {
   profile: {
     id: "profile-1",
     user_id: "user-1",
@@ -33,9 +33,9 @@ const mockFullSnapshot: components["schemas"]["MasterProfileSnapshot"] = {
     ],
     default_provider: "gemini",
     default_model: "gemini-3.8-flash",
-    master_revision: 2,
+    main_revision: 2,
   },
-  master_revision: 2,
+  main_revision: 2,
   skills: [
     {
       id: "skill-11111111-2222-3333-4444-555555555555",
@@ -100,7 +100,7 @@ const mockFullSnapshot: components["schemas"]["MasterProfileSnapshot"] = {
   exported_at: "2026-11-01T00:00:00Z",
 };
 
-function renderProfilePage(snapshot?: components["schemas"]["MasterProfileSnapshot"]) {
+function renderProfilePage(snapshot?: components["schemas"]["MainProfileSnapshot"]) {
   if (snapshot) {
     vi.mocked(api.GET).mockResolvedValueOnce({
       data: snapshot,
@@ -134,14 +134,14 @@ describe("ProfilePage", () => {
     } as unknown as Awaited<ReturnType<typeof api.GET>>);
   });
 
-  it("renders master profile page heading and loaded contact data", async () => {
+  it("renders main profile page heading and loaded contact data", async () => {
     renderProfilePage();
 
     await waitFor(() => {
       expect(
         screen.getByRole("heading", {
           level: 1,
-          name: /Master Profile & Career Graph/i,
+          name: /Main Profile & Career Graph/i,
         })
       ).toBeInTheDocument();
     });
@@ -397,7 +397,7 @@ describe("ProfilePage", () => {
     await user.click(moveDownBtn);
 
     // Query cache should be updated with new order
-    const cachedData = queryClient.getQueryData<components["schemas"]["MasterProfileSnapshot"]>(
+    const cachedData = queryClient.getQueryData<components["schemas"]["MainProfileSnapshot"]>(
       PROFILE_FULL_QUERY_KEY
     );
     expect(cachedData?.experiences?.[0]?.id).toBe(
@@ -567,7 +567,7 @@ describe("ProfilePage", () => {
 
   it("renders onboarding callout when career graph is empty and allows opening PDF import dialog", async () => {
     const user = userEvent.setup();
-    const emptySnapshot: components["schemas"]["MasterProfileSnapshot"] = {
+    const emptySnapshot: components["schemas"]["MainProfileSnapshot"] = {
       profile: {
         id: "profile-new",
         user_id: "user-new",
@@ -575,9 +575,9 @@ describe("ProfilePage", () => {
         headline: "",
         default_provider: "gemini",
         default_model: "gemini-3.8-flash",
-        master_revision: 0,
+        main_revision: 0,
       },
-      master_revision: 0,
+      main_revision: 0,
       skills: [],
       experiences: [],
       projects: [],
@@ -591,7 +591,7 @@ describe("ProfilePage", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/kickstart your master profile/i)
+        screen.getByText(/kickstart your main profile/i)
       ).toBeInTheDocument();
     });
 
@@ -622,7 +622,7 @@ describe("ProfilePage", () => {
 
     expect(screen.getByText("Unsaved Changes")).toBeInTheDocument();
 
-    const mockCommittedProfile: components["schemas"]["MasterProfileSnapshot"] = {
+    const mockCommittedProfile: components["schemas"]["MainProfileSnapshot"] = {
       ...mockFullSnapshot,
       profile: {
         ...mockFullSnapshot.profile,
@@ -680,7 +680,7 @@ describe("ProfilePage", () => {
     });
 
     // Commit
-    await user.click(screen.getByRole("button", { name: /commit to master profile/i }));
+    await user.click(screen.getByRole("button", { name: /commit to main profile/i }));
 
     // Verify dialog closes and contact draft is updated to committed profile and not dirty
     await waitFor(() => {

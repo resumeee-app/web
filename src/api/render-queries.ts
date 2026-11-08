@@ -6,7 +6,7 @@
  * - Branch details and active version tracking (`/branches/{id}`).
  * - Branch version history listing (`/branches/{id}/versions`).
  * - Full version records with rendered HTML/Markdown/Text outputs (`/branches/{id}/versions/{v}`).
- * - Master profile career snapshot for tailoring baseline diffs (`/profile/full`).
+ * - Main profile career snapshot for tailoring baseline diffs (`/profile/full`).
  * - Pre-rendered artifact export URL construction (`/branches/{id}/versions/{v}/export`).
  *
  * Architectural Role:
@@ -35,9 +35,9 @@ export type BranchVersion = components["schemas"]["BranchVersion"];
 export type RenderOutput = components["schemas"]["RenderOutput"];
 
 /**
- * Complete Master Profile career graph snapshot including skills, experiences, projects, and facts.
+ * Complete Main Profile career graph snapshot including skills, experiences, projects, and facts.
  */
-export type MasterProfileSnapshot = components["schemas"]["MasterProfileSnapshot"];
+export type MainProfileSnapshot = components["schemas"]["MainProfileSnapshot"];
 
 /**
  * Query key factories for predictable TanStack Query caching and cache invalidation.
@@ -57,8 +57,8 @@ export const renderQueryKeys = {
     templateSetId
       ? (["render", "branch", branchId, "preview", versionId, templateSetId] as const)
       : (["render", "branch", branchId, "preview", versionId] as const),
-  /** Cache key for the root master profile career snapshot */
-  masterProfile: () => ["render", "masterProfile"] as const,
+  /** Cache key for the root main profile career snapshot */
+  mainProfile: () => ["render", "mainProfile"] as const,
 };
 
 /**
@@ -188,22 +188,22 @@ export function useBranchVersion(
 }
 
 /**
- * Query hook fetching the complete Master Profile career graph snapshot.
+ * Query hook fetching the complete Main Profile career graph snapshot.
  *
- * Used as the primary baseline for visual tailoring diffs against master facts.
+ * Used as the primary baseline for visual tailoring diffs against main facts.
  *
- * @returns UseQueryResult containing the MasterProfileSnapshot record.
+ * @returns UseQueryResult containing the MainProfileSnapshot record.
  */
-export function useFullProfile(): UseQueryResult<MasterProfileSnapshot, Error> {
+export function useFullProfile(): UseQueryResult<MainProfileSnapshot, Error> {
   return useQuery({
-    queryKey: renderQueryKeys.masterProfile(),
+    queryKey: renderQueryKeys.mainProfile(),
     queryFn: async () => {
       const { data, error } = await api.GET("/profile/full", {});
       if (error || !data) {
         const errorMsg =
           typeof error === "object" && error !== null && "message" in error
             ? String((error as { message?: string }).message)
-            : "Failed to load master profile snapshot";
+            : "Failed to load main profile snapshot";
         throw new Error(errorMsg);
       }
       return data;

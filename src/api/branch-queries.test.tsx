@@ -60,7 +60,7 @@ describe("branch-queries and domain logic", () => {
       const defaultBranch: Branch = {
         id: "branch-default-user123",
         user_id: "user123",
-        name: "Master Variant",
+        name: "Main Variant",
         template_set_id: "tmpl-1",
       };
       expect(isDefaultBranch(defaultBranch)).toBe(true);
@@ -70,7 +70,7 @@ describe("branch-queries and domain logic", () => {
       const defaultBranch: Branch = {
         id: "any-id",
         user_id: "user123",
-        name: "Master Profile (Default)",
+        name: "Main Profile (Default)",
         template_set_id: "tmpl-1",
       };
       expect(isDefaultBranch(defaultBranch)).toBe(true);
@@ -181,7 +181,7 @@ describe("branch-queries and domain logic", () => {
       const branch: Branch = {
         id: "branch-default-u1",
         user_id: "u-1",
-        name: "Master Profile (Default)",
+        name: "Main Profile (Default)",
         template_set_id: "tmpl-1",
         is_default: true,
         active_version_id: "v1",
@@ -253,7 +253,7 @@ describe("branch-queries and domain logic", () => {
         {
           id: "branch-default-u1",
           user_id: "u1",
-          name: "Master Profile (Default)",
+          name: "Main Profile (Default)",
           template_set_id: "tmpl-clean",
           is_default: true,
         },
@@ -325,7 +325,7 @@ describe("branch-queries and domain logic", () => {
         {
           id: "branch-default-u1",
           user_id: "u1",
-          name: "Master Profile (Default)",
+          name: "Main Profile (Default)",
           template_set_id: "tmpl-standard",
           is_default: true,
         },
@@ -391,7 +391,7 @@ describe("branch-queries and domain logic", () => {
         {
           id: "branch-default-u1",
           user_id: "u1",
-          name: "Master Profile (Default)",
+          name: "Main Profile (Default)",
           template_set_id: "tmpl-standard",
           is_default: true,
         },
@@ -431,7 +431,7 @@ describe("branch-queries and domain logic", () => {
       const defaultBranch: Branch = {
         id: "branch-default-u1",
         user_id: "u1",
-        name: "Master Profile (Default)",
+        name: "Main Profile (Default)",
         template_set_id: "tmpl-clean",
         is_default: true,
       };

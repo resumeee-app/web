@@ -87,7 +87,7 @@ const RouterBlocker: React.FC<RouterBlockerProps> = ({ when, onBlocked }) => {
 };
 
 /**
- * Master Profile & Career Graph Editor Page.
+ * Main Profile & Career Graph Editor Page.
  *
  * Serves as the primary client-side SPA view for managing the single source of truth (canonical career graph)
  * from which all tailored resumes branch.
@@ -208,7 +208,7 @@ export const ProfilePage: React.FC = () => {
         profiles: contactDraft.links,
       });
       setIsDirty(false);
-      announce("Master profile updated successfully.");
+      announce("Main profile updated successfully.");
     } catch {
       announce("Failed to save profile changes. Please try again.");
     }
@@ -259,7 +259,7 @@ export const ProfilePage: React.FC = () => {
         aria-live="polite"
       >
         <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
-          Loading master profile career graph...
+          Loading main profile career graph...
         </span>
       </div>
     );
@@ -272,7 +272,7 @@ export const ProfilePage: React.FC = () => {
         role="alert"
       >
         <h2 className="text-base font-semibold text-red-800 dark:text-red-200">
-          Error loading master profile
+          Error loading main profile
         </h2>
         <p className="mt-1 text-sm text-red-600 dark:text-red-400">
           {error?.message || "Unable to reach API server. Please retry later."}
@@ -298,7 +298,7 @@ export const ProfilePage: React.FC = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <PageHeader
-          title="Master Profile & Career Graph"
+          title="Main Profile & Career Graph"
           description="Single-source-of-truth career records, skills, and quantifiable achievements."
           icon={User}
           badge={
@@ -347,7 +347,7 @@ export const ProfilePage: React.FC = () => {
         <div className="rounded-lg border border-indigo-200 dark:border-indigo-900 bg-indigo-50/60 dark:bg-indigo-950/40 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-base font-semibold text-indigo-900 dark:text-indigo-200">
-              Kickstart Your Master Profile
+              Kickstart Your Main Profile
             </h2>
             <p className="text-sm text-indigo-700 dark:text-indigo-300">
               Upload an existing PDF resume to automatically populate your career history, skills,
@@ -413,7 +413,7 @@ export const ProfilePage: React.FC = () => {
             experiences={snapshot.experiences || []}
             availableSkills={snapshot.skills || []}
             onReorder={(reordered) => {
-              queryClient.setQueryData<components["schemas"]["MasterProfileSnapshot"]>(
+              queryClient.setQueryData<components["schemas"]["MainProfileSnapshot"]>(
                 PROFILE_FULL_QUERY_KEY,
                 (old) => (old ? { ...old, experiences: reordered } : old)
               );
@@ -555,7 +555,7 @@ export const ProfilePage: React.FC = () => {
               links: newSnapshot.profile.profiles,
             });
           }
-          announce("Master profile updated with imported PDF resume.");
+          announce("Main profile updated with imported PDF resume.");
         }}
         onAnnouncement={announce}
       />

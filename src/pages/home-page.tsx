@@ -5,12 +5,12 @@
  * Architectural Role:
  * - Serves as the root index route (`/`) defined in {@link router}.
  * - Aggregates and surfaces live metrics across core domains:
- *   - Master Profile career graph (work experiences, skills, education, projects, certs)
+ *   - Main Profile career graph (work experiences, skills, education, projects, certs)
  *   - Tailored Resume Branches (active branches, default branch, recent variants)
  *   - Built-in & Custom ATS Templates catalog
  *   - AI Tailoring Presets catalog
  * - Eliminates dead links and outdated placeholders by connecting all actions to real routes:
- *   - `/profile` (Master Profile editor)
+ *   - `/profile` (Main Profile editor)
  *   - `/branches` (Branches catalog)
  *   - `/branches/:id` (Branch Workbench)
  *   - `/branches/:id/preview` (Resume Preview & Export)
@@ -179,7 +179,7 @@ export const HomePage: React.FC = () => {
   const activeErrors = useMemo(() => {
     const list: string[] = [];
     if (branchesError?.message) list.push(`Branches: ${branchesError.message}`);
-    if (profileError?.message) list.push(`Master Profile: ${profileError.message}`);
+    if (profileError?.message) list.push(`Main Profile: ${profileError.message}`);
     if (templatesError?.message) list.push(`Templates: ${templatesError.message}`);
     if (presetsError?.message) list.push(`Presets: ${presetsError.message}`);
     return list;
@@ -204,7 +204,7 @@ export const HomePage: React.FC = () => {
   const projectsCount = profileSnapshot?.projects?.length ?? 0;
   const educationCount = profileSnapshot?.education?.length ?? 0;
   const certificationsCount = profileSnapshot?.certifications?.length ?? 0;
-  const masterRevision = profileSnapshot?.master_revision ?? 1;
+  const mainRevision = profileSnapshot?.main_revision ?? 1;
 
   const profileFullName = profile?.full_name?.trim() || "";
 
@@ -228,7 +228,7 @@ export const HomePage: React.FC = () => {
             <Button variant="outline" asChild>
               <Link to="/profile" className="flex items-center space-x-2">
                 <User className="h-4 w-4" aria-hidden="true" />
-                <span>Master Profile</span>
+                <span>Main Profile</span>
               </Link>
             </Button>
           </>
@@ -260,30 +260,30 @@ export const HomePage: React.FC = () => {
         </h2>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Card 1: Master Profile Health */}
+          {/* Card 1: Main Profile Health */}
           <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Master Profile
+                    Main Profile
                   </span>
                 </div>
                 <span className="inline-flex items-center rounded-md bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-700/10 dark:ring-indigo-700/30">
-                  Rev #{masterRevision}
+                  Rev #{mainRevision}
                 </span>
               </div>
 
               {isProfileLoading ? (
-                <div role="status" aria-label="Loading master profile details" className="mt-4 space-y-2 animate-pulse">
+                <div role="status" aria-label="Loading main profile details" className="mt-4 space-y-2 animate-pulse">
                   <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
                   <div className="h-3 bg-slate-100 dark:bg-slate-800/60 rounded w-1/2"></div>
                 </div>
               ) : (
                 <div className="mt-3">
                   <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 truncate">
-                    {profileFullName || "Core Master Profile"}
+                    {profileFullName || "Core Main Profile"}
                   </h3>
                   <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 truncate">
                     {profile?.headline || "Primary career graph & resume foundation"}
@@ -352,7 +352,7 @@ export const HomePage: React.FC = () => {
             icon={GitBranch}
             iconColorClass="text-emerald-600 dark:text-emerald-400"
             count={branches.length}
-            subtext="Tailored job variants & active master line"
+            subtext="Tailored job variants & active main line"
             linkTo="/branches"
             linkLabel="View All Branches"
             testId="metric-total-branches"

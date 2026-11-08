@@ -11,7 +11,7 @@ import { PromptPreviewCard } from "./prompt-preview-card";
 const mockBranch: Branch = {
   id: "b-1",
   user_id: "u-1",
-  name: "Master Branch",
+  name: "Main Branch",
   target_role: "Staff Engineer",
   target_company: "Stripe",
   target_requirements: "Go experience",

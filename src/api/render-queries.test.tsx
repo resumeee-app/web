@@ -160,19 +160,19 @@ describe("render-queries API hooks", () => {
   });
 
   describe("useFullProfile", () => {
-    it("fetches full master profile snapshot", async () => {
+    it("fetches full main profile snapshot", async () => {
       const mockSnapshot = {
         profile: {
           id: "p-1",
           user_id: "u-1",
           full_name: "Jane Doe",
-          master_revision: 5,
+          main_revision: 5,
           default_provider: "anthropic",
           default_model: "claude-3-5-sonnet",
           created_at: "2026-01-01T00:00:00Z",
           updated_at: "2026-01-01T00:00:00Z",
         },
-        master_revision: 5,
+        main_revision: 5,
         exported_at: "2026-11-01T00:00:00Z",
         skills: [{ id: "s-1", user_id: "u-1", name: "TypeScript" }],
         experiences: [],

@@ -69,7 +69,7 @@ export interface BranchWorkbenchPageProps {
  * 2. Primary "Tailor Resume" action triggering asynchronous LLM generation (`POST /branches/{id}/generate`).
  * 3. Live polling state machine (`GET /branches/{id}/versions/{v}`) powered by TanStack Query refetchInterval.
  * 4. Double-click prevention by locking the tailoring button during active generation mutations and polling.
- * 5. Upstream master profile sync trigger (`POST /branches/sync`).
+ * 5. Upstream main profile sync trigger (`POST /branches/sync`).
  * 6. Historical version timeline with active version pointer promotion (`PUT /branches/{id}`).
  * 7. LLM gap analysis inspection with ATS match score and recommendations.
  *
@@ -213,18 +213,18 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     }
   };
 
-  const handleSyncMaster = async () => {
+  const handleSyncMain = async () => {
     try {
       const result = await syncMutation.mutateAsync();
       setToast({
         open: true,
-        title: "Master Profile Synced",
+        title: "Main Profile Synced",
         description: `Enqueued ${result.enqueued_count} branch sync jobs.`,
         variant: "success",
       });
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Failed to sync branch with master";
+        err instanceof Error ? err.message : "Failed to sync branch with main profile";
       setToast({
         open: true,
         title: "Sync Error",
@@ -409,7 +409,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         setToast({
           open: true,
           title: "No Career Profile Entity",
-          description: "Please add a work experience or project to your master profile before adding facts.",
+          description: "Please add a work experience or project to your main profile before adding facts.",
           variant: "destructive",
         });
         return;
@@ -424,12 +424,12 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
       setToast({
         open: true,
         title: "Experience Recorded",
-        description: `Recorded "${factText.slice(0, 40)}..." to master profile. Re-tailor to reflect in resume.`,
+        description: `Recorded "${factText.slice(0, 40)}..." to main profile. Re-tailor to reflect in resume.`,
         variant: "success",
       });
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Failed to record fact to master profile";
+        err instanceof Error ? err.message : "Failed to record fact to main profile";
       setToast({
         open: true,
         title: "Failed to Record Experience",
@@ -516,32 +516,32 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
           onUpdatePreset={handleUpdatePreset}
           onUpdateTemplate={handleUpdateTemplate}
           onTailorResume={handleTailorResume}
-          onSyncMaster={handleSyncMaster}
+          onSyncMain={handleSyncMain}
         />
 
         {/* Job Description & Custom Context Editor */}
         {branch.is_default ? (
           <section
-            aria-label="Master Profile Direct Projection"
+            aria-label="Main Profile Direct Projection"
             className="rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/50 dark:bg-indigo-950/30 p-6 shadow-sm text-sm text-indigo-950 dark:text-indigo-200"
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-base font-semibold text-indigo-900 dark:text-indigo-100 mb-1">
-                  Master Profile Direct Projection
+                  Main Profile Direct Projection
                 </h2>
                 <p className="text-xs text-indigo-800 dark:text-indigo-300">
-                  This default branch mirrors your authoritative master career profile with 100% fidelity and zero LLM modifications. Changing the template set re-renders the canonical resume immediately.
+                  This default branch mirrors your authoritative main career profile with 100% fidelity and zero LLM modifications. Changing the template set re-renders the canonical resume immediately.
                 </p>
               </div>
               {hasCompletedVersions ? (
                 <Button asChild size="sm" className="shrink-0 flex items-center gap-1.5">
                   <Link
                     to={`/branches/${branch.id}/preview`}
-                    aria-label="Inspect Master Resume"
+                    aria-label="Inspect Main Resume"
                   >
                     <Eye className="h-4 w-4" aria-hidden="true" />
-                    <span>Inspect Master Resume</span>
+                    <span>Inspect Main Resume</span>
                   </Link>
                 </Button>
               ) : (
@@ -550,10 +550,10 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
                   aria-disabled="true"
                   size="sm"
                   className="shrink-0 flex items-center gap-1.5 cursor-not-allowed opacity-60"
-                  aria-label="Inspect Master Resume (Refresh to generate master version)"
+                  aria-label="Inspect Main Resume (Refresh to generate main version)"
                 >
                   <Eye className="h-4 w-4" aria-hidden="true" />
-                  <span>Inspect Master Resume</span>
+                  <span>Inspect Main Resume</span>
                 </Button>
               )}
             </div>

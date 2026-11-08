@@ -124,7 +124,7 @@ export const BranchesPage: React.FC = () => {
       {/* Page Header Landmark */}
       <PageHeader
         title="Resume Branches"
-        description="Manage tailored resume variants, branching lines, and default master profile settings."
+        description="Manage tailored resume variants, branching lines, and default main profile settings."
         icon={GitBranch}
         actions={
           <Button

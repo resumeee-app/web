@@ -102,7 +102,7 @@ describe("Header and Navigation", () => {
   it("marks active route link correctly", () => {
     renderHeader("/profile");
 
-    const profileLinks = screen.getAllByRole("link", { name: /master profile/i });
+    const profileLinks = screen.getAllByRole("link", { name: /main profile/i });
     expect(profileLinks[0]).toHaveAttribute("aria-current", "page");
 
     const dashboardLinks = screen.getAllByRole("link", { name: /dashboard/i });

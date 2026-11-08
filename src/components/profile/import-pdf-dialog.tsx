@@ -38,7 +38,7 @@ export interface ImportPDFDialogProps {
   /** Callback fired when dialog open state changes */
   onOpenChange: (open: boolean) => void;
   /** Optional callback fired after resume is successfully parsed and committed */
-  onSuccess?: (snapshot?: components["schemas"]["MasterProfileSnapshot"]) => void;
+  onSuccess?: (snapshot?: components["schemas"]["MainProfileSnapshot"]) => void;
   /** Optional callback for announcing accessibility messages to screen readers */
   onAnnouncement?: (message: string) => void;
   /** Optional trigger element to render before the dialog content */
@@ -50,7 +50,7 @@ export interface ImportPDFDialogProps {
 /**
  * ImportPDFDialog provides an accessible, two-stage modal workflow to:
  * 1. Upload a binary PDF resume (<= 10MB) and parse structured fields via LLM.
- * 2. Review and verify candidate career graph fields before committing them to the Master Profile.
+ * 2. Review and verify candidate career graph fields before committing them to the Main Profile.
  *
  * Implements strict WCAG 2.1 AA dual-theme contrast styling, in-flight race cancellation guards,
  * and full WAI-ARIA live region status announcements.
@@ -227,14 +227,14 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
 
     try {
       const snapshot = await commitMutation.mutateAsync(candidateResume);
-      onAnnouncement?.("PDF resume successfully imported into Master Profile.");
+      onAnnouncement?.("PDF resume successfully imported into Main Profile.");
       onSuccess?.(snapshot);
       onOpenChange(false);
     } catch (err) {
       const msg =
         err instanceof Error
           ? err.message
-          : "Failed to commit candidate resume into Master Profile.";
+          : "Failed to commit candidate resume into Main Profile.";
       setValidationError(msg);
       onAnnouncement?.(`Commit failed: ${msg}`);
     }
@@ -319,7 +319,7 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
               <DialogDescription className="text-sm text-slate-600 dark:text-slate-400">
                 Upload an existing PDF resume to automatically parse and extract your career history
                 using an LLM. You can review and approve the details before loading them into your
-                Master Profile.
+                Main Profile.
               </DialogDescription>
             </DialogHeader>
 
@@ -333,7 +333,7 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
                 <strong className="font-semibold">Caution:</strong>{" "}
                 {hasUnsavedChanges
                   ? "You have unsaved contact edits on your profile. Importing a PDF resume will override and replace current drafts with imported records."
-                  : "Importing a PDF resume will update and merge into your current Master Profile career records."}
+                  : "Importing a PDF resume will update and merge into your current Main Profile career records."}
               </div>
             </div>
 
@@ -474,7 +474,7 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
               </div>
               <DialogDescription className="text-sm text-slate-600 dark:text-slate-400">
                 Verify the extracted career graph fields below before committing them into your
-                Master Profile.
+                Main Profile.
               </DialogDescription>
             </DialogHeader>
 
@@ -561,12 +561,12 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
                 {isCommitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                    <span>Committing to Master Profile...</span>
+                    <span>Committing to Main Profile...</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                    <span>Commit to Master Profile</span>
+                    <span>Commit to Main Profile</span>
                   </>
                 )}
               </Button>

@@ -3,11 +3,11 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { DiffViewer } from "./diff-viewer";
-import type { BranchVersion, MasterProfileSnapshot } from "@/api/render-queries";
+import type { BranchVersion, MainProfileSnapshot } from "@/api/render-queries";
 
 describe("DiffViewer Component", () => {
-  const mockMasterProfile: MasterProfileSnapshot = {
-    master_revision: 3,
+  const mockMainProfile: MainProfileSnapshot = {
+    main_revision: 3,
     exported_at: "2026-11-01T00:00:00Z",
     profile: {
       id: "p-1",
@@ -17,7 +17,7 @@ describe("DiffViewer Component", () => {
       summary: "Experienced software engineer working on web backends.",
       default_provider: "anthropic",
       default_model: "claude-3-5-sonnet-20241022",
-      master_revision: 3,
+      main_revision: 3,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-01-01T00:00:00Z",
     },
@@ -134,7 +134,7 @@ describe("DiffViewer Component", () => {
     render(
       <DiffViewer
         currentVersion={mockVersion1}
-        masterProfile={mockMasterProfile}
+        mainProfile={mockMainProfile}
         previousVersions={[mockVersion1]}
       />
     );
@@ -143,11 +143,11 @@ describe("DiffViewer Component", () => {
     expect(screen.getByLabelText(/compare against/i)).toBeInTheDocument();
   });
 
-  it("highlights tailored additions in green and omitted master facts in strikethrough", () => {
+  it("highlights tailored additions in green and omitted main facts in strikethrough", () => {
     render(
       <DiffViewer
         currentVersion={mockVersion1}
-        masterProfile={mockMasterProfile}
+        mainProfile={mockMainProfile}
         previousVersions={[mockVersion1]}
       />
     );
@@ -157,7 +157,7 @@ describe("DiffViewer Component", () => {
     expect(addedBullet).toBeInTheDocument();
     expect(addedBullet.closest("[data-diff-type]")).toHaveAttribute("data-diff-type", "addition");
 
-    // Omitted master facts in struck-through deletion
+    // Omitted main facts in struck-through deletion
     const omittedFact = screen.getByText(/Managed on-call rotation schedules/);
     expect(omittedFact).toBeInTheDocument();
     expect(omittedFact.closest("[data-diff-type]")).toHaveAttribute("data-diff-type", "deletion");
@@ -172,7 +172,7 @@ describe("DiffViewer Component", () => {
     render(
       <DiffViewer
         currentVersion={mockVersion2}
-        masterProfile={mockMasterProfile}
+        mainProfile={mockMainProfile}
         previousVersions={[mockVersion1, mockVersion2]}
       />
     );
@@ -189,11 +189,11 @@ describe("DiffViewer Component", () => {
     expect(unchangedBullet.closest("[data-diff-type]")).toHaveAttribute("data-diff-type", "unchanged");
   });
 
-  it("safely handles master branch version with bullets property instead of bullet_points without crashing", () => {
-    // Master branch version generated from SnapshotToTailoredContent may serialize "bullets"
-    const masterBranchVersion = {
-      id: "v-master",
-      branch_id: "b-master",
+  it("safely handles main branch version with bullets property instead of bullet_points without crashing", () => {
+    // Main branch version generated from SnapshotToTailoredContent may serialize "bullets"
+    const mainBranchVersion = {
+      id: "v-main",
+      branch_id: "b-main",
       version_number: 1,
       status: "completed" as const,
       tailored_content: {
@@ -226,9 +226,9 @@ describe("DiffViewer Component", () => {
 
     render(
       <DiffViewer
-        currentVersion={masterBranchVersion}
-        masterProfile={mockMasterProfile}
-        previousVersions={[masterBranchVersion]}
+        currentVersion={mainBranchVersion}
+        mainProfile={mockMainProfile}
+        previousVersions={[mainBranchVersion]}
       />
     );
 
@@ -236,7 +236,7 @@ describe("DiffViewer Component", () => {
     expect(screen.getByText("Maintained legacy monolithic services.")).toBeInTheDocument();
   });
 
-  it("safely handles missing or undefined arrays on tailored content and master profile", () => {
+  it("safely handles missing or undefined arrays on tailored content and main profile", () => {
     const sparseVersion = {
       id: "v-sparse",
       branch_id: "b-1",
@@ -259,8 +259,8 @@ describe("DiffViewer Component", () => {
       },
     } as unknown as BranchVersion;
 
-    const sparseMasterProfile: MasterProfileSnapshot = {
-      master_revision: 1,
+    const sparseMainProfile: MainProfileSnapshot = {
+      main_revision: 1,
       exported_at: "2026-11-01T00:00:00Z",
       profile: {
         id: "p-sparse",
@@ -270,7 +270,7 @@ describe("DiffViewer Component", () => {
         summary: "",
         default_provider: "anthropic",
         default_model: "claude-3-5-sonnet-20241022",
-        master_revision: 1,
+        main_revision: 1,
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-01T00:00:00Z",
       },
@@ -282,7 +282,7 @@ describe("DiffViewer Component", () => {
     render(
       <DiffViewer
         currentVersion={sparseVersion}
-        masterProfile={sparseMasterProfile}
+        mainProfile={sparseMainProfile}
         previousVersions={[]}
       />
     );
@@ -302,7 +302,7 @@ describe("DiffViewer Component", () => {
     render(
       <DiffViewer
         currentVersion={emptyVersion}
-        masterProfile={mockMasterProfile}
+        mainProfile={mockMainProfile}
         previousVersions={[emptyVersion]}
       />
     );
@@ -314,7 +314,7 @@ describe("DiffViewer Component", () => {
     const { container } = render(
       <DiffViewer
         currentVersion={mockVersion1}
-        masterProfile={mockMasterProfile}
+        mainProfile={mockMainProfile}
         previousVersions={[mockVersion1]}
       />
     );

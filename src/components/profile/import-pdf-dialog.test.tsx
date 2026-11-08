@@ -294,7 +294,7 @@ describe("ImportPDFDialog", () => {
     });
 
     const commitBtn = screen.getByRole("button", {
-      name: /commit to master profile/i,
+      name: /commit to main profile/i,
     });
     await user.click(commitBtn);
 
@@ -439,9 +439,9 @@ describe("ImportPDFDialog", () => {
     expect(screen.getByText(/1 work experience/i)).toBeInTheDocument();
     expect(screen.getByText(/1 education/i)).toBeInTheDocument();
 
-    // 4. Click Commit to Master Profile
+    // 4. Click Commit to Main Profile
     const commitBtn = screen.getByRole("button", {
-      name: /commit to master profile/i,
+      name: /commit to main profile/i,
     });
     await user.click(commitBtn);
 

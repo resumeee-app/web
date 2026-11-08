@@ -15,7 +15,7 @@ describe("BranchesPage Integration & Views", () => {
     {
       id: "branch-default-u1",
       user_id: "u1",
-      name: "Master Profile (Default)",
+      name: "Main Profile (Default)",
       template_set_id: "tmpl-clean",
       is_default: true,
       active_version_id: "v1",
@@ -119,7 +119,7 @@ describe("BranchesPage Integration & Views", () => {
     ).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText("Master Profile (Default)")).toBeInTheDocument();
+      expect(screen.getByText("Main Profile (Default)")).toBeInTheDocument();
       expect(
         screen.getByText("Netflix - Senior Platform Engineer")
       ).toBeInTheDocument();
@@ -128,12 +128,12 @@ describe("BranchesPage Integration & Views", () => {
     // Default branch prominent badge & description
     expect(screen.getByText("Default Branch")).toBeInTheDocument();
     expect(
-      screen.getByText(/mirrors canonical master data with zero llm tailoring/i)
+      screen.getByText(/mirrors canonical main data with zero llm tailoring/i)
     ).toBeInTheDocument();
 
     // Default branch and custom branch render Inspect actions linking to preview
     const defaultInspectLink = screen.getByRole("link", {
-      name: /inspect resume for master profile \(default\)/i,
+      name: /inspect resume for main profile \(default\)/i,
     });
     expect(defaultInspectLink).toBeInTheDocument();
     expect(defaultInspectLink).toHaveAttribute("href", "/branches/branch-default-u1/preview");
@@ -147,7 +147,7 @@ describe("BranchesPage Integration & Views", () => {
     // Default branch does not have delete button
     expect(
       screen.queryByRole("button", {
-        name: /delete branch master profile \(default\)/i,
+        name: /delete branch main profile \(default\)/i,
       })
     ).not.toBeInTheDocument();
 
@@ -163,7 +163,7 @@ describe("BranchesPage Integration & Views", () => {
     renderBranchesPage();
 
     await waitFor(() => {
-      expect(screen.getByText("Master Profile (Default)")).toBeInTheDocument();
+      expect(screen.getByText("Main Profile (Default)")).toBeInTheDocument();
       expect(
         screen.getByText("Netflix - Senior Platform Engineer")
       ).toBeInTheDocument();
@@ -179,7 +179,7 @@ describe("BranchesPage Integration & Views", () => {
 
     // Verify card grid elements are present
     expect(
-      screen.getByRole("heading", { level: 2, name: /master profile \(default\)/i })
+      screen.getByRole("heading", { level: 2, name: /main profile \(default\)/i })
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { level: 2, name: /netflix - senior platform engineer/i })
@@ -191,7 +191,7 @@ describe("BranchesPage Integration & Views", () => {
     renderBranchesPage();
 
     await waitFor(() => {
-      expect(screen.getByText("Master Profile (Default)")).toBeInTheDocument();
+      expect(screen.getByText("Main Profile (Default)")).toBeInTheDocument();
       expect(
         screen.getByText("Netflix - Senior Platform Engineer")
       ).toBeInTheDocument();
@@ -206,7 +206,7 @@ describe("BranchesPage Integration & Views", () => {
       screen.getByText("Netflix - Senior Platform Engineer")
     ).toBeInTheDocument();
     expect(
-      screen.queryByText("Master Profile (Default)")
+      screen.queryByText("Main Profile (Default)")
     ).not.toBeInTheDocument();
 
     // Clear search and filter by non-matching query
@@ -216,13 +216,13 @@ describe("BranchesPage Integration & Views", () => {
       screen.queryByText("Netflix - Senior Platform Engineer")
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByText("Master Profile (Default)")
+      screen.queryByText("Main Profile (Default)")
     ).not.toBeInTheDocument();
     expect(screen.getByText(/no branches created yet/i)).toBeInTheDocument();
 
     // Clear search query again restores all branches
     await user.clear(searchInput);
-    expect(screen.getByText("Master Profile (Default)")).toBeInTheDocument();
+    expect(screen.getByText("Main Profile (Default)")).toBeInTheDocument();
     expect(
       screen.getByText("Netflix - Senior Platform Engineer")
     ).toBeInTheDocument();
@@ -256,7 +256,7 @@ describe("BranchesPage Integration & Views", () => {
     renderBranchesPage();
 
     await waitFor(() => {
-      expect(screen.getByText("Master Profile (Default)")).toBeInTheDocument();
+      expect(screen.getByText("Main Profile (Default)")).toBeInTheDocument();
     });
 
     // Open creation modal
@@ -335,7 +335,7 @@ describe("BranchesPage Integration & Views", () => {
     const { container } = renderBranchesPage();
 
     await waitFor(() => {
-      expect(screen.getByText("Master Profile (Default)")).toBeInTheDocument();
+      expect(screen.getByText("Main Profile (Default)")).toBeInTheDocument();
     });
 
     // Axe audit on card grid view

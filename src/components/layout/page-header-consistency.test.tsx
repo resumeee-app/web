@@ -34,14 +34,14 @@ describe("Page Header Cross-Route Consistency", () => {
       if (path === "/api/profile/full") {
         return {
           data: {
-            profile: { id: "p1", full_name: "Test User", master_revision: 1 },
+            profile: { id: "p1", full_name: "Test User", main_revision: 1 },
             experiences: [],
             skills: [],
             education: [],
             projects: [],
             certifications: [],
             facts: [],
-            master_revision: 1,
+            main_revision: 1,
           },
           error: undefined,
           response: new Response(),
@@ -95,7 +95,7 @@ describe("Page Header Cross-Route Consistency", () => {
 
   const testCases = [
     { name: "Dashboard", component: <HomePage />, route: "/" },
-    { name: "Master Profile", component: <ProfilePage />, route: "/profile" },
+    { name: "Main Profile", component: <ProfilePage />, route: "/profile" },
     { name: "Branches", component: <BranchesPage />, route: "/branches" },
     { name: "Templates", component: <TemplatesPage />, route: "/templates" },
     { name: "Presets", component: <PresetsPage />, route: "/presets" },

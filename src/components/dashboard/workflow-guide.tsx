@@ -5,7 +5,7 @@
  *
  * Architectural Role:
  * - Educates users on the three-phase resume tailoring lifecycle:
- *   1. Curate Canonical Master Career Graph
+ *   1. Curate Canonical Main Career Graph
  *   2. Calibrate Targeting Presets & ATS Templates
  *   3. Branch, Tailor & Verify with Factual Provenance
  * - Evaluates real-time workspace readiness across four core criteria:
@@ -46,8 +46,8 @@ import type { components } from "@/api/schema";
  * Props accepted by the {@link WorkflowGuide} component.
  */
 export interface WorkflowGuideProps {
-  /** Current snapshot of the user's master career profile */
-  profileSnapshot?: components["schemas"]["MasterProfileSnapshot"];
+  /** Current snapshot of the user's main career profile */
+  profileSnapshot?: components["schemas"]["MainProfileSnapshot"];
   /** List of existing resume branches */
   branches?: ReadonlyArray<Branch>;
   /** Catalog of ATS template sets */
@@ -64,7 +64,7 @@ const STORAGE_KEY = "resumeee_hide_workflow_guide";
 
 /**
  * Evaluates whether a branch represents a role-specific tailored branch
- * rather than the untailored master default.
+ * rather than the untailored main default.
  */
 function isRoleSpecificBranch(branch: Branch): boolean {
   return !isDefaultBranch(branch);
@@ -219,7 +219,7 @@ export const WorkflowGuide: React.FC<WorkflowGuideProps> = ({
         <div id="workflow-guide-content" className="mt-5 space-y-6">
           {/* Three Core Architectural Pillars */}
           <div className="grid gap-4 sm:grid-cols-3">
-            {/* Pillar 1: Master Career Graph */}
+            {/* Pillar 1: Main Career Graph */}
             <div className="rounded-md border border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-800/30 p-4 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -229,7 +229,7 @@ export const WorkflowGuide: React.FC<WorkflowGuideProps> = ({
                   <User className="h-4 w-4 text-indigo-500" aria-hidden="true" />
                 </div>
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  Master Career Graph
+                  Main Career Graph
                 </h3>
                 <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                   Consolidate your full work history, verified skills, and achievements in one single source of truth.

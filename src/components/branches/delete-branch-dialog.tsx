@@ -78,7 +78,7 @@ export const DeleteBranchDialog: React.FC<DeleteBranchDialogProps> = ({
           </AlertDialogTitle>
           <AlertDialogDescription>
             {isDefault
-              ? "Default branch cannot be deleted. The canonical master profile branch is permanently protected against deletion and tailoring."
+              ? "Default branch cannot be deleted. The canonical main profile branch is permanently protected against deletion and tailoring."
               : `Are you sure you want to delete branch '${branch.name}'? This action cannot be undone and will permanently remove this tailored line along with all historical versions and rendered artifacts.`}
           </AlertDialogDescription>
         </AlertDialogHeader>

@@ -79,7 +79,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
     isLoading: isVersionsLoading,
   } = useBranchVersions(branchId);
 
-  const { data: masterProfile } = useFullProfile();
+  const { data: mainProfile } = useFullProfile();
   const { data: templates = [] } = useTemplates();
   const updateBranchMutation = useUpdateBranch(branchId);
   const queryClient = useQueryClient();
@@ -432,7 +432,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
           ) : (
             <DiffViewer
               currentVersion={activeVersion}
-              masterProfile={masterProfile}
+              mainProfile={mainProfile}
               previousVersions={versions}
             />
           )}

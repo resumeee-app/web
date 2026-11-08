@@ -27,7 +27,7 @@ export { parseSkillTokens };
 export interface ExperienceListProps {
   /** Array of work experiences from the canonical profile snapshot */
   experiences: components["schemas"]["WorkExperience"][];
-  /** Optional array of all available master skills for selection */
+  /** Optional array of all available main skills for selection */
   availableSkills?: components["schemas"]["Skill"][];
   /** Callback invoked when the user changes the chronological order of experiences */
   onReorder: (experiences: components["schemas"]["WorkExperience"][]) => void;

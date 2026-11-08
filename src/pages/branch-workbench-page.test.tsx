@@ -337,7 +337,7 @@ describe("BranchWorkbenchPage", () => {
     });
   });
 
-  it("enqueues master profile synchronization via handleSyncMaster", async () => {
+  it("enqueues main profile synchronization via handleSyncMain", async () => {
     const user = userEvent.setup();
 
     vi.spyOn(api, "GET").mockImplementation((path: string) => {
@@ -373,12 +373,12 @@ describe("BranchWorkbenchPage", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole("button", { name: /sync with master profile/i })
+        screen.getByRole("button", { name: /sync with main profile/i })
       ).toBeInTheDocument();
     });
 
     const syncBtn = screen.getByRole("button", {
-      name: /sync with master profile/i,
+      name: /sync with main profile/i,
     });
     await user.click(syncBtn);
 
@@ -387,7 +387,7 @@ describe("BranchWorkbenchPage", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Master Profile Synced")).toBeInTheDocument();
+      expect(screen.getByText("Main Profile Synced")).toBeInTheDocument();
     });
     expect(screen.getByText("Enqueued 1 branch sync jobs.")).toBeInTheDocument();
   });
@@ -754,12 +754,12 @@ describe("BranchWorkbenchPage", () => {
     });
   });
 
-  it("handles master default branch correctly and navigates to preview upon clicking inspect", async () => {
+  it("handles main default branch correctly and navigates to preview upon clicking inspect", async () => {
     const user = userEvent.setup();
     const defaultBranch: Branch = {
       id: "branch-default",
       user_id: "u-1",
-      name: "Master Profile (Default)",
+      name: "Main Profile (Default)",
       template_set_id: "tpl-default",
       is_default: true,
       active_version_id: "v-default-1",
@@ -802,26 +802,26 @@ describe("BranchWorkbenchPage", () => {
       expect(
         screen.getByRole("heading", {
           level: 1,
-          name: "Master Profile (Default)",
+          name: "Main Profile (Default)",
         })
       ).toBeInTheDocument();
     });
 
-    // Default branch shows Refresh from Master Profile and Inspect Resume link
+    // Default branch shows Refresh from Main Profile and Inspect Resume link
     expect(
       screen.getByRole("button", {
-        name: /refresh from master profile/i,
+        name: /refresh from main profile/i,
       })
     ).toBeInTheDocument();
 
     const inspectHeaderLink = screen.getByRole("link", {
-      name: /inspect resume for master profile \(default\)/i,
+      name: /inspect resume for main profile \(default\)/i,
     });
     expect(inspectHeaderLink).toBeInTheDocument();
     expect(inspectHeaderLink).toHaveAttribute("href", "/branches/branch-default/preview");
 
     const inspectProjectionLink = screen.getByRole("link", {
-      name: /inspect master resume/i,
+      name: /inspect main resume/i,
     });
     expect(inspectProjectionLink).toBeInTheDocument();
     expect(inspectProjectionLink).toHaveAttribute("href", "/branches/branch-default/preview");
@@ -930,7 +930,7 @@ describe("BranchWorkbenchPage", () => {
     expect(results).toHaveNoViolations();
   });
 
-  it("submits quick-add fact to master profile via POST /facts", async () => {
+  it("submits quick-add fact to main profile via POST /facts", async () => {
     const user = userEvent.setup();
 
     const mockProfileSnapshot = {
@@ -1007,7 +1007,7 @@ describe("BranchWorkbenchPage", () => {
     );
 
     const saveBtn = screen.getByRole("button", {
-      name: /add to master profile/i,
+      name: /add to main profile/i,
     });
     await user.click(saveBtn);
 

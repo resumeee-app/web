@@ -15,7 +15,7 @@ describe("RFC-005 ResumesPage & 3-Step Creation Wizard", () => {
     {
       id: "branch-default-u1",
       user_id: "u1",
-      name: "Master Profile (Default)",
+      name: "Main Profile (Default)",
       template_set_id: "builtin-standard-clean",
       is_default: true,
       active_version_id: "v1",
@@ -145,7 +145,7 @@ describe("RFC-005 ResumesPage & 3-Step Creation Wizard", () => {
     const { container } = renderResumesPage();
 
     await waitFor(() => {
-      expect(screen.getByText("Master Profile (Default)")).toBeInTheDocument();
+      expect(screen.getByText("Main Profile (Default)")).toBeInTheDocument();
     });
 
     // Check dashboard accessibility
@@ -170,7 +170,7 @@ describe("RFC-005 ResumesPage & 3-Step Creation Wizard", () => {
     renderResumesPage();
 
     await waitFor(() => {
-      expect(screen.getByText("Master Profile (Default)")).toBeInTheDocument();
+      expect(screen.getByText("Main Profile (Default)")).toBeInTheDocument();
     });
 
     // Open wizard dialog

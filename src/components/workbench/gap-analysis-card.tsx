@@ -45,7 +45,7 @@ export interface GapAnalysisCardProps {
   versionNumber?: number;
   /** Whether the panel starts expanded by default. Defaults to false. */
   defaultExpanded?: boolean;
-  /** Callback invoked when a user submits a quick-add fact to their master profile. */
+  /** Callback invoked when a user submits a quick-add fact to their main profile. */
   onQuickAddFact?: (gap: GapItem, factText: string) => Promise<void> | void;
   /** Callback invoked when a user marks a gap as dismissed (false positive) or restores it. */
   onDismissGap?: (gap: GapItem, dismissed: boolean) => void;
@@ -450,7 +450,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
           <DialogHeader>
             <DialogTitle>Add Verified Experience to Profile</DialogTitle>
             <DialogDescription>
-              Documenting this experience in your Master Profile ensures it is incorporated during future resume tailoring passes.
+              Documenting this experience in your Main Profile ensures it is incorporated during future resume tailoring passes.
             </DialogDescription>
           </DialogHeader>
 
@@ -503,7 +503,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
               disabled={isSubmittingQuickAdd || !quickAddFactText.trim()}
               onClick={handleSaveFact}
             >
-              {isSubmittingQuickAdd ? "Saving..." : "Add to Master Profile"}
+              {isSubmittingQuickAdd ? "Saving..." : "Add to Main Profile"}
             </Button>
           </DialogFooter>
         </DialogContent>

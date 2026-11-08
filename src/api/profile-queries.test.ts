@@ -31,7 +31,7 @@ vi.mock("./client", () => ({
   },
 }));
 
-const mockSnapshot: components["schemas"]["MasterProfileSnapshot"] = {
+const mockSnapshot: components["schemas"]["MainProfileSnapshot"] = {
   profile: {
     id: "profile-1",
     user_id: "user-1",
@@ -39,9 +39,9 @@ const mockSnapshot: components["schemas"]["MasterProfileSnapshot"] = {
     headline: "Computer Scientist",
     default_provider: "gemini",
     default_model: "gemini-3.8-flash",
-    master_revision: 1,
+    main_revision: 1,
   },
-  master_revision: 1,
+  main_revision: 1,
   skills: [],
   experiences: [],
   projects: [],
@@ -69,7 +69,7 @@ describe("profile-queries", () => {
     vi.clearAllMocks();
   });
 
-  it("fetches full master profile snapshot", async () => {
+  it("fetches full main profile snapshot", async () => {
     vi.mocked(api.GET).mockResolvedValueOnce({
       data: mockSnapshot,
       error: undefined,
@@ -104,7 +104,7 @@ describe("profile-queries", () => {
     });
 
     // Check optimistic update in cache
-    const cached = queryClient.getQueryData<components["schemas"]["MasterProfileSnapshot"]>(
+    const cached = queryClient.getQueryData<components["schemas"]["MainProfileSnapshot"]>(
       PROFILE_FULL_QUERY_KEY
     );
     expect(cached?.profile.full_name).toBe("Rear Admiral Grace Hopper");
@@ -133,7 +133,7 @@ describe("profile-queries", () => {
     ).rejects.toThrow();
 
     // Verify cache was rolled back to initial snapshot
-    const cached = queryClient.getQueryData<components["schemas"]["MasterProfileSnapshot"]>(
+    const cached = queryClient.getQueryData<components["schemas"]["MainProfileSnapshot"]>(
       PROFILE_FULL_QUERY_KEY
     );
     expect(cached?.profile.full_name).toBe("Grace Hopper");
@@ -503,7 +503,7 @@ describe("profile-queries", () => {
     };
 
     it("commits parsed candidate resume and updates TanStack cache with new snapshot", async () => {
-      const updatedSnapshot: components["schemas"]["MasterProfileSnapshot"] = {
+      const updatedSnapshot: components["schemas"]["MainProfileSnapshot"] = {
         ...mockSnapshot,
         profile: {
           ...mockSnapshot.profile,
@@ -530,7 +530,7 @@ describe("profile-queries", () => {
         body: candidateResume,
       });
 
-      const cached = queryClient.getQueryData<components["schemas"]["MasterProfileSnapshot"]>(
+      const cached = queryClient.getQueryData<components["schemas"]["MainProfileSnapshot"]>(
         PROFILE_FULL_QUERY_KEY
       );
       expect(cached?.profile.full_name).toBe("Ada Lovelace");

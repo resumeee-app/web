@@ -10,7 +10,7 @@ describe("BranchCard Component", () => {
   const defaultBranch: Branch = {
     id: "branch-default-u1",
     user_id: "u1",
-    name: "Master Profile (Default)",
+    name: "Main Profile (Default)",
     template_set_id: "tmpl-standard",
     is_default: true,
     active_version_id: "v1",
@@ -40,14 +40,14 @@ describe("BranchCard Component", () => {
 
     // Workbench action button linking to /branches/:id
     const link = screen.getByRole("link", {
-      name: /open workbench for master profile \(default\)/i,
+      name: /open workbench for main profile \(default\)/i,
     });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute("href", "/branches/branch-default-u1");
 
     // Inspect action button linking to /branches/:id/preview
     const inspectLink = screen.getByRole("link", {
-      name: /inspect resume for master profile \(default\)/i,
+      name: /inspect resume for main profile \(default\)/i,
     });
     expect(inspectLink).toBeInTheDocument();
     expect(inspectLink).toHaveAttribute("href", "/branches/branch-default-u1/preview");
@@ -56,16 +56,16 @@ describe("BranchCard Component", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: "Master Profile (Default)",
+        name: "Main Profile (Default)",
       })
     ).toBeInTheDocument();
 
     // Prominent badge
     expect(screen.getByText("Default Branch")).toBeInTheDocument();
 
-    // Clarifying description that it mirrors master profile untailored
+    // Clarifying description that it mirrors main profile untailored
     expect(
-      screen.getByText(/mirrors canonical master data with zero llm tailoring/i)
+      screen.getByText(/mirrors canonical main data with zero llm tailoring/i)
     ).toBeInTheDocument();
 
     // Delete button must NOT exist for default branch
@@ -85,7 +85,7 @@ describe("BranchCard Component", () => {
     );
 
     const inspectBtn = screen.getByRole("button", {
-      name: /inspect resume for master profile \(default\)/i,
+      name: /inspect resume for main profile \(default\)/i,
     });
     expect(inspectBtn).toBeInTheDocument();
 

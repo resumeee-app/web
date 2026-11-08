@@ -19,7 +19,7 @@ const mockBranch: Branch = {
   template_set_id: "tpl-executive",
   preset_id: "preset-ats",
   is_stale: true,
-  last_synced_master_revision: 3,
+  last_synced_main_revision: 3,
 };
 
 const mockPresets: Preset[] = [
@@ -54,7 +54,7 @@ describe("TailorActionBar", () => {
         isTailoring={false}
         isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMaster={vi.fn()}
+        onSyncMain={vi.fn()}
       />
     );
 
@@ -65,7 +65,7 @@ describe("TailorActionBar", () => {
       screen.getByText(/Staff Infrastructure Engineer/i)
     ).toBeInTheDocument();
     expect(screen.getByText(/Stripe/i)).toBeInTheDocument();
-    expect(screen.getByText("Master Updates Available")).toBeInTheDocument();
+    expect(screen.getByText("Main Updates Available")).toBeInTheDocument();
 
     const inspectLink = screen.getByRole("link", {
       name: /inspect resume for senior backend engineer/i,
@@ -74,11 +74,11 @@ describe("TailorActionBar", () => {
     expect(inspectLink).toHaveAttribute("href", "/branches/branch-123/preview");
   });
 
-  it("renders default branch with 'Refresh from Master' action and suppresses preset selector", () => {
+  it("renders default branch with 'Refresh from Main' action and suppresses preset selector", () => {
     const defaultBranch: Branch = {
       ...mockBranch,
       id: "branch-default",
-      name: "Master Profile (Default)",
+      name: "Main Profile (Default)",
       is_default: true,
       is_stale: false,
     };
@@ -91,14 +91,14 @@ describe("TailorActionBar", () => {
         isTailoring={false}
         isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMaster={vi.fn()}
+        onSyncMain={vi.fn()}
       />
     );
 
-    // Primary action button must say Refresh from Master Profile
+    // Primary action button must say Refresh from Main Profile
     expect(
       screen.getByRole("button", {
-        name: /refresh from master profile/i,
+        name: /refresh from main profile/i,
       })
     ).toBeInTheDocument();
 
@@ -109,10 +109,10 @@ describe("TailorActionBar", () => {
       })
     ).not.toBeInTheDocument();
 
-    // Must NOT have Sync with Master button on default branch
+    // Must NOT have Sync with Main button on default branch
     expect(
       screen.queryByRole("button", {
-        name: /^sync with master$/i,
+        name: /^sync with main$/i,
       })
     ).not.toBeInTheDocument();
 
@@ -143,7 +143,7 @@ describe("TailorActionBar", () => {
         isTailoring={false}
         isSyncing={false}
         onTailorResume={onTailor}
-        onSyncMaster={vi.fn()}
+        onSyncMain={vi.fn()}
       />
     );
 
@@ -164,7 +164,7 @@ describe("TailorActionBar", () => {
         isTailoring={true}
         isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMaster={vi.fn()}
+        onSyncMain={vi.fn()}
       />
     );
 
@@ -174,7 +174,7 @@ describe("TailorActionBar", () => {
     expect(tailorButton).toBeDisabled();
   });
 
-  it("calls onSyncMaster when 'Sync with Master' is clicked", async () => {
+  it("calls onSyncMain when 'Sync with Main' is clicked", async () => {
     const user = userEvent.setup();
     const onSync = vi.fn();
 
@@ -186,12 +186,12 @@ describe("TailorActionBar", () => {
         isTailoring={false}
         isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMaster={onSync}
+        onSyncMain={onSync}
       />
     );
 
     const syncButton = screen.getByRole("button", {
-      name: /^sync with master$/i,
+      name: /^sync with main$/i,
     });
     await user.click(syncButton);
 
@@ -211,7 +211,7 @@ describe("TailorActionBar", () => {
         isTailoring={false}
         isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMaster={vi.fn()}
+        onSyncMain={vi.fn()}
         onUpdatePreset={onUpdatePreset}
         onUpdateTemplate={onUpdateTemplate}
       />
@@ -246,16 +246,16 @@ describe("TailorActionBar", () => {
         isTailoring={false}
         isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMaster={onSync}
+        onSyncMain={onSync}
       />
     );
 
     expect(
-      screen.getByText(/upstream master profile revisions available/i)
+      screen.getByText(/upstream main profile revisions available/i)
     ).toBeInTheDocument();
 
     const bannerSyncButton = screen.getByRole("button", {
-      name: /sync with master profile/i,
+      name: /sync with main profile/i,
     });
     await user.click(bannerSyncButton);
 
@@ -272,7 +272,7 @@ describe("TailorActionBar", () => {
         isTailoring={false}
         isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMaster={vi.fn()}
+        onSyncMain={vi.fn()}
       />
     );
 
@@ -307,7 +307,7 @@ describe("TailorActionBar", () => {
         isTailoring={false}
         isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMaster={vi.fn()}
+        onSyncMain={vi.fn()}
       />
     );
 
@@ -327,7 +327,7 @@ describe("TailorActionBar", () => {
         isTailoring={false}
         isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMaster={vi.fn()}
+        onSyncMain={vi.fn()}
       />
     );
 
@@ -348,7 +348,7 @@ describe("TailorActionBar", () => {
         isSyncing={false}
         onUpdateTemplate={onUpdateTemplate}
         onTailorResume={vi.fn()}
-        onSyncMaster={vi.fn()}
+        onSyncMain={vi.fn()}
       />
     );
 
@@ -375,7 +375,7 @@ describe("TailorActionBar", () => {
         templateFeedback="Layout switched to Executive Minimalist."
         onPreviewLayout={onPreviewLayout}
         onTailorResume={vi.fn()}
-        onSyncMaster={vi.fn()}
+        onSyncMain={vi.fn()}
       />
     );
 

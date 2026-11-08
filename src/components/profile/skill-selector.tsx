@@ -182,7 +182,7 @@ export interface SkillSelectorProps {
   value: string;
   /** Callback triggered whenever the input value changes via typing or chip clicks */
   onChange: (value: string) => void;
-  /** Optional list of available master skills to render as quick-add badges */
+  /** Optional list of available main skills to render as quick-add badges */
   availableSkills?: components["schemas"]["Skill"][];
   /** Whether the input and chips are disabled */
   disabled?: boolean;

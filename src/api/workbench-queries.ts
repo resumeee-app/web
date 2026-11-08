@@ -162,7 +162,7 @@ export async function updateBranchActiveVersion(
 /**
  * Dispatches sync job for branch via POST /branches/sync.
  *
- * @param branchId - Unique UUID identifier of the branch to sync with upstream master.
+ * @param branchId - Unique UUID identifier of the branch to sync with upstream main.
  * @returns Promise resolving to the SyncBranchesResponse.
  * @throws Error when the sync job cannot be queued.
  */
@@ -274,7 +274,7 @@ export function useUpdateBranch(branchId: string) {
 }
 
 /**
- * Mutation hook to sync a stale branch with latest master profile changes.
+ * Mutation hook to sync a stale branch with latest main profile changes.
  * Automatically invalidates branch and versions queries on success.
  *
  * @param branchId - Unique UUID identifier of the branch.

@@ -1,7 +1,7 @@
 /**
  * @file home-page.test.tsx
  * @description Integration and unit tests for the reworked UI Dashboard (Home Page).
- * Validates live metrics, branch navigation, master profile overview,
+ * Validates live metrics, branch navigation, main profile overview,
  * quick action links, CreateBranchModal integration, empty/loading states,
  * error boundary aggregation, recent branches ordering/capping, and
  * WAI-ARIA accessibility compliance.
@@ -20,7 +20,7 @@ import type { components } from "@/api/schema";
 
 describe("HomePage Dashboard Integration & Views", () => {
   let mockBranches: Branch[];
-  let mockProfileSnapshot: components["schemas"]["MasterProfileSnapshot"];
+  let mockProfileSnapshot: components["schemas"]["MainProfileSnapshot"];
   let mockPresets: Preset[];
   let mockTemplates: TemplateSet[];
 
@@ -31,7 +31,7 @@ describe("HomePage Dashboard Integration & Views", () => {
     {
       id: "branch-default-u1",
       user_id: "u1",
-      name: "Master Profile (Default)",
+      name: "Main Profile (Default)",
       template_set_id: "tmpl-clean",
       is_default: true,
       active_version_id: "v1",
@@ -54,9 +54,9 @@ describe("HomePage Dashboard Integration & Views", () => {
   ];
 
   /**
-   * Baseline initial master profile career graph snapshot for test scenarios.
+   * Baseline initial main profile career graph snapshot for test scenarios.
    */
-  const initialProfile: components["schemas"]["MasterProfileSnapshot"] = {
+  const initialProfile: components["schemas"]["MainProfileSnapshot"] = {
     profile: {
       id: "prof-1",
       user_id: "u1",
@@ -65,11 +65,11 @@ describe("HomePage Dashboard Integration & Views", () => {
       email: "alex.morgan@example.com",
       default_provider: "gemini",
       default_model: "gemini-3.8-flash",
-      master_revision: 5,
+      main_revision: 5,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-11-01T00:00:00Z",
     },
-    master_revision: 5,
+    main_revision: 5,
     experiences: [
       {
         id: "exp-1",
@@ -284,7 +284,7 @@ describe("HomePage Dashboard Integration & Views", () => {
     expect(results).toHaveNoViolations();
   });
 
-  it("displays live master profile metrics accurately with link to /profile", async () => {
+  it("displays live main profile metrics accurately with link to /profile", async () => {
     renderHomePage();
 
     // Verify Alex Morgan and headline
@@ -298,11 +298,11 @@ describe("HomePage Dashboard Integration & Views", () => {
     expect(screen.getByTestId("metric-education")).toHaveTextContent("1");
     expect(screen.getByTestId("metric-certifications")).toHaveTextContent("1");
 
-    // Verify specific master profile links
+    // Verify specific main profile links
     const profileEditLink = screen.getByRole("link", { name: /^edit profile$/i });
     expect(profileEditLink).toHaveAttribute("href", "/profile");
 
-    const headerProfileLink = screen.getByRole("link", { name: /^master profile$/i });
+    const headerProfileLink = screen.getByRole("link", { name: /^main profile$/i });
     expect(headerProfileLink).toHaveAttribute("href", "/profile");
   });
 
@@ -423,7 +423,7 @@ describe("HomePage Dashboard Integration & Views", () => {
     vi.spyOn(api, "GET").mockReturnValue(new Promise(() => {}));
     renderHomePage();
 
-    expect(screen.getByRole("status", { name: /loading master profile details/i })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: /loading main profile details/i })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: /loading branch counts/i })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: /loading template counts/i })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: /loading preset counts/i })).toBeInTheDocument();
@@ -470,7 +470,7 @@ describe("HomePage Dashboard Integration & Views", () => {
 
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent(/Branches: Network connection refused/i);
-    expect(alert).toHaveTextContent(/Master Profile: Profile database timeout/i);
+    expect(alert).toHaveTextContent(/Main Profile: Profile database timeout/i);
     expect(alert).toHaveTextContent(/Templates: Templates DB unreachable/i);
     expect(alert).toHaveTextContent(/Presets: Presets service unavailable/i);
   });
@@ -482,7 +482,7 @@ describe("HomePage Dashboard Integration & Views", () => {
     expect(
       await screen.findByRole("heading", { level: 2, name: /how resumeee works/i })
     ).toBeInTheDocument();
-    expect(screen.getByText(/master career graph/i)).toBeInTheDocument();
+    expect(screen.getByText(/main career graph/i)).toBeInTheDocument();
     expect(screen.getByText(/targeting presets & templates/i)).toBeInTheDocument();
     expect(screen.getByText(/branch, tailor & verify/i)).toBeInTheDocument();
 
@@ -519,20 +519,20 @@ describe("HomePage Dashboard Integration & Views", () => {
     renderHomePage();
 
     await screen.findByRole("heading", { level: 2, name: /how resumeee works/i });
-    expect(screen.getByText(/master career graph/i)).toBeInTheDocument();
+    expect(screen.getByText(/main career graph/i)).toBeInTheDocument();
 
     const hideGuideBtn = screen.getByRole("button", { name: /hide guide/i });
     await user.click(hideGuideBtn);
 
     // Collapsed state
     expect(localStorage.getItem("resumeee_hide_workflow_guide")).toBe("true");
-    expect(screen.queryByText(/master career graph/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/main career graph/i)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /show guide/i })).toBeInTheDocument();
 
     // Reopen
     const showGuideBtn = screen.getByRole("button", { name: /show guide/i });
     await user.click(showGuideBtn);
     expect(localStorage.getItem("resumeee_hide_workflow_guide")).toBe("false");
-    expect(screen.getByText(/master career graph/i)).toBeInTheDocument();
+    expect(screen.getByText(/main career graph/i)).toBeInTheDocument();
   });
 });

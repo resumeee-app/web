@@ -71,11 +71,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get user master profile */
+        /** Get user main profile */
         get: operations["getProfile"];
         /**
-         * Update master profile
-         * @description Updates basic profile details, contact info, default LLM provider/model, or Tier-1 global rules. Atomically increments master_revision.
+         * Update main profile
+         * @description Updates basic profile details, contact info, default LLM provider/model, or Tier-1 global rules. Atomically increments main_revision.
          */
         put: operations["updateProfile"];
         post?: never;
@@ -93,7 +93,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get full master profile career graph
+         * Get full main profile career graph
          * @description Returns the complete career graph snapshot including profile, all skills, experiences, projects, education, certifications, and polymorphic facts.
          */
         get: operations["getFullProfile"];
@@ -116,7 +116,7 @@ export interface paths {
         put?: never;
         /**
          * Import standard JSON Resume payload
-         * @description Ingests an external JSON Resume schema payload into the Master Profile, replacing or merging career records and incrementing master_revision.
+         * @description Ingests an external JSON Resume schema payload into the Main Profile, replacing or merging career records and incrementing main_revision.
          */
         post: operations["importJSONResume"];
         delete?: never;
@@ -134,7 +134,7 @@ export interface paths {
         };
         /**
          * Export career data in standard JSON Resume format
-         * @description Exports either the Master Profile or a specific tailored branch version formatted according to the standard JSON Resume schema.
+         * @description Exports either the Main Profile or a specific tailored branch version formatted according to the standard JSON Resume schema.
          */
         get: operations["exportJSONResume"];
         put?: never;
@@ -195,8 +195,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Commit reviewed PDF resume into Master Profile
-         * @description Ingests verified/edited JSON Resume draft, updates the Master Profile career graph, initializes profile for new users if not previously present, and increments master_revision.
+         * Commit reviewed PDF resume into Main Profile
+         * @description Ingests verified/edited JSON Resume draft, updates the Main Profile career graph, initializes profile for new users if not previously present, and increments main_revision.
          */
         post: operations["commitPDFResume"];
         delete?: never;
@@ -217,7 +217,7 @@ export interface paths {
         put?: never;
         /**
          * Create a new skill
-         * @description Adds a skill and atomically increments master_revision.
+         * @description Adds a skill and atomically increments main_revision.
          */
         post: operations["createSkill"];
         delete?: never;
@@ -240,13 +240,13 @@ export interface paths {
         get: operations["getSkill"];
         /**
          * Update skill
-         * @description Updates a skill and atomically increments master_revision.
+         * @description Updates a skill and atomically increments main_revision.
          */
         put: operations["updateSkill"];
         post?: never;
         /**
          * Delete skill
-         * @description Deletes a skill and atomically increments master_revision.
+         * @description Deletes a skill and atomically increments main_revision.
          */
         delete: operations["deleteSkill"];
         options?: never;
@@ -266,7 +266,7 @@ export interface paths {
         put?: never;
         /**
          * Create work experience
-         * @description Adds a work experience entry and atomically increments master_revision.
+         * @description Adds a work experience entry and atomically increments main_revision.
          */
         post: operations["createExperience"];
         delete?: never;
@@ -289,13 +289,13 @@ export interface paths {
         get: operations["getExperience"];
         /**
          * Update work experience
-         * @description Updates work experience and atomically increments master_revision.
+         * @description Updates work experience and atomically increments main_revision.
          */
         put: operations["updateExperience"];
         post?: never;
         /**
          * Delete work experience
-         * @description Deletes work experience, associated polymorphic facts, and increments master_revision.
+         * @description Deletes work experience, associated polymorphic facts, and increments main_revision.
          */
         delete: operations["deleteExperience"];
         options?: never;
@@ -438,7 +438,7 @@ export interface paths {
         put?: never;
         /**
          * Create granular fact
-         * @description Creates an atomic achievement or responsibility bullet and attaches relational skill IDs. Increments master_revision.
+         * @description Creates an atomic achievement or responsibility bullet and attaches relational skill IDs. Increments main_revision.
          */
         post: operations["createFact"];
         delete?: never;
@@ -461,13 +461,13 @@ export interface paths {
         get: operations["getFact"];
         /**
          * Update fact
-         * @description Updates statement, impact metric, or skill associations, incrementing master_revision.
+         * @description Updates statement, impact metric, or skill associations, incrementing main_revision.
          */
         put: operations["updateFact"];
         post?: never;
         /**
          * Delete fact
-         * @description Deletes fact and increments master_revision.
+         * @description Deletes fact and increments main_revision.
          */
         delete: operations["deleteFact"];
         options?: never;
@@ -665,7 +665,7 @@ export interface paths {
         };
         /**
          * List resume branches
-         * @description Lists all tailored resume lines. Includes dynamically computed is_stale boolean indicating whether Profile.MasterRevision has advanced past last_synced_master_revision.
+         * @description Lists all tailored resume lines. Includes dynamically computed is_stale boolean indicating whether Profile.MainRevision has advanced past last_synced_main_revision.
          */
         get: operations["listBranches"];
         put?: never;
@@ -766,7 +766,7 @@ export interface paths {
         };
         /**
          * Preview prompt draft for a branch
-         * @description Renders the assembled system and user prompt templates against the candidate's current master profile and branch target requirements without calling the LLM.
+         * @description Renders the assembled system and user prompt templates against the candidate's current main profile and branch target requirements without calling the LLM.
          */
         get: operations["getPromptPreview"];
         put?: never;
@@ -1100,7 +1100,7 @@ export interface components {
             /** @default gemini-3.8-flash */
             default_model: string;
             /** Format: int64 */
-            master_revision: number;
+            main_revision: number;
             metadata?: Record<string, never>;
             /** Format: date-time */
             created_at?: string;
@@ -1529,8 +1529,8 @@ export interface components {
             active_version_id?: string | null;
             gap_report?: components["schemas"]["GapReport"];
             /** Format: int64 */
-            last_synced_master_revision?: number;
-            /** @description Computed flag indicating whether master profile has advanced past last_synced_master_revision */
+            last_synced_main_revision?: number;
+            /** @description Computed flag indicating whether main profile has advanced past last_synced_main_revision */
             is_stale?: boolean;
             /** Format: date-time */
             created_at?: string;
@@ -1689,7 +1689,7 @@ export interface components {
             version_number: number;
             status: components["schemas"]["VersionStatus"];
             /** Format: int64 */
-            master_revision_used?: number;
+            main_revision_used?: number;
             template_set_id_used?: string;
             provider_used?: string;
             model_used?: string;
@@ -1759,10 +1759,10 @@ export interface components {
         EditVersionRequest: {
             tailored_content: components["schemas"]["TailoredContent"];
         };
-        MasterProfileSnapshot: {
+        MainProfileSnapshot: {
             profile: components["schemas"]["Profile"];
             /** Format: int64 */
-            master_revision: number;
+            main_revision: number;
             skills?: components["schemas"]["Skill"][];
             experiences?: components["schemas"]["WorkExperience"][];
             projects?: components["schemas"]["Project"][];
@@ -1900,7 +1900,7 @@ export interface components {
                  * @example {
                  *       "error": {
                  *         "code": "PROVENANCE_ERROR",
-                 *         "message": "Source entity or fact UUID does not exist in user Master Profile",
+                 *         "message": "Source entity or fact UUID does not exist in user Main Profile",
                  *         "details": "invalid source_fact_id: fact-999"
                  *       }
                  *     }
@@ -2061,7 +2061,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Master profile retrieved successfully */
+            /** @description Main profile retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2115,7 +2115,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MasterProfileSnapshot"];
+                    "application/json": components["schemas"]["MainProfileSnapshot"];
                 };
             };
             404: components["responses"]["NotFound"];
@@ -2141,7 +2141,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MasterProfileSnapshot"];
+                    "application/json": components["schemas"]["MainProfileSnapshot"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -2151,7 +2151,7 @@ export interface operations {
     exportJSONResume: {
         parameters: {
             query?: {
-                /** @description Optional branch version UUID. If omitted, exports current Master Profile. */
+                /** @description Optional branch version UUID. If omitted, exports current Main Profile. */
                 version_id?: string;
             };
             header?: never;
@@ -2257,13 +2257,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successfully committed resume into Master Profile */
+            /** @description Successfully committed resume into Main Profile */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MasterProfileSnapshot"];
+                    "application/json": components["schemas"]["MainProfileSnapshot"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -2282,7 +2282,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description List of master skills */
+            /** @description List of main skills */
             200: {
                 headers: {
                     [name: string]: unknown;

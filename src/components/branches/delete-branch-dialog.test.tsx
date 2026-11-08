@@ -17,7 +17,7 @@ describe("DeleteBranchDialog Component", () => {
   const defaultBranch: Branch = {
     id: "branch-default-u1",
     user_id: "u1",
-    name: "Master Profile (Default)",
+    name: "Main Profile (Default)",
     template_set_id: "tmpl-standard",
     is_default: true,
   };
