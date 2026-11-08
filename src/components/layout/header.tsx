@@ -18,8 +18,12 @@ import { useAuth } from "@/context/auth-context";
  * Architecture & Accessibility:
  * - Serves as the primary `banner` landmark region (`<header>`).
  * - Mounts the accessible {@link SkipLink} at the root of the header hierarchy.
- * - Provides desktop `<nav aria-label="Main Navigation">` rendering data-driven routes
- *   with accessible `aria-current="page"` indicators for the active route.
+ * - Utilizes full viewport width (`w-full px-4 sm:px-6 lg:px-8`) with in-flow layout:
+ *   brand logo at the far left, desktop navigation centered/aligned in the middle track,
+ *   and utility controls positioned at the far right.
+ * - Desktop `<nav aria-label="Main Navigation">` is kept in normal document flow to eliminate
+ *   overlap risks across all viewport widths, aligning with the primary `<main>` container
+ *   geometry on wide viewports.
  * - Embeds the {@link ThemeToggle} dropdown.
  * - On mobile viewports, provides an accessible hamburger button launching a slide-out
  *   drawer powered by `@radix-ui/react-dialog` with focus trapping, backdrop dismiss,
@@ -36,75 +40,80 @@ export const Header: React.FC = () => {
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 transition-colors">
       <SkipLink targetId="main-content" />
 
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center space-x-8">
-          <Link
-            to="/"
-            className="flex items-center space-x-2.5 text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md"
-            aria-label="Resumeee Home"
-          >
-            <ResumeeeLogo className="h-7 w-7" />
-            <span>Resumeee</span>
-          </Link>
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Brand Logo - Far Left */}
+          <div className="flex items-center shrink-0">
+            <Link
+              to="/"
+              className="flex items-center space-x-1.5 sm:space-x-2 lg:space-x-2.5 text-lg lg:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md"
+              aria-label="Resumeee Home"
+            >
+              <ResumeeeLogo className="h-6 w-6 lg:h-7 lg:w-7" />
+              <span>Resumeee</span>
+            </Link>
+          </div>
 
-          {/* Desktop Navigation */}
-          <nav
-            aria-label="Main Navigation"
-            className="hidden md:flex md:space-x-1 lg:space-x-2"
-          >
-            {mainNavItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.href}
-                  to={item.href}
-                  end={item.href === "/"}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center space-x-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                      isActive
-                        ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100"
-                    )
-                  }
+          {/* Desktop Navigation - In-flow Central Track */}
+          <div className="hidden md:flex flex-1 items-center justify-center min-[1600px]:justify-start min-w-0 px-1 sm:px-2 lg:px-4">
+            <nav
+              aria-label="Main Navigation"
+              className="flex items-center space-x-0.5 lg:space-x-1 xl:space-x-2 min-[1600px]:ml-[calc((100vw-80rem)/2-137px)]"
+            >
+              {mainNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.href}
+                    to={item.href}
+                    end={item.href === "/"}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center space-x-1 px-1 sm:px-1.5 lg:px-2.5 xl:px-3 py-1 lg:py-2 text-xs lg:text-sm font-medium tracking-tight rounded-md transition-colors whitespace-nowrap",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                        isActive
+                          ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100"
+                      )
+                    }
+                  >
+                    {Icon && <Icon className="hidden xl:block h-4 w-4" aria-hidden="true" />}
+                    <span>{item.title}</span>
+                  </NavLink>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Right Utilities & Actions - Far Right */}
+          <div className="flex items-center space-x-1 sm:space-x-1.5 lg:space-x-3 shrink-0">
+            <QuotaMeter />
+            <ThemeToggle />
+
+            {!adminMode && user && (
+              <div className="flex items-center space-x-1 sm:space-x-1.5 lg:space-x-2 border-l border-slate-200 dark:border-slate-800 pl-1.5 sm:pl-2 lg:pl-3">
+                <div
+                  className="hidden xl:flex items-center space-x-1.5 text-xs text-slate-600 dark:text-slate-400"
+                  title={userIdentifier}
                 >
-                  {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
-                  <span>{item.title}</span>
-                </NavLink>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div className="flex items-center space-x-2 sm:space-x-4">
-          <QuotaMeter />
-          <ThemeToggle />
-
-          {!adminMode && user && (
-            <div className="flex items-center space-x-2 border-l border-slate-200 dark:border-slate-800 pl-2 sm:pl-4">
-              <div
-                className="hidden lg:flex items-center space-x-1.5 text-xs text-slate-600 dark:text-slate-400"
-                title={userIdentifier}
-              >
-                <User className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span className="max-w-[140px] truncate">{userIdentifier}</span>
+                  <User className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className="max-w-[140px] truncate">{userIdentifier}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => void signOut()}
+                  className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 text-xs px-1.5 sm:px-2 lg:px-3 h-8"
+                  aria-label="Sign out"
+                >
+                  <LogOut className="h-4 w-4 lg:mr-1.5" aria-hidden="true" />
+                  <span className="hidden lg:inline">Sign Out</span>
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => void signOut()}
-                className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 text-xs px-2 sm:px-3 h-8"
-                aria-label="Sign out"
-              >
-                <LogOut className="h-4 w-4 sm:mr-1.5" aria-hidden="true" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </Button>
-            </div>
-          )}
+            )}
 
-          {/* Mobile Navigation Trigger */}
-          <div className="md:hidden">
+            {/* Mobile Navigation Trigger */}
+            <div className="md:hidden">
             <DialogPrimitive.Root open={mobileOpen} onOpenChange={setMobileOpen}>
               <DialogPrimitive.Trigger asChild>
                 <Button
@@ -196,6 +205,7 @@ export const Header: React.FC = () => {
           </div>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
   );
 };

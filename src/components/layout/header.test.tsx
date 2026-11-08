@@ -56,6 +56,39 @@ describe("Header and Navigation", () => {
     expect(nav).toBeInTheDocument();
   });
 
+  it("structures header with in-flow full-width container, far-left logo, central in-flow navigation, and far-right utilities", () => {
+    renderHeader();
+
+    const banner = screen.getByRole("banner");
+    const fullWidthContainer = banner.querySelector(".w-full");
+    expect(fullWidthContainer).toBeInTheDocument();
+
+    const brandLink = screen.getByRole("link", { name: "Resumeee Home" });
+    expect(brandLink).toBeInTheDocument();
+
+    const desktopNav = screen.getByRole("navigation", { name: "Main Navigation" });
+    const navWrapper = desktopNav.parentElement;
+    expect(navWrapper).toBeInTheDocument();
+
+    // Verify desktop navigation is in normal document flow (not absolute/pointer-events-none)
+    expect(navWrapper).not.toHaveClass("absolute");
+    expect(navWrapper).not.toHaveClass("pointer-events-none");
+    expect(navWrapper).toHaveClass("flex-1");
+
+    // Verify in-flow sibling hierarchy: Left Logo -> Middle Nav -> Right Utilities
+    const logoContainer = brandLink.closest(".shrink-0");
+    const themeButton = screen.getByRole("button", { name: /theme/i });
+    const utilsContainer = themeButton.closest(".shrink-0");
+
+    expect(logoContainer).toBeInTheDocument();
+    expect(utilsContainer).toBeInTheDocument();
+    expect(logoContainer?.nextElementSibling).toBe(navWrapper);
+    expect(navWrapper?.nextElementSibling).toBe(utilsContainer);
+
+    expect(navWrapper).not.toContainElement(brandLink);
+    expect(navWrapper).not.toContainElement(themeButton);
+  });
+
   it("renders all data-driven navigation items", () => {
     renderHeader();
 
