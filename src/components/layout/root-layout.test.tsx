@@ -48,7 +48,10 @@ describe("RootLayout Landmark Structure", () => {
     expect(screen.getByRole("banner")).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Main Navigation" })).toBeInTheDocument();
     expect(screen.getByRole("main")).toHaveAttribute("id", "main-content");
-    expect(screen.getByRole("contentinfo")).toBeInTheDocument();
+    const footer = screen.getByRole("contentinfo");
+    expect(footer).toBeInTheDocument();
+    expect(footer).toHaveTextContent(/One Resume to rule them all\./i);
+    expect(footer).not.toHaveTextContent(/Pure Client-Side SPA Architecture/i);
   });
 
   it("renders skip link pointing to main content", () => {

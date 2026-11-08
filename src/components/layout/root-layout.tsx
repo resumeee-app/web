@@ -90,7 +90,7 @@ export const RootLayout: React.FC = () => {
         className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 py-6 text-center text-sm text-slate-500 dark:text-slate-400"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p>© {new Date().getFullYear()} Resumeee. Pure Client-Side SPA Architecture.</p>
+          <p>© {new Date().getFullYear()} Resumeee — One Resume to rule them all.</p>
         </div>
       </footer>
       <Toaster />
