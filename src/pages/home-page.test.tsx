@@ -608,4 +608,65 @@ describe("HomePage Dashboard Integration & Views", () => {
     // Must NOT display animated Tailoring badge
     expect(screen.queryByText("Tailoring")).not.toBeInTheDocument();
   });
+
+  it("renders the workflow orientation guide and interactive readiness milestones", async () => {
+    const { container } = renderHomePage();
+
+    // Verify section heading and 3 workflow pillars
+    expect(
+      await screen.findByRole("heading", { level: 2, name: /how resumeee works/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/master career graph/i)).toBeInTheDocument();
+    expect(screen.getByText(/targeting presets & templates/i)).toBeInTheDocument();
+    expect(screen.getByText(/branch, tailor & verify/i)).toBeInTheDocument();
+
+    // Verify workspace readiness tracker based on initial data
+    // (Alex Morgan has 2 exp, 3 skills, 2 branches (1 tailored), templates, presets -> 4/4 ready)
+    expect(await screen.findByText(/4 of 4 milestones completed/i)).toBeInTheDocument();
+    expect(screen.getByText(/100% ready for tailoring/i)).toBeInTheDocument();
+
+    // Verify forbidden marketing phrase is absent
+    expect(container.textContent).not.toMatch(/quick start/i);
+  });
+
+  it("opens CreateBranchModal when clicking Start New Branch action in workflow guide", async () => {
+    const user = userEvent.setup();
+    renderHomePage();
+
+    await screen.findByRole("heading", { level: 2, name: /how resumeee works/i });
+
+    const startBranchBtn = screen.getByRole("button", { name: /start new branch/i });
+    await user.click(startBranchBtn);
+
+    // Dialog opens
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: /create new resume branch/i })
+    ).toBeInTheDocument();
+  });
+
+  it("supports collapsing and expanding the workflow guide on the dashboard", async () => {
+    const user = userEvent.setup();
+    localStorage.clear();
+
+    renderHomePage();
+
+    await screen.findByRole("heading", { level: 2, name: /how resumeee works/i });
+    expect(screen.getByText(/master career graph/i)).toBeInTheDocument();
+
+    const hideGuideBtn = screen.getByRole("button", { name: /hide guide/i });
+    await user.click(hideGuideBtn);
+
+    // Collapsed state
+    expect(localStorage.getItem("resumeee_hide_workflow_guide")).toBe("true");
+    expect(screen.queryByText(/master career graph/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /show guide/i })).toBeInTheDocument();
+
+    // Reopen
+    const showGuideBtn = screen.getByRole("button", { name: /show guide/i });
+    await user.click(showGuideBtn);
+    expect(localStorage.getItem("resumeee_hide_workflow_guide")).toBe("false");
+    expect(screen.getByText(/master career graph/i)).toBeInTheDocument();
+  });
 });

@@ -42,6 +42,7 @@ import {
   BranchTargetDisplay,
 } from "@/components/branches/branch-shared-elements";
 import { CreateBranchModal } from "@/components/branches/create-branch-modal";
+import { WorkflowGuide } from "@/components/dashboard/workflow-guide";
 import {
   useBranchesQuery,
   usePresetsQuery,
@@ -442,6 +443,15 @@ export const HomePage: React.FC = () => {
           />
         </div>
       </section>
+
+      {/* Workflow Architecture & Readiness Guide */}
+      <WorkflowGuide
+        profileSnapshot={profileSnapshot}
+        branches={branches}
+        templates={templates}
+        presets={presets}
+        onCreateBranch={() => setIsCreateModalOpen(true)}
+      />
 
       {/* Recent Resume Branches Section */}
       <section aria-labelledby="recent-branches-heading" className="space-y-4">
