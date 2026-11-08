@@ -17,6 +17,7 @@ import {
   ToastClose,
   ToastViewport,
 } from "@/components/workbench/workbench-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useBranch,
   useBranchVersions,
@@ -24,9 +25,9 @@ import {
   useTemplates,
   useSetActiveVersion,
   useUpdateBranch,
-  useSyncBranch,
   renderPreviewEphemeral,
   type UpdateBranchRequest,
+  workbenchKeys,
 } from "@/api/workbench-queries";
 import {
   useGenerateVersion,
@@ -93,7 +94,9 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     data: branch,
     isLoading: isBranchLoading,
     error: branchError,
+    refetch: refetchBranch,
   } = useBranch(branchId);
+  const queryClient = useQueryClient();
 
   const { data: versions = [], refetch: refetchVersions } =
     useBranchVersions(branchId);
@@ -108,19 +111,38 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     );
   }, [versions]);
 
+  // Set of terminal/handled version IDs to prevent ping-pong re-polling race conditions
+  const handledVersionIdsRef = React.useRef<Set<string>>(new Set());
+
+  // Identify if any version in the branch is actively pending or processing and not already handled
+  const ongoingVersionFromList =
+    versions.find(
+      (v) =>
+        !isTerminalStatus(v.status) &&
+        !handledVersionIdsRef.current.has(v.id)
+    ) || null;
+
   // Active generation polling version UUID
   const [pollingVersionId, setPollingVersionId] = React.useState<string | null>(
     null
   );
 
+  // If there is an ongoing version in the list and no polling is active, start polling it
+  React.useEffect(() => {
+    if (!pollingVersionId && ongoingVersionFromList) {
+      setPollingVersionId(ongoingVersionFromList.id);
+    }
+  }, [pollingVersionId, ongoingVersionFromList]);
+
   // Selected version for inspection (defaults to active version, latest version, or currently polling version)
   const [selectedVersion, setSelectedVersion] =
     React.useState<BranchVersion | null>(null);
 
-  // Reset polling and selection state when navigating between branches
+  // Reset polling, selection, and handled version tracking when navigating between branches
   React.useEffect(() => {
     setPollingVersionId(null);
     setSelectedVersion(null);
+    handledVersionIdsRef.current.clear();
   }, [branchId]);
 
   // Accessible Toast Notification State
@@ -140,7 +162,6 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
   // Mutations
   const generateMutation = useGenerateVersion(branchId);
   const setActiveMutation = useSetActiveVersion(branchId);
-  const syncMutation = useSyncBranch(branchId);
   const updateMutation = useUpdateBranch(branchId);
   const createFactMutation = useCreateFact();
   const { data: fullProfile } = useFullProfile();
@@ -150,8 +171,19 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     if (!polledVersion) return;
 
     if (isTerminalStatus(polledVersion.status)) {
+      handledVersionIdsRef.current.add(polledVersion.id);
       setPollingVersionId(null);
       void refetchVersions();
+      void refetchBranch();
+      void queryClient.invalidateQueries({
+        queryKey: workbenchKeys.branch(branchId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: workbenchKeys.versions(branchId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["render", "branch", branchId],
+      });
 
       if (polledVersion.status === "completed") {
         setToast({
@@ -160,7 +192,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
           description: `Resume version v${polledVersion.version_number} was successfully generated.`,
           variant: "success",
         });
-        setSelectedVersion(polledVersion);
+        setSelectedVersion(null);
       } else if (polledVersion.status === "completed_with_warnings") {
         setToast({
           open: true,
@@ -168,7 +200,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
           description: `Version v${polledVersion.version_number} generated with validation warnings. Review the report below.`,
           variant: "default",
         });
-        setSelectedVersion(polledVersion);
+        setSelectedVersion(null);
       } else if (polledVersion.status === "failed") {
         setToast({
           open: true,
@@ -180,22 +212,43 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         });
       }
     }
-  }, [polledVersion, refetchVersions]);
+  }, [polledVersion, refetchVersions, refetchBranch, queryClient, branchId]);
 
-  // Determine current active version to display in Gap Analysis
-  const activeVersion = React.useMemo(() => {
-    if (selectedVersion) return selectedVersion;
+  // The authoritative active version of the branch anchored strictly to branch.active_version_id
+  const branchActiveVersion = React.useMemo(() => {
     if (branch?.active_version_id && versions.length > 0) {
       const match = versions.find((v) => v.id === branch.active_version_id);
       if (match) return match;
     }
-    return versions.length > 0 ? versions[0] : null;
-  }, [selectedVersion, branch?.active_version_id, versions]);
+    // Fallback if active_version_id is not yet set: completed version with highest version_number
+    const completedVersions = versions.filter(
+      (v) => v.status === "completed" || v.status === "completed_with_warnings"
+    );
+    if (completedVersions.length > 0) {
+      return completedVersions.reduce((latest, current) =>
+        (current.version_number ?? 0) > (latest.version_number ?? 0) ? current : latest
+      );
+    }
+    // Final fallback to any version with highest version_number
+    if (versions.length > 0) {
+      return versions.reduce((latest, current) =>
+        (current.version_number ?? 0) > (latest.version_number ?? 0) ? current : latest
+      );
+    }
+    return null;
+  }, [branch?.active_version_id, versions]);
+
+  // Version currently inspected in Gap Analysis (defaults to selectedVersion if timeline clicked, else branchActiveVersion)
+  const inspectedVersion = React.useMemo(() => {
+    if (selectedVersion) return selectedVersion;
+    return branchActiveVersion;
+  }, [selectedVersion, branchActiveVersion]);
 
   // Handlers
   const handleTailorResume = async () => {
     try {
       const enqueued = await generateMutation.mutateAsync();
+      handledVersionIdsRef.current.delete(enqueued.version_id);
       setPollingVersionId(enqueued.version_id);
       setToast({
         open: true,
@@ -209,27 +262,6 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
       setToast({
         open: true,
         title: "Tailoring Error",
-        description: message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleSyncMain = async () => {
-    try {
-      const result = await syncMutation.mutateAsync();
-      setToast({
-        open: true,
-        title: "Main Profile Synced",
-        description: `Enqueued ${result.enqueued_count} branch sync jobs.`,
-        variant: "success",
-      });
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to sync branch with main profile";
-      setToast({
-        open: true,
-        title: "Sync Error",
         description: message,
         variant: "destructive",
       });
@@ -295,7 +327,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     setPreviewModalTemplateName(tName);
     setPreviewModalOpen(true);
 
-    if (!branchId || !activeVersion || !targetTemplateId) {
+    if (!branchId || !branchActiveVersion || !targetTemplateId) {
       setPreviewModalHtml(null);
       return;
     }
@@ -304,7 +336,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     try {
       const res = await renderPreviewEphemeral(
         branchId,
-        activeVersion.version_number,
+        branchActiveVersion.version_number,
         targetTemplateId
       );
       setPreviewModalHtml(res.html_output || res.html || "");
@@ -471,9 +503,24 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     generateMutation.isPending ||
     Boolean(
       pollingVersionId &&
-        polledVersion &&
-        !isTerminalStatus(polledVersion.status)
-    );
+        (!polledVersion || !isTerminalStatus(polledVersion.status))
+    ) ||
+    Boolean(ongoingVersionFromList);
+
+  const maxVersionNumber = React.useMemo(() => {
+    return versions.reduce((max, v) => Math.max(max, v.version_number ?? 0), 0);
+  }, [versions]);
+
+  const activeProgressVersion =
+    polledVersion ??
+    ongoingVersionFromList ??
+    (isTailoring
+      ? ({
+          id: "pending-job",
+          status: "pending",
+          version_number: maxVersionNumber + 1,
+        } as BranchVersion)
+      : null);
 
   if (isBranchLoading) {
     return (
@@ -535,15 +582,14 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
           presets={presets}
           templates={templates}
           hasCompletedVersions={hasCompletedVersions}
+          activeVersionNumber={branchActiveVersion?.version_number}
           isTailoring={isTailoring}
-          isSyncing={syncMutation.isPending}
           isUpdating={updateMutation.isPending}
           templateFeedback={templateFeedback}
-          onPreviewLayout={activeVersion ? () => handleOpenPreviewModal(activeTemplateSetId || branch.template_set_id) : undefined}
+          onPreviewLayout={branchActiveVersion ? () => handleOpenPreviewModal(activeTemplateSetId || branch.template_set_id) : undefined}
           onUpdatePreset={handleUpdatePreset}
           onUpdateTemplate={handleUpdateTemplate}
           onTailorResume={handleTailorResume}
-          onSyncMain={handleSyncMain}
         />
 
         {/* Job Description & Custom Context Editor */}
@@ -564,7 +610,11 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
               {hasCompletedVersions ? (
                 <Button asChild size="sm" className="shrink-0 flex items-center gap-1.5">
                   <Link
-                    to={`/branches/${branch.id}/preview`}
+                    to={
+                      branchActiveVersion
+                        ? `/branches/${branch.id}/preview?version=${branchActiveVersion.version_number}`
+                        : `/branches/${branch.id}/preview`
+                    }
                     aria-label="Inspect Main Resume"
                   >
                     <Eye className="h-4 w-4" aria-hidden="true" />
@@ -613,9 +663,9 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         )}
 
         {/* Active Generation Progress Indicator */}
-        {(isTailoring || polledVersion) && (
+        {(isTailoring || activeProgressVersion) && (
           <GenerationProgress
-            version={polledVersion}
+            version={activeProgressVersion}
             onRetry={handleTailorResume}
           />
         )}
@@ -623,8 +673,8 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         {/* Gap Analysis Card for Currently Inspected Version */}
         {!branch.is_default && (
           <GapAnalysisCard
-            gapReport={activeVersion?.gap_report ?? branch.gap_report}
-            versionNumber={activeVersion?.version_number}
+            gapReport={inspectedVersion?.gap_report ?? branch.gap_report}
+            versionNumber={inspectedVersion?.version_number}
             defaultExpanded={true}
             onQuickAddFact={handleQuickAddFact}
           />
@@ -634,7 +684,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         <VersionTimeline
           versions={versions}
           activeVersionId={branch.active_version_id}
-          selectedVersionId={activeVersion?.id}
+          selectedVersionId={inspectedVersion?.id}
           onSelectVersion={handleSelectVersion}
           onSetActiveVersion={handleSetActiveVersion}
           onCompareVersion={handleCompareVersion}

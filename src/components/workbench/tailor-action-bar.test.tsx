@@ -52,9 +52,7 @@ describe("TailorActionBar", () => {
         presets={mockPresets}
         templates={mockTemplates}
         isTailoring={false}
-        isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMain={vi.fn()}
       />
     );
 
@@ -89,9 +87,7 @@ describe("TailorActionBar", () => {
         presets={mockPresets}
         templates={mockTemplates}
         isTailoring={false}
-        isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMain={vi.fn()}
       />
     );
 
@@ -131,71 +127,123 @@ describe("TailorActionBar", () => {
     ).toBeInTheDocument();
   });
 
-  it("calls onTailorResume when 'Tailor Resume' button is clicked", async () => {
+  it("renders 'Tailor Resume' button when branch is in sync and calls onTailorResume", async () => {
     const user = userEvent.setup();
     const onTailor = vi.fn();
 
     render(
       <TailorActionBar
-        branch={mockBranch}
+        branch={{ ...mockBranch, is_stale: false }}
         presets={mockPresets}
         templates={mockTemplates}
         isTailoring={false}
-        isSyncing={false}
         onTailorResume={onTailor}
-        onSyncMain={vi.fn()}
       />
     );
 
     const tailorButton = screen.getByRole("button", {
       name: /tailor resume/i,
     });
-    await user.click(tailorButton);
+    expect(tailorButton).toBeInTheDocument();
 
+    // Verifies no standalone 'Sync with Main' button exists in header
+    expect(
+      screen.queryByRole("button", {
+        name: /^sync with main$/i,
+      })
+    ).not.toBeInTheDocument();
+
+    await user.click(tailorButton);
     expect(onTailor).toHaveBeenCalledTimes(1);
   });
 
-  it("disables 'Tailor Resume' button during active tailoring to prevent duplicate triggers", () => {
-    render(
-      <TailorActionBar
-        branch={mockBranch}
-        presets={mockPresets}
-        templates={mockTemplates}
-        isTailoring={true}
-        isSyncing={false}
-        onTailorResume={vi.fn()}
-        onSyncMain={vi.fn()}
-      />
-    );
-
-    const tailorButton = screen.getByRole("button", {
-      name: /tailoring/i,
-    });
-    expect(tailorButton).toBeDisabled();
-  });
-
-  it("calls onSyncMain when 'Sync with Main' is clicked", async () => {
+  it("updates primary button to 'Sync with Main' when branch is out of sync and calls onTailorResume", async () => {
     const user = userEvent.setup();
-    const onSync = vi.fn();
+    const onTailor = vi.fn();
 
     render(
       <TailorActionBar
-        branch={mockBranch}
+        branch={{ ...mockBranch, is_stale: true }}
         presets={mockPresets}
         templates={mockTemplates}
         isTailoring={false}
-        isSyncing={false}
-        onTailorResume={vi.fn()}
-        onSyncMain={onSync}
+        onTailorResume={onTailor}
       />
     );
 
-    const syncButton = screen.getByRole("button", {
-      name: /^sync with main$/i,
+    // Primary button should now be 'Sync with Main'
+    const syncMainButton = screen.getByRole("button", {
+      name: /sync with main/i,
     });
-    await user.click(syncButton);
+    expect(syncMainButton).toBeInTheDocument();
 
-    expect(onSync).toHaveBeenCalledTimes(1);
+    // 'Tailor Resume' label is replaced
+    expect(
+      screen.queryByRole("button", {
+        name: /tailor resume/i,
+      })
+    ).not.toBeInTheDocument();
+
+    await user.click(syncMainButton);
+    expect(onTailor).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables primary button during active tailoring to prevent duplicate triggers", () => {
+    const { rerender } = render(
+      <TailorActionBar
+        branch={{ ...mockBranch, is_stale: false }}
+        presets={mockPresets}
+        templates={mockTemplates}
+        isTailoring={true}
+        onTailorResume={vi.fn()}
+      />
+    );
+
+    const tailoringButton = screen.getByRole("button", {
+      name: /tailoring\.\.\./i,
+    });
+    expect(tailoringButton).toBeDisabled();
+
+    // Stale branch during tailoring shows 'Syncing...'
+    rerender(
+      <MemoryRouter>
+        <TailorActionBar
+          branch={{ ...mockBranch, is_stale: true }}
+          presets={mockPresets}
+          templates={mockTemplates}
+          isTailoring={true}
+          onTailorResume={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    const syncingButton = screen.getByRole("button", {
+      name: /syncing\.\.\./i,
+    });
+    expect(syncingButton).toBeDisabled();
+  });
+
+  it("renders prominent stale banner informing about revisions when branch is stale without duplicate button", () => {
+    render(
+      <TailorActionBar
+        branch={{ ...mockBranch, is_stale: true }}
+        presets={mockPresets}
+        templates={mockTemplates}
+        isTailoring={false}
+        onTailorResume={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getByText(/upstream main profile revisions available/i)
+    ).toBeInTheDocument();
+
+    // No duplicate sync button in the banner
+    expect(
+      screen.queryByRole("button", {
+        name: /sync with main profile/i,
+      })
+    ).not.toBeInTheDocument();
   });
 
   it("renders interactive select dropdowns for preset and template selection", async () => {
@@ -209,9 +257,7 @@ describe("TailorActionBar", () => {
         presets={mockPresets}
         templates={mockTemplates}
         isTailoring={false}
-        isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMain={vi.fn()}
         onUpdatePreset={onUpdatePreset}
         onUpdateTemplate={onUpdateTemplate}
       />
@@ -234,33 +280,7 @@ describe("TailorActionBar", () => {
     expect(onUpdateTemplate).toHaveBeenCalledWith("tpl-executive");
   });
 
-  it("renders prominent stale banner with sync trigger when branch is stale", async () => {
-    const user = userEvent.setup();
-    const onSync = vi.fn();
 
-    render(
-      <TailorActionBar
-        branch={{ ...mockBranch, is_stale: true }}
-        presets={mockPresets}
-        templates={mockTemplates}
-        isTailoring={false}
-        isSyncing={false}
-        onTailorResume={vi.fn()}
-        onSyncMain={onSync}
-      />
-    );
-
-    expect(
-      screen.getByText(/upstream main profile revisions available/i)
-    ).toBeInTheDocument();
-
-    const bannerSyncButton = screen.getByRole("button", {
-      name: /sync with main profile/i,
-    });
-    await user.click(bannerSyncButton);
-
-    expect(onSync).toHaveBeenCalled();
-  });
 
   it("disables 'Inspect Resume' button and contextualizes guidance when branch has zero completed versions", () => {
     render(
@@ -270,9 +290,7 @@ describe("TailorActionBar", () => {
         templates={mockTemplates}
         hasCompletedVersions={false}
         isTailoring={false}
-        isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMain={vi.fn()}
       />
     );
 
@@ -297,17 +315,16 @@ describe("TailorActionBar", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders active 'Inspect Resume' link when branch has completed versions", () => {
-    render(
+  it("renders active 'Inspect Resume' link targeting active version when branch has completed versions", () => {
+    const { rerender } = render(
       <TailorActionBar
         branch={mockBranch}
         presets={mockPresets}
         templates={mockTemplates}
         hasCompletedVersions={true}
+        activeVersionNumber={2}
         isTailoring={false}
-        isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMain={vi.fn()}
       />
     );
 
@@ -315,7 +332,26 @@ describe("TailorActionBar", () => {
       name: /inspect resume for senior backend engineer/i,
     });
     expect(inspectLink).toBeInTheDocument();
-    expect(inspectLink).toHaveAttribute("href", "/branches/branch-123/preview");
+    expect(inspectLink).toHaveAttribute("href", "/branches/branch-123/preview?version=2");
+
+    // Falls back cleanly to base preview path if activeVersionNumber is omitted
+    rerender(
+      <MemoryRouter>
+        <TailorActionBar
+          branch={mockBranch}
+          presets={mockPresets}
+          templates={mockTemplates}
+          hasCompletedVersions={true}
+          isTailoring={false}
+          onTailorResume={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+    expect(
+      screen.getByRole("link", {
+        name: /inspect resume for senior backend engineer/i,
+      })
+    ).toHaveAttribute("href", "/branches/branch-123/preview");
   });
 
   it("has no accessibility violations", async () => {
@@ -325,9 +361,7 @@ describe("TailorActionBar", () => {
         presets={mockPresets}
         templates={mockTemplates}
         isTailoring={false}
-        isSyncing={false}
         onTailorResume={vi.fn()}
-        onSyncMain={vi.fn()}
       />
     );
 
@@ -345,10 +379,8 @@ describe("TailorActionBar", () => {
         presets={mockPresets}
         templates={mockTemplates}
         isTailoring={false}
-        isSyncing={false}
         onUpdateTemplate={onUpdateTemplate}
         onTailorResume={vi.fn()}
-        onSyncMain={vi.fn()}
       />
     );
 
@@ -371,11 +403,9 @@ describe("TailorActionBar", () => {
         presets={mockPresets}
         templates={mockTemplates}
         isTailoring={false}
-        isSyncing={false}
         templateFeedback="Layout switched to Executive Minimalist."
         onPreviewLayout={onPreviewLayout}
         onTailorResume={vi.fn()}
-        onSyncMain={vi.fn()}
       />
     );
 

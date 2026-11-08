@@ -32,12 +32,12 @@ export interface TailorActionBarProps {
   templates?: TemplateSet[];
   /** Flag indicating whether resume generation is actively running or enqueued. */
   isTailoring: boolean;
-  /** Flag indicating whether main profile sync is in progress. */
-  isSyncing: boolean;
   /** Flag indicating whether branch settings are currently updating. */
   isUpdating?: boolean;
   /** Flag indicating whether this branch has at least one completed version ready for preview. */
   hasCompletedVersions?: boolean;
+  /** Active version number to target for Inspect Resume navigation. */
+  activeVersionNumber?: number;
   /** Live visual confirmation message displayed after updating layout template. */
   templateFeedback?: string | null;
   /** Callback triggered to preview current layout in quick modal dialog. */
@@ -46,10 +46,8 @@ export interface TailorActionBarProps {
   onUpdatePreset?: (presetId: string) => void;
   /** Callback triggered when user updates the resume ATS template set. */
   onUpdateTemplate?: (templateSetId: string) => void;
-  /** Callback triggered when the user clicks 'Tailor Resume'. */
+  /** Callback triggered when the user clicks 'Tailor Resume' or 'Sync with Main'. */
   onTailorResume: () => void;
-  /** Callback triggered when the user clicks 'Sync with Main'. */
-  onSyncMain: () => void;
 }
 
 /**
@@ -60,7 +58,7 @@ export interface TailorActionBarProps {
  * - Displays the branch target role, target company, preset, and template set.
  * - Highlights staleness against upstream main profile revisions.
  * - Enforces double-click and duplicate-trigger prevention by disabling the
- *   'Tailor Resume' mutation button during active generation runs.
+ *   'Tailor Resume' / 'Sync with Main' mutation button during active generation runs.
  *
  * Accessibility / WAI-ARIA Considerations:
  * - Semantic `<section>` landmark with `aria-label="Branch Actions and Overview"`.
@@ -73,15 +71,14 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
   presets = [],
   templates = [],
   isTailoring,
-  isSyncing,
   isUpdating = false,
   hasCompletedVersions = true,
+  activeVersionNumber,
   templateFeedback,
   onPreviewLayout,
   onUpdatePreset,
   onUpdateTemplate,
   onTailorResume,
-  onSyncMain,
 }) => {
   const currentPreset = presets.find((p) => p.id === branch.preset_id);
   const currentTemplate = templates.find((t) => t.id === branch.template_set_id);
@@ -95,35 +92,19 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
           aria-label="Upstream Main Profile Revisions Available"
           className="rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-4 text-amber-900 dark:text-amber-200 shadow-sm"
         >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <AlertTriangle
-                className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400"
-                aria-hidden="true"
-              />
-              <div>
-                <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-                  Upstream Main Profile Revisions Available
-                </h2>
-                <p className="mt-0.5 text-xs text-amber-800 dark:text-amber-300">
-                  The Main Profile has updated since this branch was last tailored. Sync now to incorporate the latest experience, skills, and projects.
-                </p>
-              </div>
+          <div className="flex items-start gap-3">
+            <AlertTriangle
+              className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400"
+              aria-hidden="true"
+            />
+            <div>
+              <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+                Upstream Main Profile Revisions Available
+              </h2>
+              <p className="mt-0.5 text-xs text-amber-800 dark:text-amber-300">
+                The Main Profile has updated since this branch was last tailored. Use "Sync with Main" below to incorporate the latest experience, skills, and projects.
+              </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onSyncMain}
-              disabled={isSyncing || isTailoring}
-              aria-busy={isSyncing}
-              className="shrink-0 border-amber-400 dark:border-amber-700 bg-white dark:bg-slate-900 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-950/60 flex items-center gap-1.5"
-            >
-              <RefreshCw
-                className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`}
-                aria-hidden="true"
-              />
-              <span>{isSyncing ? "Syncing..." : "Sync with Main Profile"}</span>
-            </Button>
           </div>
         </div>
       )}
@@ -161,23 +142,6 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
               )}
             </div>
           </div>
-
-          {!branch.is_default && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onSyncMain}
-              disabled={isSyncing || isTailoring}
-              aria-busy={isSyncing}
-              className="flex items-center gap-2 self-start sm:self-auto shrink-0"
-            >
-              <RefreshCw
-                className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`}
-                aria-hidden="true"
-              />
-              <span>{isSyncing ? "Syncing..." : "Sync with Main"}</span>
-            </Button>
-          )}
         </div>
 
         {/* RFC-005 Segregated Columns: Content & AI Strategy vs Document Appearance */}
@@ -233,7 +197,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                 aria-busy={isTailoring}
                 className="w-full flex items-center justify-center gap-2"
               >
-                {branch.is_default ? (
+                {branch.is_default || branch.is_stale ? (
                   <RefreshCw
                     className={`h-4 w-4 ${isTailoring ? "animate-spin" : ""}`}
                     aria-hidden="true"
@@ -249,6 +213,10 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                     ? isTailoring
                       ? "Refreshing..."
                       : "Refresh from Main Profile"
+                    : branch.is_stale
+                    ? isTailoring
+                      ? "Syncing..."
+                      : "Sync with Main"
                     : isTailoring
                     ? "Tailoring..."
                     : "Tailor Resume"}
@@ -335,7 +303,11 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                   )}
                   <Button asChild variant="secondary" size="sm" className="flex-1 flex items-center justify-center gap-1.5 text-xs">
                     <Link
-                      to={`/branches/${branch.id}/preview`}
+                      to={
+                        activeVersionNumber !== undefined
+                          ? `/branches/${branch.id}/preview?version=${activeVersionNumber}`
+                          : `/branches/${branch.id}/preview`
+                      }
                       aria-label={`Inspect resume for ${branch.name}`}
                     >
                       <Eye className="h-3.5 w-3.5" aria-hidden="true" />

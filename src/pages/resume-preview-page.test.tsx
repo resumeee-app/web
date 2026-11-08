@@ -355,6 +355,29 @@ describe("ResumePreviewPage Component", () => {
     expect(renderQueries.useBranchVersion).toHaveBeenCalledWith("b-123", 1);
   });
 
+  it("defaults to active branch version when navigated to preview without version param", () => {
+    vi.mocked(renderQueries.useBranch).mockReturnValue(
+      mockQueryResult<renderQueries.Branch>({
+        data: { ...mockBranch, active_version_id: "v-2" },
+        isLoading: false,
+        isError: false,
+      })
+    );
+    vi.mocked(renderQueries.useBranchVersions).mockReturnValue(
+      mockQueryResult<renderQueries.BranchVersion[]>({
+        data: [mockVersion1, mockVersion2],
+        isLoading: false,
+        isError: false,
+      })
+    );
+
+    render(<ResumePreviewPage />, {
+      wrapper: createTestWrapper(["/branches/b-123/preview"]),
+    });
+
+    expect(renderQueries.useBranchVersion).toHaveBeenCalledWith("b-123", 2);
+  });
+
   it("renders export actions for Plain Text, JSON Resume, and HTML in toolbar with valid endpoint URLs", () => {
     render(<ResumePreviewPage />, { wrapper: createTestWrapper() });
 

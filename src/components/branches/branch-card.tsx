@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Clock, Eye, Layers, Trash2 } from "lucide-react";
+import { Check, Clock, Eye, Layers, ShieldCheck, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   isDefaultBranch,
@@ -73,6 +73,9 @@ export const BranchCard: React.FC<BranchCardProps> = ({
   const isDefault = isDefaultBranch(branch);
   const status = getBranchStatus(branch);
   const formattedDate = formatBranchDate(branch.updated_at);
+  const rawScore = branch.gap_report?.match_score;
+  const hasAtsScore = typeof rawScore === "number" && !Number.isNaN(rawScore);
+  const atsScoreDisplay = hasAtsScore ? `${Math.round(rawScore)}%` : "N/A";
 
   return (
     <article
@@ -146,6 +149,26 @@ export const BranchCard: React.FC<BranchCardProps> = ({
               </span>
             )}
           </div>
+        </div>
+
+        <div
+          data-testid={`branch-ats-score-${branch.id}`}
+          className="mt-4 flex items-center justify-between text-[11px] rounded bg-slate-50 dark:bg-slate-950/70 px-2.5 py-1.5 border border-slate-100 dark:border-slate-800"
+        >
+          <span
+            className={`font-semibold flex items-center gap-1 ${
+              hasAtsScore
+                ? "text-emerald-700 dark:text-emerald-400"
+                : "text-slate-500 dark:text-slate-400"
+            }`}
+          >
+            <Check className="h-3 w-3" aria-hidden="true" />
+            ATS Score: {atsScoreDisplay}
+          </span>
+          <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+            <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+            Verified Facts
+          </span>
         </div>
       </div>
 

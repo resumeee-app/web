@@ -54,11 +54,11 @@ describe("Application Root Component", () => {
       vi.stubEnv("ADMIN_MODE", "false");
     });
 
-    it("renders public landing page and hides header navigation links and quota meter when unauthenticated on root", () => {
+    it("renders public landing page and hides header navigation links and quota meter when unauthenticated on root", async () => {
       render(<App />);
 
       // Hero heading and value proposition
-      expect(screen.getByRole("heading", { level: 1, name: /branch your career/i })).toBeInTheDocument();
+      expect(await screen.findByRole("heading", { level: 1, name: /branch your career/i })).toBeInTheDocument();
       expect(screen.getAllByText(/one resume to rule them all/i).length).toBeGreaterThan(0);
 
       // CTA into login
@@ -74,16 +74,17 @@ describe("Application Root Component", () => {
       expect(within(banner).queryByLabelText(/quota/i)).not.toBeInTheDocument();
     });
 
-    it("renders login screen when routed to /login directly", () => {
+    it("renders login screen when routed to /login directly", async () => {
       const testRouter = createAppRouter(["/login"]);
       render(<App router={testRouter} />);
 
-      expect(screen.getByRole("heading", { name: /sign in to resumeee/i })).toBeInTheDocument();
+      expect(await screen.findByRole("heading", { name: /sign in to resumeee/i })).toBeInTheDocument();
       expect(screen.getByText(/multi-tenant resume tailoring powered by firebase/i)).toBeInTheDocument();
     });
 
     it("passes axe-core accessibility audit on unauthenticated landing page render", async () => {
       const { container } = render(<App />);
+      await screen.findByRole("heading", { level: 1, name: /branch your career/i });
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });

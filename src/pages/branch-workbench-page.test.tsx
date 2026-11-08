@@ -337,21 +337,222 @@ describe("BranchWorkbenchPage", () => {
     });
   });
 
-  it("enqueues main profile synchronization via handleSyncMain", async () => {
+  it("enqueues tailoring generation when 'Sync with Main' is clicked on a stale branch", async () => {
     const user = userEvent.setup();
+
+    vi.spyOn(api, "GET").mockImplementation(
+      (path: string) => {
+        if (path === "/branches/{id}") {
+          return Promise.resolve({
+            data: { ...mockBranch, is_stale: true },
+            error: undefined,
+          }) as never;
+        }
+        if (path === "/branches/{id}/versions") {
+          return Promise.resolve({
+            data: mockVersions,
+            error: undefined,
+          }) as never;
+        }
+        if (path === "/presets") {
+          return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+        }
+        if (path === "/templates") {
+          return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+        }
+        if (path === "/branches/{id}/versions/{v}") {
+          return Promise.resolve({
+            data: {
+              id: "v-sync",
+              branch_id: "b-123",
+              version_number: 3,
+              status: "completed",
+              created_at: new Date().toISOString(),
+            },
+            error: undefined,
+          }) as never;
+        }
+        return Promise.resolve({ data: undefined, error: undefined }) as never;
+      }
+    );
+
+    vi.spyOn(api, "POST").mockResolvedValue({
+      data: { version_id: "v-sync", status: "pending", message: "Sync job enqueued" },
+      error: undefined,
+      response: new Response(),
+    } as never);
+
+    const { Wrapper } = createTestWrapper();
+    render(<BranchWorkbenchPage pollIntervalMs={30} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /^sync with main$/i })
+      ).toBeInTheDocument();
+    });
+
+    const syncBtn = screen.getByRole("button", {
+      name: /^sync with main$/i,
+    });
+    await user.click(syncBtn);
+
+    expect(api.POST).toHaveBeenCalledWith("/branches/{id}/generate", {
+      params: { path: { id: "b-123" } },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Tailoring Completed")).toBeInTheDocument();
+    });
+  });
+
+  it("detects ongoing tailoring job on mount, disables action button, displays GenerationProgress, and polls until finished", async () => {
+    let pollCount = 0;
+    const ongoingVersions: BranchVersion[] = [
+      {
+        id: "v-ongoing",
+        branch_id: "b-123",
+        version_number: 2,
+        status: "processing",
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: "v-1",
+        branch_id: "b-123",
+        version_number: 1,
+        status: "completed",
+        created_at: new Date(Date.now() - 5000).toISOString(),
+      },
+    ];
+
+    vi.spyOn(api, "GET").mockImplementation(
+      (path: string) => {
+        if (path === "/branches/{id}") {
+          return Promise.resolve({
+            data:
+              pollCount >= 2
+                ? { ...mockBranch, active_version_id: "v-ongoing", is_stale: false }
+                : { ...mockBranch, is_stale: true },
+            error: undefined,
+          }) as never;
+        }
+        if (path === "/branches/{id}/versions") {
+          return Promise.resolve({
+            data:
+              pollCount >= 2
+                ? [
+                    {
+                      id: "v-ongoing",
+                      branch_id: "b-123",
+                      version_number: 2,
+                      status: "completed",
+                      created_at: new Date().toISOString(),
+                    },
+                    ongoingVersions[1],
+                  ]
+                : ongoingVersions,
+            error: undefined,
+          }) as never;
+        }
+        if (path === "/presets") {
+          return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+        }
+        if (path === "/templates") {
+          return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+        }
+        if (path === "/branches/{id}/versions/{v}") {
+          pollCount++;
+          if (pollCount === 1) {
+            return Promise.resolve({
+              data: {
+                id: "v-ongoing",
+                branch_id: "b-123",
+                version_number: 2,
+                status: "processing",
+                created_at: new Date().toISOString(),
+              },
+              error: undefined,
+            }) as never;
+          }
+          return Promise.resolve({
+            data: {
+              id: "v-ongoing",
+              branch_id: "b-123",
+              version_number: 2,
+              status: "completed",
+              created_at: new Date().toISOString(),
+            },
+            error: undefined,
+          }) as never;
+        }
+        return Promise.resolve({ data: undefined, error: undefined }) as never;
+      }
+    );
+
+    const { Wrapper } = createTestWrapper();
+    render(<BranchWorkbenchPage pollIntervalMs={20} />, { wrapper: Wrapper });
+
+    // Ongoing generation progress indicator must be displayed immediately
+    await waitFor(() => {
+      expect(screen.getByText("Tailoring in Progress...")).toBeInTheDocument();
+    });
+
+    // Primary button should be disabled
+    const button = screen.getByRole("button", { name: /syncing\.\.\.|tailoring\.\.\./i });
+    expect(button).toBeDisabled();
+
+    // Terminal completion auto-updates UI and displays toast
+    await waitFor(() => {
+      expect(screen.getByText("Tailoring Completed")).toBeInTheDocument();
+    });
+
+    // Button re-enables with Tailor Resume
+    await waitFor(() => {
+      const enabledBtn = screen.getByRole("button", { name: /tailor resume/i });
+      expect(enabledBtn).toBeEnabled();
+    });
+  });
+
+  it("ensures Quick Preview and Inspect Resume target active branch version even when a previous version was selected", async () => {
+    const user = userEvent.setup();
+
+    const branchWithActiveV2: Branch = {
+      ...mockBranch,
+      active_version_id: "v-2",
+    };
+
+    const multiVersions: BranchVersion[] = [
+      {
+        id: "v-2",
+        branch_id: "b-123",
+        version_number: 2,
+        status: "completed",
+        created_at: new Date(Date.now() - 1000).toISOString(),
+        gap_report: {
+          match_score: 95.0,
+          identified_gaps: [],
+          strategic_recommendations: ["Strong match"],
+        },
+      },
+      {
+        id: "v-1",
+        branch_id: "b-123",
+        version_number: 1,
+        status: "completed",
+        created_at: new Date(Date.now() - 10000).toISOString(),
+        gap_report: {
+          match_score: 75.0,
+          identified_gaps: [{ requirement: "Missing Paxos", importance: "critical" }],
+          strategic_recommendations: ["Add Raft"],
+        },
+      },
+    ];
 
     vi.spyOn(api, "GET").mockImplementation((path: string) => {
       if (path === "/branches/{id}") {
-        return Promise.resolve({
-          data: { ...mockBranch, is_stale: true },
-          error: undefined,
-        }) as never;
+        return Promise.resolve({ data: branchWithActiveV2, error: undefined }) as never;
       }
       if (path === "/branches/{id}/versions") {
-        return Promise.resolve({
-          data: mockVersions,
-          error: undefined,
-        }) as never;
+        return Promise.resolve({ data: multiVersions, error: undefined }) as never;
       }
       if (path === "/presets") {
         return Promise.resolve({ data: mockPresets, error: undefined }) as never;
@@ -362,34 +563,44 @@ describe("BranchWorkbenchPage", () => {
       return Promise.resolve({ data: undefined, error: undefined }) as never;
     });
 
-    vi.spyOn(api, "POST").mockResolvedValue({
-      data: { enqueued_count: 1, version_ids: ["v-sync"] },
-      error: undefined,
-      response: new Response(),
-    } as never);
+    vi.spyOn(api, "POST").mockImplementation((path: string) => {
+      if (path === "/branches/{id}/versions/{v}/render-preview") {
+        return Promise.resolve({
+          data: { html_output: "<div>Active V2 Preview</div>" },
+          error: undefined,
+        }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
 
     const { Wrapper } = createTestWrapper();
     render(<BranchWorkbenchPage pollIntervalMs={30} />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /sync with main profile/i })
-      ).toBeInTheDocument();
+      expect(screen.getByText("Version v2")).toBeInTheDocument();
+      expect(screen.getByText("Version v1")).toBeInTheDocument();
     });
 
-    const syncBtn = screen.getByRole("button", {
-      name: /sync with main profile/i,
+    // Inspect Resume link points to active version 2
+    const inspectLink = screen.getByRole("link", {
+      name: /inspect resume for senior distributed systems engineer/i,
     });
-    await user.click(syncBtn);
+    expect(inspectLink).toHaveAttribute("href", "/branches/b-123/preview?version=2");
 
-    expect(api.POST).toHaveBeenCalledWith("/branches/sync", {
-      body: { branch_ids: ["b-123"] },
+    // Open Quick Preview
+    const quickPreviewBtn = screen.getByRole("button", {
+      name: /preview layout in modal/i,
     });
+    await user.click(quickPreviewBtn);
 
-    await waitFor(() => {
-      expect(screen.getByText("Main Profile Synced")).toBeInTheDocument();
-    });
-    expect(screen.getByText("Enqueued 1 branch sync jobs.")).toBeInTheDocument();
+    // Render-preview MUST be called with active version 2
+    expect(api.POST).toHaveBeenCalledWith(
+      "/branches/{id}/versions/{v}/render-preview",
+      {
+        params: { path: { id: "b-123", v: "2" } },
+        body: { template_set_id: "tpl-default" },
+      }
+    );
   });
 
   it("updates target preset and template sets via interactive selectors", async () => {
@@ -906,13 +1117,13 @@ describe("BranchWorkbenchPage", () => {
       name: /inspect resume for main profile \(default\)/i,
     });
     expect(inspectHeaderLink).toBeInTheDocument();
-    expect(inspectHeaderLink).toHaveAttribute("href", "/branches/branch-default/preview");
+    expect(inspectHeaderLink).toHaveAttribute("href", "/branches/branch-default/preview?version=1");
 
     const inspectProjectionLink = screen.getByRole("link", {
       name: /inspect main resume/i,
     });
     expect(inspectProjectionLink).toBeInTheDocument();
-    expect(inspectProjectionLink).toHaveAttribute("href", "/branches/branch-default/preview");
+    expect(inspectProjectionLink).toHaveAttribute("href", "/branches/branch-default/preview?version=1");
 
     // Clicking Inspect in VersionTimeline navigates to preview
     const timelineInspectBtn = screen.getByRole("button", {
@@ -1222,5 +1433,105 @@ describe("BranchWorkbenchPage", () => {
       expect(modalIframe).toHaveAttribute("sandbox", "");
       expect(modalIframe).toHaveAttribute("srcdoc", "<div class='modern'>Preview Content</div>");
     });
+  });
+
+  it("defensively calculates highest version number and active version when versions array is ordered ascending", async () => {
+    const ascendingVersions: BranchVersion[] = [
+      {
+        id: "v-1",
+        branch_id: "b-123",
+        version_number: 1,
+        status: "completed",
+        created_at: new Date(Date.now() - 20000).toISOString(),
+      },
+      {
+        id: "v-2",
+        branch_id: "b-123",
+        version_number: 2,
+        status: "completed",
+        created_at: new Date(Date.now() - 10000).toISOString(),
+      },
+    ];
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({
+          data: { ...mockBranch, active_version_id: undefined },
+          error: undefined,
+        }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({ data: ascendingVersions, error: undefined }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      return Promise.reject(new Error(`Unhandled GET path: ${path}`)) as never;
+    });
+
+    const { Wrapper: wrapper1 } = createTestWrapper();
+    render(<BranchWorkbenchPage pollIntervalMs={50} />, {
+      wrapper: wrapper1,
+    });
+
+    // Inspect link should target version 2 (the highest completed version) rather than index 0 (v1)
+    const inspectLink = await screen.findByRole("link", {
+      name: /inspect resume for senior distributed systems engineer/i,
+    });
+    expect(inspectLink).toHaveAttribute("href", "/branches/b-123/preview?version=2");
+  });
+
+  it("prevents state ping-pong re-polling loop when a version transitions to terminal status", async () => {
+    let pollCount = 0;
+    const procVersion: BranchVersion = {
+      id: "v-proc",
+      branch_id: "b-123",
+      version_number: 3,
+      status: "processing",
+      created_at: new Date().toISOString(),
+    };
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({ data: mockBranch, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({ data: [procVersion], error: undefined }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions/{v}") {
+        pollCount++;
+        return Promise.resolve({
+          data: {
+            ...procVersion,
+            status: "completed",
+          },
+          error: undefined,
+        }) as never;
+      }
+      return Promise.reject(new Error(`Unhandled GET path: ${path}`)) as never;
+    });
+
+    const { Wrapper: wrapper1 } = createTestWrapper();
+    render(<BranchWorkbenchPage pollIntervalMs={50} />, {
+      wrapper: wrapper1,
+    });
+
+    // Terminal completion toast appears
+    expect(await screen.findByText("Tailoring Completed")).toBeInTheDocument();
+
+    // Verify polling has terminated and does not ping-pong back into processing
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /tailor resume/i })).not.toBeDisabled();
+    });
+    expect(pollCount).toBe(1);
   });
 });

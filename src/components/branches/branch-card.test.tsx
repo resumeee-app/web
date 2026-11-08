@@ -170,6 +170,40 @@ describe("BranchCard Component", () => {
     expect(screen.getByText(/strategy:/i)).toBeInTheDocument();
   });
 
+  it("renders ATS score when gap_report match_score is present", () => {
+    const branchWithScore: Branch = {
+      ...customBranch,
+      gap_report: {
+        match_score: 96.4,
+        overall_match_summary: "Strong candidate match",
+      },
+    };
+
+    render(
+      <MemoryRouter>
+        <BranchCard branch={branchWithScore} />
+      </MemoryRouter>
+    );
+
+    const scoreElement = screen.getByTestId(`branch-ats-score-${branchWithScore.id}`);
+    expect(scoreElement).toBeInTheDocument();
+    expect(scoreElement).toHaveTextContent("ATS Score: 96%");
+    expect(scoreElement).toHaveTextContent("Verified Facts");
+  });
+
+  it("renders ATS score N/A when gap_report or match_score is omitted", () => {
+    render(
+      <MemoryRouter>
+        <BranchCard branch={defaultBranch} />
+      </MemoryRouter>
+    );
+
+    const scoreElement = screen.getByTestId(`branch-ats-score-${defaultBranch.id}`);
+    expect(scoreElement).toBeInTheDocument();
+    expect(scoreElement).toHaveTextContent("ATS Score: N/A");
+    expect(scoreElement).toHaveTextContent("Verified Facts");
+  });
+
   it("has zero accessibility violations according to axe-core", async () => {
     const { container: defaultContainer } = render(
       <MemoryRouter>
