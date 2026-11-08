@@ -51,7 +51,12 @@ export const Header: React.FC = () => {
               aria-label="Resumeee Home"
             >
               <ResumeeeLogo className="h-6 w-6 lg:h-7 lg:w-7" />
-              <span>Resumeee</span>
+              <span>
+                Resum
+                <span className="bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600 dark:from-sky-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                  eee
+                </span>
+              </span>
             </Link>
           </div>
 
