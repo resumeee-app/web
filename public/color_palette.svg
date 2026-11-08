@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" fill="none" role="img" aria-labelledby="palette-title palette-desc">
+  <title id="palette-title">Resumeee Application Color Palette</title>
+  <desc id="palette-desc">Official color palette extracted from the Resumeee web application: Slate surfaces, Indigo brand accents, and Emerald, Amber, and Red semantic domain tokens.</desc>
+
+  <!-- Canvas Background -->
+  <rect width="960" height="540" rx="20" fill="#0F172A" />
+  <rect x="1" y="1" width="958" height="538" rx="19" stroke="#1E293B" stroke-width="2" />
+
+  <!-- Header -->
+  <text x="48" y="56" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="800" fill="#F8FAFC" letter-spacing="-0.02em">
+    Resumeee — Application Color Palette
+  </text>
+  <text x="48" y="84" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="500" fill="#94A3B8">
+    Extracted from Tailwind &amp; CSS custom properties across Dashboard, Master Profile, Branches, Templates &amp; Presets
+  </text>
+
+  <!-- Row 1: Surface & Structural Neutrals (Slate) -->
+  <text x="48" y="130" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#CBD5E1" letter-spacing="0.06em">
+    1. SURFACE &amp; STRUCTURAL NEUTRALS (SLATE)
+  </text>
+
+  <g transform="translate(48, 144)">
+    <rect width="132" height="76" rx="10" fill="#020617" stroke="#334155" stroke-width="1.5" />
+    <text x="12" y="48" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#F8FAFC">Slate 950</text>
+    <text x="12" y="65" font-family="monospace" font-size="12" fill="#94A3B8">#020617</text>
+  </g>
+  <g transform="translate(194, 144)">
+    <rect width="132" height="76" rx="10" fill="#0F172A" stroke="#334155" stroke-width="1.5" />
+    <text x="12" y="48" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#F8FAFC">Slate 900</text>
+    <text x="12" y="65" font-family="monospace" font-size="12" fill="#94A3B8">#0F172A</text>
+  </g>
+  <g transform="translate(340, 144)">
+    <rect width="132" height="76" rx="10" fill="#1E293B" stroke="#475569" stroke-width="1" />
+    <text x="12" y="48" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#F8FAFC">Slate 800</text>
+    <text x="12" y="65" font-family="monospace" font-size="12" fill="#CBD5E1">#1E293B</text>
+  </g>
+  <g transform="translate(486, 144)">
+    <rect width="132" height="76" rx="10" fill="#475569" />
+    <text x="12" y="48" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#F8FAFC">Slate 600</text>
+    <text x="12" y="65" font-family="monospace" font-size="12" fill="#E2E8F0">#475569</text>
+  </g>
+  <g transform="translate(632, 144)">
+    <rect width="132" height="76" rx="10" fill="#94A3B8" />
+    <text x="12" y="48" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#0F172A">Slate 400</text>
+    <text x="12" y="65" font-family="monospace" font-size="12" fill="#1E293B">#94A3B8</text>
+  </g>
+  <g transform="translate(778, 144)">
+    <rect width="134" height="76" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" />
+    <text x="12" y="48" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#0F172A">Slate 50</text>
+    <text x="12" y="65" font-family="monospace" font-size="12" fill="#475569">#F8FAFC</text>
+  </g>
+
+  <!-- Row 2: Brand & Primary Interactive Accents (Indigo & Primary Blue) -->
+  <text x="48" y="264" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#CBD5E1" letter-spacing="0.06em">
+    2. BRAND &amp; PRIMARY INTERACTIVE ACCENTS (INDIGO &amp; PRIMARY BLUE)
+  </text>
+
+  <g transform="translate(48, 278)">
+    <rect width="164" height="84" rx="10" fill="#1E1B4B" stroke="#4338CA" stroke-width="1.5" />
+    <text x="14" y="42" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#E0E7FF">Indigo 950</text>
+    <text x="14" y="60" font-family="monospace" font-size="12" fill="#A5B4FC">#1E1B4B</text>
+    <text x="14" y="75" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#818CF8">Deep Brand Base</text>
+  </g>
+  <g transform="translate(226, 278)">
+    <rect width="164" height="84" rx="10" fill="#4F46E5" />
+    <text x="14" y="42" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">Indigo 600</text>
+    <text x="14" y="60" font-family="monospace" font-size="12" fill="#E0E7FF">#4F46E5</text>
+    <text x="14" y="75" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#C7D2FE">Primary Brand Icon</text>
+  </g>
+  <g transform="translate(404, 278)">
+    <rect width="164" height="84" rx="10" fill="#6366F1" />
+    <text x="14" y="42" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">Indigo 500</text>
+    <text x="14" y="60" font-family="monospace" font-size="12" fill="#EEF2FF">#6366F1</text>
+    <text x="14" y="75" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#E0E7FF">Focus Ring &amp; Active</text>
+  </g>
+  <g transform="translate(582, 278)">
+    <rect width="164" height="84" rx="10" fill="#818CF8" />
+    <text x="14" y="42" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Indigo 400</text>
+    <text x="14" y="60" font-family="monospace" font-size="12" fill="#1E1B4B">#818CF8</text>
+    <text x="14" y="75" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#1E1B4B">Dark Mode Brand</text>
+  </g>
+  <g transform="translate(760, 278)">
+    <rect width="152" height="84" rx="10" fill="#2563EB" />
+    <text x="14" y="42" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">Primary Blue</text>
+    <text x="14" y="60" font-family="monospace" font-size="12" fill="#DBEAFE">#2563EB</text>
+    <text x="14" y="75" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#BFDBFE">CSS --primary CTA</text>
+  </g>
+
+  <!-- Row 3: Semantic Domain & Branch Status Accents (Emerald, Amber, Red) -->
+  <text x="48" y="406" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#CBD5E1" letter-spacing="0.06em">
+    3. SEMANTIC DOMAIN &amp; BRANCH STATUS ACCENTS (EMERALD, AMBER, RED)
+  </text>
+
+  <g transform="translate(48, 420)">
+    <rect width="164" height="84" rx="10" fill="#059669" />
+    <text x="14" y="42" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">Emerald 600</text>
+    <text x="14" y="60" font-family="monospace" font-size="12" fill="#D1FAE5">#059669</text>
+    <text x="14" y="75" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#A7F3D0">Verified Provenance</text>
+  </g>
+  <g transform="translate(226, 420)">
+    <rect width="164" height="84" rx="10" fill="#34D399" />
+    <text x="14" y="42" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#022C22">Emerald 400</text>
+    <text x="14" y="60" font-family="monospace" font-size="12" fill="#064E3B">#34D399</text>
+    <text x="14" y="75" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#065F46">Branch Ready Status</text>
+  </g>
+  <g transform="translate(404, 420)">
+    <rect width="164" height="84" rx="10" fill="#D97706" />
+    <text x="14" y="42" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">Amber 600</text>
+    <text x="14" y="60" font-family="monospace" font-size="12" fill="#FEF3C7">#D97706</text>
+    <text x="14" y="75" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#FDE68A">Quota &amp; Unsaved State</text>
+  </g>
+  <g transform="translate(582, 420)">
+    <rect width="164" height="84" rx="10" fill="#FBBF24" />
+    <text x="14" y="42" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#451A03">Amber 400</text>
+    <text x="14" y="60" font-family="monospace" font-size="12" fill="#78350F">#FBBF24</text>
+    <text x="14" y="75" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#78350F">Tailoring Synthesis</text>
+  </g>
+  <g transform="translate(760, 420)">
+    <rect width="152" height="84" rx="10" fill="#DC2626" />
+    <text x="14" y="42" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">Red 600</text>
+    <text x="14" y="60" font-family="monospace" font-size="12" fill="#FEE2E2">#DC2626</text>
+    <text x="14" y="75" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#FECACA">Validation &amp; Alerts</text>
+  </g>
+</svg>

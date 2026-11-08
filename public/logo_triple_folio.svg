@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title-triple-folio desc-triple-folio">
+  <title id="title-triple-folio">Resumeee Logo — Triple Folio Stack</title>
+  <desc id="desc-triple-folio">Three fanned resume sheets representing the three e's of Resumeee and multiple tailored resume variants derived from one profile, accented with an ATS verification badge.</desc>
+  <defs>
+    <linearGradient id="tf-bg" x1="6" y1="6" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#312E81" />
+      <stop offset="100%" stop-color="#1E1B4B" />
+    </linearGradient>
+    <linearGradient id="tf-card-front" x1="18" y1="12" x2="44" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#EEF2FF" />
+    </linearGradient>
+    <linearGradient id="tf-badge" x1="38" y1="36" x2="52" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#4F46E5" />
+    </linearGradient>
+  </defs>
+
+  <!-- Base Container -->
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#tf-bg)" />
+
+  <!-- Branch Sheet 1 (Left Fan — Purple Variant) -->
+  <rect x="13" y="13" width="28" height="38" rx="4.5" transform="rotate(-14 27 32)" fill="#A855F7" fill-opacity="0.55" stroke="#E9D5FF" stroke-opacity="0.4" stroke-width="1" />
+
+  <!-- Branch Sheet 2 (Right Fan — Sky Variant) -->
+  <rect x="21" y="13" width="28" height="38" rx="4.5" transform="rotate(12 35 32)" fill="#38BDF8" fill-opacity="0.55" stroke="#BAE6FD" stroke-opacity="0.4" stroke-width="1" />
+
+  <!-- Master / Active Tailored Sheet 3 (Center Foreground) -->
+  <rect x="17" y="11" width="30" height="41" rx="5" fill="url(#tf-card-front)" stroke="#C7D2FE" stroke-width="1.2" />
+
+  <!-- Resume Header Avatar + Name Block -->
+  <circle cx="24.5" cy="19.5" r="3.5" fill="#4F46E5" />
+  <rect x="30" y="17" width="12" height="2.5" rx="1.25" fill="#1E293B" />
+  <rect x="30" y="21" width="8" height="2" rx="1" fill="#6366F1" />
+
+  <!-- Resume Content Section Bars (Three "e" Highlighted Rows) -->
+  <rect x="21" y="27.5" width="22" height="2.5" rx="1.25" fill="#38BDF8" />
+  <rect x="21" y="32.5" width="19" height="2.5" rx="1.25" fill="#6366F1" />
+  <rect x="21" y="37.5" width="15" height="2.5" rx="1.25" fill="#A855F7" />
+  <rect x="21" y="42.5" width="11" height="2" rx="1" fill="#CBD5E1" />
+
+  <!-- Provenance & ATS Verification Seal -->
+  <circle cx="45" cy="44" r="8" fill="url(#tf-badge)" stroke="#1E1B4B" stroke-width="2" />
+  <path d="M41.5 44.2L43.8 46.5L48.8 41.5" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

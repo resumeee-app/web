@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title-prism-tailor desc-prism-tailor">
+  <title id="title-prism-tailor">Resumeee Logo — AI Tailoring Prism</title>
+  <desc id="desc-prism-tailor">A single master profile beam entering a geometric tailoring prism and refracting into three tailored resume output streams.</desc>
+  <defs>
+    <linearGradient id="pt-bg" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#090D16" />
+      <stop offset="100%" stop-color="#1E1B4B" />
+    </linearGradient>
+    <linearGradient id="pt-prism" x1="20" y1="14" x2="42" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E0E7FF" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#6366F1" stop-opacity="0.35" />
+    </linearGradient>
+  </defs>
+
+  <!-- Base Icon Container -->
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#pt-bg)" />
+  <rect x="4.75" y="4.75" width="54.5" height="54.5" rx="13.25" stroke="#4F46E5" stroke-opacity="0.4" stroke-width="1.5" />
+
+  <!-- Single Master Profile Input Beam (Left) -->
+  <path d="M9 32H23" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
+  <circle cx="11" cy="32" r="3" fill="#38BDF8" />
+
+  <!-- Three Refracted Tailored Resume Streams (Right — "e-e-e") -->
+  <!-- Stream 1: Top Sky Stream -->
+  <path d="M35 25L53 17" stroke="#38BDF8" stroke-width="3.8" stroke-linecap="round" />
+  <!-- Stream 2: Middle Indigo Stream -->
+  <path d="M38 32H55" stroke="#818CF8" stroke-width="3.8" stroke-linecap="round" />
+  <!-- Stream 3: Bottom Purple Stream -->
+  <path d="M35 39L53 47" stroke="#C084FC" stroke-width="3.8" stroke-linecap="round" />
+
+  <!-- Central Tailoring Strategy Prism (Triangle / Diamond Lens) -->
+  <polygon points="28,13 43,47 15,47" fill="url(#pt-prism)" stroke="#A5B4FC" stroke-width="2" stroke-linejoin="round" />
+  <polygon points="28,19 38,43 19,43" fill="#312E81" fill-opacity="0.55" />
+
+  <!-- Internal Refraction Line inside Prism -->
+  <path d="M21 32L36 28M21 32L37 33M21 32L35 38" stroke="#E0E7FF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.8" />
+</svg>

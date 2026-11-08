@@ -3,7 +3,8 @@ import * as firebaseui from "firebaseui";
 import "firebaseui/dist/firebaseui.css";
 import { GoogleAuthProvider, EmailAuthProvider } from "firebase/auth";
 import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase";
-import { FileText, ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
+import { ResumeeeLogo } from "@/components/layout/resumeee-logo";
 
 /**
  * Drop-in authentication screen rendering the official FirebaseUI Web SDK login widget.
@@ -55,9 +56,7 @@ export const LoginPage: React.FC = () => {
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8 rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col items-center text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-950">
-            <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-          </div>
+          <ResumeeeLogo className="h-12 w-12" />
           <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Sign in to Resumeee
           </h1>

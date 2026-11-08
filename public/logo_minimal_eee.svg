@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title-minimal-eee desc-minimal-eee">
+  <title id="title-minimal-eee">Resumeee Logo — Minimalist Triple-e Branch Mark</title>
+  <desc id="desc-minimal-eee">A minimalist architectural emblem where a single vertical spine branches into three stacked horizontal bars ending in stylized lowercase e loops.</desc>
+  <defs>
+    <linearGradient id="me-bg" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="100%" stop-color="#312E81" />
+    </linearGradient>
+  </defs>
+
+  <!-- Vibrant Indigo Squircle -->
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#me-bg)" />
+
+  <!-- Canonical Left Spine (Master Profile Trunk) -->
+  <path d="M17 16V48" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
+  <circle cx="17" cy="16" r="3" fill="#38BDF8" />
+  <circle cx="17" cy="48" r="3" fill="#C084FC" />
+
+  <!-- Top Branch + Stylized "e" Loop 1 -->
+  <path d="M17 20H39.5C43.09 20 46 17.76 46 15C46 12.24 43.09 10 39.5 10C35.91 10 33 12.24 33 15C33 18.2 35.8 20.5 40 20.5" stroke="#7DD3FC" stroke-width="3.2" stroke-linecap="round" />
+
+  <!-- Middle Branch + Stylized "e" Loop 2 -->
+  <path d="M17 32H39.5C43.09 32 46 29.76 46 27C46 24.24 43.09 22 39.5 22C35.91 22 33 24.24 33 27C33 30.2 35.8 32.5 40 32.5" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" />
+
+  <!-- Bottom Branch + Stylized "e" Loop 3 -->
+  <path d="M17 44H39.5C43.09 44 46 41.76 46 39C46 36.24 43.09 34 39.5 34C35.91 34 33 36.24 33 39C33 42.2 35.8 44.5 40 44.5" stroke="#E9D5FF" stroke-width="3.2" stroke-linecap="round" />
+</svg>

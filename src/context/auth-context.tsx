@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       return;
     }
 
-    if (!isFirebaseConfigured()) {
+    if (initialUser !== undefined || !isFirebaseConfigured()) {
       setLoading(false);
       return;
     }
@@ -126,7 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     } catch {
       setLoading(false);
     }
-  }, [admin]);
+  }, [admin, initialUser]);
 
   React.useEffect(() => {
     const handleUnauthorized = () => {

@@ -1,10 +1,11 @@
 import * as React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { FileText, Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User, LogOut } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
 import { SkipLink } from "./skip-link";
 import { ThemeToggle } from "./theme-toggle";
+import { ResumeeeLogo } from "./resumeee-logo";
 import { QuotaMeter } from "@/components/quota/quota-meter";
 import { mainNavItems } from "./nav-config";
 import { Button } from "@/components/ui/button";
@@ -39,10 +40,10 @@ export const Header: React.FC = () => {
         <div className="flex items-center space-x-8">
           <Link
             to="/"
-            className="flex items-center space-x-2 text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md"
+            className="flex items-center space-x-2.5 text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md"
             aria-label="Resumeee Home"
           >
-            <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+            <ResumeeeLogo className="h-7 w-7" />
             <span>Resumeee</span>
           </Link>
 
