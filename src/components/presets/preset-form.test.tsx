@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { PresetForm } from "./preset-form";
-import type { TemplateSet, ModelOption } from "@/api/preset-queries";
+import type { TemplateSet } from "@/api/preset-queries";
 
 const mockTemplates: TemplateSet[] = [
   {
@@ -24,45 +24,11 @@ const mockTemplates: TemplateSet[] = [
   },
 ];
 
-const mockAvailableModels: ModelOption[] = [
-  {
-    provider: "gemini",
-    model: "gemini-3.8-flash",
-    display_name: "Google Gemini — gemini-3.8-flash",
-    is_default: true,
-  },
-  {
-    provider: "gemini",
-    model: "gemini-4-argon",
-    display_name: "Google Gemini — gemini-4-argon",
-    is_default: false,
-  },
-  {
-    provider: "anthropic",
-    model: "claude-3-7-sonnet-20250219",
-    display_name: "Anthropic — claude-3-7-sonnet-20250219",
-    is_default: false,
-  },
-  {
-    provider: "anthropic",
-    model: "claude-3-5-haiku-20241022",
-    display_name: "Anthropic — claude-3-5-haiku-20241022",
-    is_default: false,
-  },
-  {
-    provider: "openai",
-    model: "gpt-4o",
-    display_name: "OpenAI — gpt-4o",
-    is_default: false,
-  },
-];
-
 describe("PresetForm Component", () => {
   it("renders form fields for creating a custom preset with constrained selects", () => {
     render(
       <PresetForm
         templateSets={mockTemplates}
-        availableModels={mockAvailableModels}
         onSubmit={vi.fn()}
       />
     );
@@ -94,7 +60,6 @@ describe("PresetForm Component", () => {
     render(
       <PresetForm
         templateSets={mockTemplates}
-        availableModels={mockAvailableModels}
         onSubmit={vi.fn()}
       />
     );
@@ -128,7 +93,6 @@ describe("PresetForm Component", () => {
     render(
       <PresetForm
         templateSets={mockTemplates}
-        availableModels={mockAvailableModels}
         onSubmit={handleSubmit}
       />
     );
@@ -159,9 +123,6 @@ describe("PresetForm Component", () => {
       description: "Optimized for high-growth tech start-ups.",
       template_set_id: "builtin-standard-clean",
       system_instructions: "Focus on impact and distributed systems.",
-      provider_override: undefined,
-      model_override: undefined,
-      reasoning_level: undefined,
       language: "English",
       include_admin_fields: true,
     });
@@ -202,13 +163,9 @@ describe("PresetForm Component", () => {
           description: "Strict 1-page max format",
           system_instructions: "Focus on impact",
           template_set_id: "builtin-standard-clean",
-          provider_override: "gemini",
-          model_override: "gemini-3.8-flash",
-          reasoning_level: "medium",
           is_built_in: true,
         }}
         templateSets={mockTemplates}
-        availableModels={mockAvailableModels}
         onSubmit={vi.fn()}
         onDuplicate={vi.fn()}
       />
@@ -236,7 +193,7 @@ describe("PresetForm Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("preserves existing preset overrides when editing an existing preset", async () => {
+  it("submits edited fields without model or reasoning overrides", async () => {
     const user = userEvent.setup();
     const handleSubmit = vi.fn();
 
@@ -247,12 +204,8 @@ describe("PresetForm Component", () => {
           name: "Existing Custom Preset",
           template_set_id: "builtin-standard-clean",
           system_instructions: "Existing instructions.",
-          provider_override: "anthropic",
-          model_override: "claude-3-7-sonnet-20250219",
-          reasoning_level: "high",
         }}
         templateSets={mockTemplates}
-        availableModels={mockAvailableModels}
         onSubmit={handleSubmit}
       />
     );
@@ -268,9 +221,6 @@ describe("PresetForm Component", () => {
     expect(handleSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Renamed Custom Preset",
-        provider_override: "anthropic",
-        model_override: "claude-3-7-sonnet-20250219",
-        reasoning_level: "high",
       })
     );
   });
@@ -279,7 +229,6 @@ describe("PresetForm Component", () => {
     const { container } = render(
       <PresetForm
         templateSets={mockTemplates}
-        availableModels={mockAvailableModels}
         onSubmit={vi.fn()}
       />
     );
@@ -295,7 +244,6 @@ describe("PresetForm Component", () => {
     render(
       <PresetForm
         templateSets={mockTemplates}
-        availableModels={mockAvailableModels}
         onSubmit={handleSubmit}
       />
     );
@@ -322,7 +270,6 @@ describe("PresetForm Component", () => {
     render(
       <PresetForm
         templateSets={mockTemplates}
-        availableModels={mockAvailableModels}
         onSubmit={vi.fn()}
       />
     );

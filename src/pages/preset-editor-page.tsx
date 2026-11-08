@@ -10,7 +10,6 @@ import { PresetForm } from "@/components/presets/preset-form";
 import {
   usePresetQuery,
   useTemplateSetsQuery,
-  useAvailableModelsQuery,
   useCreatePresetMutation,
   useUpdatePresetMutation,
   type CreatePresetRequest,
@@ -53,11 +52,6 @@ export const PresetEditorPage: React.FC = () => {
     isLoading: isTemplatesLoading,
   } = useTemplateSetsQuery();
 
-  const {
-    data: availableModels = [],
-    isLoading: isModelsLoading,
-  } = useAvailableModelsQuery();
-
   const createPresetMutation = useCreatePresetMutation();
   const updatePresetMutation = useUpdatePresetMutation();
   const [saveError, setSaveError] = React.useState<string | null>(null);
@@ -68,7 +62,6 @@ export const PresetEditorPage: React.FC = () => {
 
   const isPageLoading =
     isTemplatesLoading ||
-    isModelsLoading ||
     (!isCreateMode && isPresetLoading) ||
     (isCreateMode && Boolean(cloneFromId) && isClonedLoading);
 
@@ -105,9 +98,6 @@ export const PresetEditorPage: React.FC = () => {
         description: clonedPreset.description,
         template_set_id: clonedPreset.template_set_id,
         system_instructions: clonedPreset.system_instructions,
-        provider_override: clonedPreset.provider_override,
-        model_override: clonedPreset.model_override,
-        reasoning_level: clonedPreset.reasoning_level,
         language: clonedPreset.language,
         include_admin_fields: clonedPreset.include_admin_fields,
         is_built_in: false,
@@ -219,7 +209,6 @@ export const PresetEditorPage: React.FC = () => {
           key={initialValues?.id || (cloneFromId ? "cloned" : "new")}
           initialValues={initialValues}
           templateSets={templateSets}
-          availableModels={availableModels}
           onSubmit={handleSubmit}
           onDuplicate={handleDuplicate}
           isSubmitting={

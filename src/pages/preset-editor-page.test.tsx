@@ -46,9 +46,6 @@ const mockCustomPreset: apiHooks.Preset = {
   description: "Tailored for senior staff roles.",
   system_instructions: "Focus on technical leadership.",
   template_set_id: "builtin-standard-clean",
-  provider_override: "gemini",
-  model_override: "gemini-3.8-flash",
-  reasoning_level: "high",
   language: "Spanish",
   is_built_in: false,
 };
@@ -73,19 +70,6 @@ describe("PresetEditorPage Component", () => {
       isError: false,
       error: null,
     } as unknown as ReturnType<typeof apiHooks.useTemplateSetsQuery>);
-    vi.spyOn(apiHooks, "useAvailableModelsQuery").mockReturnValue({
-      data: [
-        {
-          provider: "gemini",
-          model: "gemini-3.8-flash",
-          display_name: "Google Gemini — gemini-3.8-flash",
-          is_default: true,
-        },
-      ],
-      isLoading: false,
-      isError: false,
-      error: null,
-    } as unknown as ReturnType<typeof apiHooks.useAvailableModelsQuery>);
   });
 
   it("renders create form on /presets/new and creates a preset", async () => {
@@ -190,9 +174,6 @@ describe("PresetEditorPage Component", () => {
       data: expect.objectContaining({
         name: "Updated Staff Preset",
         language: "Spanish",
-        provider_override: "gemini",
-        model_override: "gemini-3.8-flash",
-        reasoning_level: "high",
       }),
     });
 

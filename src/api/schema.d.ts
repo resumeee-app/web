@@ -1370,13 +1370,6 @@ export interface components {
             system_instructions: string;
             suggested_theme_id?: string | null;
             template_set_id: string;
-            provider_override?: string;
-            model_override?: string;
-            /**
-             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
-             * @enum {string}
-             */
-            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
             include_admin_fields?: boolean;
@@ -1393,13 +1386,6 @@ export interface components {
             system_instructions: string;
             suggested_theme_id?: string | null;
             template_set_id: string;
-            provider_override?: string;
-            model_override?: string;
-            /**
-             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
-             * @enum {string}
-             */
-            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
             include_admin_fields?: boolean;
@@ -1410,13 +1396,6 @@ export interface components {
             system_instructions?: string;
             suggested_theme_id?: string | null;
             template_set_id?: string;
-            provider_override?: string;
-            model_override?: string;
-            /**
-             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
-             * @enum {string}
-             */
-            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             /** @description Target language for contextual translation */
             language?: string;
             include_admin_fields?: boolean;
@@ -1429,13 +1408,6 @@ export interface components {
             system_instructions: string;
             suggested_theme_id?: string | null;
             template_set_id?: string;
-            provider_override?: string;
-            model_override?: string;
-            /**
-             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
-             * @enum {string}
-             */
-            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
             include_admin_fields?: boolean;
@@ -1452,13 +1424,6 @@ export interface components {
             system_instructions: string;
             suggested_theme_id?: string | null;
             template_set_id?: string;
-            provider_override?: string;
-            model_override?: string;
-            /**
-             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
-             * @enum {string}
-             */
-            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
             include_admin_fields?: boolean;
@@ -1469,13 +1434,6 @@ export interface components {
             system_instructions?: string;
             suggested_theme_id?: string | null;
             template_set_id?: string;
-            provider_override?: string;
-            model_override?: string;
-            /**
-             * @description Optional reasoning effort or depth constraint for thinking models (empty string clears override)
-             * @enum {string}
-             */
-            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             /** @description Target language for contextual translation */
             language?: string;
             include_admin_fields?: boolean;

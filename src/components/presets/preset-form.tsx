@@ -6,7 +6,6 @@ import type {
   Preset,
   CreatePresetRequest,
   TemplateSet,
-  ModelOption,
 } from "@/api/preset-queries";
 
 /**
@@ -46,8 +45,6 @@ export interface PresetFormProps {
   initialValues?: Partial<Preset>;
   /** Available template sets for populating the template selector dropdown */
   templateSets: TemplateSet[];
-  /** Configured available LLM models and providers from the server registry */
-  availableModels?: ModelOption[];
   /** Callback invoked on valid form submission */
   onSubmit: (values: CreatePresetRequest) => Promise<void> | void;
   /** Callback for duplicating a preset (offered in read-only mode) */
@@ -68,7 +65,7 @@ export type FormErrors = Partial<
 /**
  * PresetForm manages the creation, editing, and read-only inspection of presets:
  * - Maps strictly to the canonical OpenAPI Preset schema (`name`, `description`, `template_set_id`,
- *   `system_instructions`, `provider_override`, `model_override`, `include_admin_fields`)
+ *   `system_instructions`, `language`, `include_admin_fields`)
  * - Integrates the interactive ConstraintControls builder to synthesize length, bullet counts, tone,
  *   and section priorities into prompt instructions
  * - Enforces immutability for system presets (`isBuiltIn === true`): disables inputs, displays an alert banner,
@@ -78,7 +75,6 @@ export type FormErrors = Partial<
 export const PresetForm: React.FC<PresetFormProps> = ({
   initialValues,
   templateSets,
-  availableModels: _availableModels = [],
   onSubmit,
   onDuplicate,
   isSubmitting = false,
@@ -151,9 +147,6 @@ export const PresetForm: React.FC<PresetFormProps> = ({
       description: description.trim() || undefined,
       template_set_id: templateSetId,
       system_instructions: systemInstructions.trim(),
-      provider_override: initialValues?.provider_override,
-      model_override: initialValues?.model_override,
-      reasoning_level: initialValues?.reasoning_level as CreatePresetRequest["reasoning_level"],
       language: language.trim() || "English",
       include_admin_fields: includeAdminFields,
     });

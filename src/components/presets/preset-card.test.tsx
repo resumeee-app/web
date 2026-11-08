@@ -25,9 +25,6 @@ const customPreset: Preset = {
   description: "Leadership and system architecture focus.",
   system_instructions: "Highlight technical strategy and cross-functional leadership.",
   template_set_id: "builtin-standard-clean",
-  provider_override: "gemini",
-  model_override: "gemini-4-argon",
-  reasoning_level: "high",
   language: "Spanish",
   include_admin_fields: true,
   is_built_in: false,
@@ -92,8 +89,8 @@ describe("PresetCard Component", () => {
     expect(screen.getByText("Custom Strategy")).toBeInTheDocument();
     expect(screen.getByText("Admin Fields")).toBeInTheDocument();
     expect(screen.getAllByText("Spanish").length).toBeGreaterThan(0);
-    expect(screen.getByText(/gemini-4-argon/i)).toBeInTheDocument();
-    expect(screen.getByText(/reasoning: high/i)).toBeInTheDocument();
+    expect(screen.queryByText(/gemini-4-argon/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/reasoning/i)).not.toBeInTheDocument();
 
     // Edit link exists
     const editLink = screen.getByRole("link", { name: /edit/i });

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Copy, Edit3, Trash2, Eye, Shield, Cpu, Layers, Globe } from "lucide-react";
+import { Copy, Edit3, Trash2, Eye, Shield, Layers, Globe } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -109,17 +109,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({
             <Globe className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
             <span>{preset.language || "English"}</span>
           </span>
-          {preset.model_override && (
-            <span className="inline-flex items-center gap-1">
-              <Cpu className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
-              <span>{preset.model_override}</span>
-            </span>
-          )}
-          {preset.reasoning_level && (
-            <span className="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-xs text-slate-600 dark:text-slate-400">
-              <span>Reasoning: {preset.reasoning_level}</span>
-            </span>
-          )}
         </div>
       </div>
 
