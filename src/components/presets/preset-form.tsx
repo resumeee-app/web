@@ -65,7 +65,7 @@ export type FormErrors = Partial<
 /**
  * PresetForm manages the creation, editing, and read-only inspection of presets:
  * - Maps strictly to the canonical OpenAPI Preset schema (`name`, `description`, `template_set_id`,
- *   `system_instructions`, `language`, `include_admin_fields`)
+ *   `system_instructions`, `language`)
  * - Integrates the interactive ConstraintControls builder to synthesize length, bullet counts, tone,
  *   and section priorities into prompt instructions
  * - Enforces immutability for system presets (`isBuiltIn === true`): disables inputs, displays an alert banner,
@@ -93,9 +93,6 @@ export const PresetForm: React.FC<PresetFormProps> = ({
   );
   const [language, setLanguage] = useState(
     initialValues?.language || "English"
-  );
-  const [includeAdminFields, setIncludeAdminFields] = useState<boolean>(
-    initialValues?.include_admin_fields || false
   );
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -148,7 +145,6 @@ export const PresetForm: React.FC<PresetFormProps> = ({
       template_set_id: templateSetId,
       system_instructions: systemInstructions.trim(),
       language: language.trim() || "English",
-      include_admin_fields: includeAdminFields,
     });
   };
 
@@ -382,37 +378,6 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             <span>{errors.systemInstructions}</span>
           </p>
         )}
-      </div>
-
-      {/* Strategy Options */}
-      <div className="space-y-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-          Strategy Options
-        </h2>
-
-        <div className="flex items-start gap-2.5">
-          <input
-            id="preset-admin-fields"
-            type="checkbox"
-            checked={includeAdminFields}
-            disabled={isBuiltIn}
-            onChange={(e) => setIncludeAdminFields(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
-          />
-          <label
-            htmlFor="preset-admin-fields"
-            className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer"
-          >
-            <span className="font-medium block">
-              Include Administrative & Immigration Fields
-            </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 block">
-              Enables unabridged history, supervisor contacts, hours per week,
-              and citizenship verification data required for audit and visa
-              filings.
-            </span>
-          </label>
-        </div>
       </div>
 
       {/* Form Submission Actions */}

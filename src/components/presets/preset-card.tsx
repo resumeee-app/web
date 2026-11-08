@@ -34,7 +34,7 @@ export interface PresetCardProps {
 /**
  * PresetCard renders an individual preset in the Presets Gallery:
  * - Distinguishes system presets vs. custom presets via distinct badges
- * - Displays target instructions summary, template reference, and administrative fields badge
+ * - Displays target instructions summary and template reference
  * - Enforces immutability: system presets render 'View Details' without edit or delete controls
  * - Guards deletion of custom presets with a Radix UI AlertDialog confirmation
  * - Maintains WCAG 2.1 AA accessibility with keyboard navigation and explicit accessible names
@@ -68,11 +68,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({
             ) : (
               <span className="inline-flex items-center rounded-full bg-purple-50 dark:bg-purple-950/50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-300 ring-1 ring-inset ring-purple-700/10 dark:ring-purple-400/20">
                 Custom Strategy
-              </span>
-            )}
-            {preset.include_admin_fields && (
-              <span className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300 ring-1 ring-inset ring-amber-600/20 dark:ring-amber-400/20">
-                Admin Fields
               </span>
             )}
             {preset.language && preset.language !== "English" && (

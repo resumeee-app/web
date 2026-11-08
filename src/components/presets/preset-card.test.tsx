@@ -14,7 +14,6 @@ const systemPreset: Preset = {
   system_instructions: "Focus on high-impact quantitative engineering accomplishments.",
   template_set_id: "builtin-standard-clean",
   language: "English",
-  include_admin_fields: false,
   is_built_in: true,
 };
 
@@ -26,7 +25,6 @@ const customPreset: Preset = {
   system_instructions: "Highlight technical strategy and cross-functional leadership.",
   template_set_id: "builtin-standard-clean",
   language: "Spanish",
-  include_admin_fields: true,
   is_built_in: false,
 };
 
@@ -87,7 +85,6 @@ describe("PresetCard Component", () => {
       screen.getByRole("heading", { level: 2, name: /custom staff swe preset/i })
     ).toBeInTheDocument();
     expect(screen.getByText("Custom Strategy")).toBeInTheDocument();
-    expect(screen.getByText("Admin Fields")).toBeInTheDocument();
     expect(screen.getAllByText("Spanish").length).toBeGreaterThan(0);
     expect(screen.queryByText(/gemini-4-argon/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/reasoning/i)).not.toBeInTheDocument();

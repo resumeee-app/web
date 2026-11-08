@@ -1372,7 +1372,6 @@ export interface components {
             template_set_id: string;
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
-            include_admin_fields?: boolean;
             /** @description Whether this is a system-provided built-in preset */
             readonly is_built_in?: boolean;
             /** Format: date-time */
@@ -1388,7 +1387,6 @@ export interface components {
             template_set_id: string;
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
-            include_admin_fields?: boolean;
         };
         UpdatePresetRequest: {
             name?: string;
@@ -1398,7 +1396,6 @@ export interface components {
             template_set_id?: string;
             /** @description Target language for contextual translation */
             language?: string;
-            include_admin_fields?: boolean;
         };
         TailoringStrategy: {
             id: string;
@@ -1410,7 +1407,6 @@ export interface components {
             template_set_id?: string;
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
-            include_admin_fields?: boolean;
             /** @description Whether this is a system-provided built-in tailoring strategy */
             readonly is_built_in?: boolean;
             /** Format: date-time */
@@ -1426,7 +1422,6 @@ export interface components {
             template_set_id?: string;
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
-            include_admin_fields?: boolean;
         };
         UpdateStrategyRequest: {
             name?: string;
@@ -1436,7 +1431,6 @@ export interface components {
             template_set_id?: string;
             /** @description Target language for contextual translation */
             language?: string;
-            include_admin_fields?: boolean;
         };
         TemplateSet: {
             id: string;

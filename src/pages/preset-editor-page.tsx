@@ -99,7 +99,6 @@ export const PresetEditorPage: React.FC = () => {
         template_set_id: clonedPreset.template_set_id,
         system_instructions: clonedPreset.system_instructions,
         language: clonedPreset.language,
-        include_admin_fields: clonedPreset.include_admin_fields,
         is_built_in: false,
       };
     }

@@ -48,10 +48,6 @@ describe("PresetForm Component", () => {
     expect(screen.queryByLabelText(/reasoning level/i)).not.toBeInTheDocument();
 
     expect(
-      screen.getByLabelText(/include administrative & immigration fields/i)
-    ).toBeInTheDocument();
-
-    expect(
       screen.getByRole("button", { name: /save tailoring strategy/i })
     ).toBeInTheDocument();
   });
@@ -110,9 +106,6 @@ describe("PresetForm Component", () => {
       screen.getByLabelText(/system instructions/i),
       "Focus on impact and distributed systems."
     );
-    await user.click(
-      screen.getByLabelText(/include administrative & immigration fields/i)
-    );
 
     const submitBtn = screen.getByRole("button", { name: /save tailoring strategy/i });
     await user.click(submitBtn);
@@ -124,7 +117,6 @@ describe("PresetForm Component", () => {
       template_set_id: "builtin-standard-clean",
       system_instructions: "Focus on impact and distributed systems.",
       language: "English",
-      include_admin_fields: true,
     });
   });
 
@@ -180,7 +172,6 @@ describe("PresetForm Component", () => {
     expect(screen.getByLabelText(/template set/i)).toBeDisabled();
     expect(screen.getByLabelText(/^language/i)).toBeDisabled();
     expect(screen.getByLabelText(/system instructions/i)).toBeDisabled();
-    expect(screen.getByLabelText(/include administrative & immigration fields/i)).toBeDisabled();
 
     // Save button must not be rendered
     expect(
@@ -264,17 +255,5 @@ describe("PresetForm Component", () => {
         language: "Spanish",
       })
     );
-  });
-
-  it("renders admin fields subtext with dark mode contrast classes", () => {
-    render(
-      <PresetForm
-        templateSets={mockTemplates}
-        onSubmit={vi.fn()}
-      />
-    );
-
-    const subtext = screen.getByText(/enables unabridged history/i);
-    expect(subtext).toHaveClass("dark:text-slate-400");
   });
 });
