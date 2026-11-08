@@ -562,6 +562,94 @@ describe("BranchWorkbenchPage", () => {
     expect(
       screen.queryByRole("button", { name: /inspect llm prompt/i })
     ).not.toBeInTheDocument();
+
+    // LLM Model & Reasoning section should ALSO NOT be rendered
+    expect(
+      screen.queryByRole("heading", { name: /llm model & reasoning/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /configure model & reasoning/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders LLM model & reasoning selection under prompt preview when admin and updates configuration", async () => {
+    vi.stubEnv("ADMIN_MODE", "true");
+    const user = userEvent.setup();
+    const { Wrapper } = createTestWrapper();
+
+    const putSpy = vi.spyOn(api, "PUT").mockResolvedValue({
+      data: {
+        ...mockBranch,
+        provider_override: "anthropic",
+        model_override: "claude-3-7-sonnet-20250219",
+        reasoning_level: "high",
+      },
+      error: undefined,
+    } as never);
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({ data: mockBranch, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({ data: mockVersions, error: undefined }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      if (path === "/models") {
+        return Promise.resolve({
+          data: [
+            { provider: "gemini", model: "gemini-3.8-flash", display_name: "Gemini 3.8 Flash", is_default: true },
+            { provider: "anthropic", model: "claude-3-7-sonnet-20250219", display_name: "Claude 3.7 Sonnet", is_default: false },
+          ],
+          error: undefined,
+        }) as never;
+      }
+      return Promise.resolve({ data: [], error: undefined }) as never;
+    });
+
+    render(<BranchWorkbenchPage pollIntervalMs={30} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: "Senior Distributed Systems Engineer" })
+      ).toBeInTheDocument();
+    });
+
+    // Verify both Prompt Preview and Model & Reasoning cards are rendered for admins
+    expect(screen.getByRole("heading", { name: /llm prompt preview/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /llm model & reasoning/i })).toBeInTheDocument();
+
+    // Expand model selection
+    const configureBtn = screen.getByRole("button", { name: /configure model & reasoning/i });
+    await user.click(configureBtn);
+
+    const providerSelect = screen.getByLabelText(/provider override/i);
+    await user.selectOptions(providerSelect, "anthropic");
+
+    const modelSelect = screen.getByLabelText(/model override/i);
+    await user.selectOptions(modelSelect, "claude-3-7-sonnet-20250219");
+
+    const reasoningSelect = screen.getByLabelText(/reasoning level/i);
+    await user.selectOptions(reasoningSelect, "high");
+
+    const saveBtn = screen.getByRole("button", { name: /save model settings/i });
+    await user.click(saveBtn);
+
+    await waitFor(() => {
+      expect(putSpy).toHaveBeenCalledWith("/branches/{id}", expect.objectContaining({
+        body: expect.objectContaining({
+          provider_override: "anthropic",
+          model_override: "claude-3-7-sonnet-20250219",
+          reasoning_level: "high",
+        }),
+      }));
+      expect(screen.getByText(/llm configuration saved/i)).toBeInTheDocument();
+    });
   });
 
   it("renders collapsible prompt preview and fetches prompt draft upon expanding", async () => {

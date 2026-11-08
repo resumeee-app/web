@@ -76,15 +76,10 @@ describe("PresetForm Component", () => {
     expect(languageSelect.tagName).toBe("SELECT");
     expect(languageSelect).toHaveValue("English");
 
-    // Provider, Model, and Reasoning Level must be constrained <select> dropdowns, not text inputs
-    const providerSelect = screen.getByLabelText(/provider override/i);
-    expect(providerSelect.tagName).toBe("SELECT");
-
-    const modelSelect = screen.getByLabelText(/model override/i);
-    expect(modelSelect.tagName).toBe("SELECT");
-
-    const reasoningSelect = screen.getByLabelText(/reasoning level/i);
-    expect(reasoningSelect.tagName).toBe("SELECT");
+    // Provider, Model, and Reasoning Level are moved to Branch Tailoring and omitted from PresetForm
+    expect(screen.queryByLabelText(/provider override/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/model override/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/reasoning level/i)).not.toBeInTheDocument();
 
     expect(
       screen.getByLabelText(/include administrative & immigration fields/i)
@@ -95,8 +90,7 @@ describe("PresetForm Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("filters model options when a specific provider is selected", async () => {
-    const user = userEvent.setup();
+  it("does not render model or reasoning overrides in preset form", () => {
     render(
       <PresetForm
         templateSets={mockTemplates}
@@ -105,42 +99,10 @@ describe("PresetForm Component", () => {
       />
     );
 
-    const providerSelect = screen.getByLabelText(/provider override/i);
-    await user.selectOptions(providerSelect, "anthropic");
-
-    const modelSelect = screen.getByLabelText(/model override/i) as HTMLSelectElement;
-    const optionTexts = Array.from(modelSelect.options).map((o) => o.text);
-
-    // Should only contain inherit default and anthropic models
-    expect(optionTexts.some((t) => t.includes("claude-3-7-sonnet"))).toBe(true);
-    expect(optionTexts.some((t) => t.includes("claude-3-5-haiku"))).toBe(true);
-    // Should NOT contain gemini or openai models
-    expect(optionTexts.some((t) => t.includes("gemini"))).toBe(false);
-    expect(optionTexts.some((t) => t.includes("gpt-4o"))).toBe(false);
-  });
-
-  it("resets model override when switching to an incompatible provider", async () => {
-    const user = userEvent.setup();
-    render(
-      <PresetForm
-        templateSets={mockTemplates}
-        availableModels={mockAvailableModels}
-        onSubmit={vi.fn()}
-      />
-    );
-
-    const providerSelect = screen.getByLabelText(/provider override/i);
-    const modelSelect = screen.getByLabelText(/model override/i) as HTMLSelectElement;
-
-    // 1. Select anthropic and its model
-    await user.selectOptions(providerSelect, "anthropic");
-    await user.selectOptions(modelSelect, "claude-3-7-sonnet-20250219");
-    expect(modelSelect.value).toBe("claude-3-7-sonnet-20250219");
-
-    // 2. Switch provider to openai
-    await user.selectOptions(providerSelect, "openai");
-    // Model selection must be cleared because claude is not an openai model
-    expect(modelSelect.value).toBe("");
+    expect(screen.queryByText(/model overrides & invariant options/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/provider override/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/model override/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/reasoning level/i)).not.toBeInTheDocument();
   });
 
   it("validates required fields on submission", async () => {
@@ -160,7 +122,7 @@ describe("PresetForm Component", () => {
     expect(screen.getByText(/strategy name is required/i)).toBeInTheDocument();
   });
 
-  it("submits valid form values successfully with provider, model, and reasoning level", async () => {
+  it("submits valid form values successfully", async () => {
     const user = userEvent.setup();
     const handleSubmit = vi.fn();
     render(
@@ -184,18 +146,6 @@ describe("PresetForm Component", () => {
       screen.getByLabelText(/system instructions/i),
       "Focus on impact and distributed systems."
     );
-    await user.selectOptions(
-      screen.getByLabelText(/provider override/i),
-      "anthropic"
-    );
-    await user.selectOptions(
-      screen.getByLabelText(/model override/i),
-      "claude-3-7-sonnet-20250219"
-    );
-    await user.selectOptions(
-      screen.getByLabelText(/reasoning level/i),
-      "high"
-    );
     await user.click(
       screen.getByLabelText(/include administrative & immigration fields/i)
     );
@@ -209,9 +159,9 @@ describe("PresetForm Component", () => {
       description: "Optimized for high-growth tech start-ups.",
       template_set_id: "builtin-standard-clean",
       system_instructions: "Focus on impact and distributed systems.",
-      provider_override: "anthropic",
-      model_override: "claude-3-7-sonnet-20250219",
-      reasoning_level: "high",
+      provider_override: undefined,
+      model_override: undefined,
+      reasoning_level: undefined,
       language: "English",
       include_admin_fields: true,
     });
@@ -273,9 +223,7 @@ describe("PresetForm Component", () => {
     expect(screen.getByLabelText(/template set/i)).toBeDisabled();
     expect(screen.getByLabelText(/^language/i)).toBeDisabled();
     expect(screen.getByLabelText(/system instructions/i)).toBeDisabled();
-    expect(screen.getByLabelText(/provider override/i)).toBeDisabled();
-    expect(screen.getByLabelText(/model override/i)).toBeDisabled();
-    expect(screen.getByLabelText(/reasoning level/i)).toBeDisabled();
+    expect(screen.getByLabelText(/include administrative & immigration fields/i)).toBeDisabled();
 
     // Save button must not be rendered
     expect(
@@ -288,7 +236,7 @@ describe("PresetForm Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("submits empty strings to reset overrides when editing an existing preset", async () => {
+  it("preserves existing preset overrides when editing an existing preset", async () => {
     const user = userEvent.setup();
     const handleSubmit = vi.fn();
 
@@ -309,14 +257,9 @@ describe("PresetForm Component", () => {
       />
     );
 
-    const providerSelect = screen.getByLabelText(/provider override/i);
-    const modelSelect = screen.getByLabelText(/model override/i);
-    const reasoningSelect = screen.getByLabelText(/reasoning level/i);
-
-    // Reset all overrides to inherit/default ("")
-    await user.selectOptions(providerSelect, "");
-    await user.selectOptions(modelSelect, "");
-    await user.selectOptions(reasoningSelect, "");
+    const nameInput = screen.getByLabelText(/strategy name/i);
+    await user.clear(nameInput);
+    await user.type(nameInput, "Renamed Custom Preset");
 
     const submitBtn = screen.getByRole("button", { name: /save tailoring strategy/i });
     await user.click(submitBtn);
@@ -324,10 +267,10 @@ describe("PresetForm Component", () => {
     expect(handleSubmit).toHaveBeenCalledTimes(1);
     expect(handleSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "Existing Custom Preset",
-        provider_override: "",
-        model_override: "",
-        reasoning_level: "",
+        name: "Renamed Custom Preset",
+        provider_override: "anthropic",
+        model_override: "claude-3-7-sonnet-20250219",
+        reasoning_level: "high",
       })
     );
   });

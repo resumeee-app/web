@@ -5,7 +5,12 @@ import App from "./App";
 import { createAppRouter } from "./router";
 
 describe("Application Root Component", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   afterEach(() => {
+    localStorage.clear();
     vi.unstubAllEnvs();
   });
 

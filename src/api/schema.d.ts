@@ -1524,6 +1524,11 @@ export interface components {
             template_set_id: string;
             provider_override?: string;
             model_override?: string;
+            /**
+             * @description Optional reasoning effort constraint for thinking models (e.g. none, low, medium, high)
+             * @enum {string}
+             */
+            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             pinned_entity_ids?: string[];
             excluded_entity_ids?: string[];
             active_version_id?: string | null;
@@ -1549,6 +1554,11 @@ export interface components {
             template_set_id: string;
             provider_override?: string;
             model_override?: string;
+            /**
+             * @description Optional reasoning effort constraint for thinking models (e.g. none, low, medium, high)
+             * @enum {string}
+             */
+            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             pinned_entity_ids?: string[];
             excluded_entity_ids?: string[];
         };
@@ -1564,6 +1574,11 @@ export interface components {
             template_set_id?: string;
             provider_override?: string;
             model_override?: string;
+            /**
+             * @description Optional reasoning effort constraint for thinking models (e.g. none, low, medium, high)
+             * @enum {string}
+             */
+            reasoning_level?: "" | "none" | "low" | "medium" | "high";
             pinned_entity_ids?: string[];
             excluded_entity_ids?: string[];
             active_version_id?: string;

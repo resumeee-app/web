@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { Shield, Copy, Save, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConstraintControls } from "./constraint-controls";
@@ -78,7 +78,7 @@ export type FormErrors = Partial<
 export const PresetForm: React.FC<PresetFormProps> = ({
   initialValues,
   templateSets,
-  availableModels = [],
+  availableModels: _availableModels = [],
   onSubmit,
   onDuplicate,
   isSubmitting = false,
@@ -95,15 +95,6 @@ export const PresetForm: React.FC<PresetFormProps> = ({
   const [systemInstructions, setSystemInstructions] = useState(
     initialValues?.system_instructions || ""
   );
-  const [providerOverride, setProviderOverride] = useState(
-    initialValues?.provider_override || ""
-  );
-  const [modelOverride, setModelOverride] = useState(
-    initialValues?.model_override || ""
-  );
-  const [reasoningLevel, setReasoningLevel] = useState(
-    initialValues?.reasoning_level || ""
-  );
   const [language, setLanguage] = useState(
     initialValues?.language || "English"
   );
@@ -112,86 +103,6 @@ export const PresetForm: React.FC<PresetFormProps> = ({
   );
 
   const [errors, setErrors] = useState<FormErrors>({});
-
-  /**
-   * Formats a raw provider identifier into a user-friendly display name.
-   */
-  const formatProviderName = (provider: string): string => {
-    switch (provider.toLowerCase()) {
-      case "gemini":
-        return "Google Gemini";
-      case "openai":
-        return "OpenAI";
-      case "anthropic":
-        return "Anthropic";
-      case "compat":
-      case "openai-compat":
-        return "OpenAI Compatible";
-      default:
-        return provider.charAt(0).toUpperCase() + provider.slice(1);
-    }
-  };
-
-  /**
-   * Distinct available providers derived dynamically from configured available models,
-   * falling back to standard providers if availableModels is unpopulated.
-   */
-  const distinctProviders = useMemo(() => {
-    if (availableModels.length > 0) {
-      const providers = Array.from(
-        new Set(availableModels.map((m) => m.provider))
-      );
-      if (providerOverride && !providers.includes(providerOverride)) {
-        providers.push(providerOverride);
-      }
-      return providers;
-    }
-    return ["gemini", "openai", "anthropic", "compat"];
-  }, [availableModels, providerOverride]);
-
-  /**
-   * Available models dynamically filtered by the currently selected provider override.
-   */
-  const filteredModels = useMemo(() => {
-    if (!availableModels || availableModels.length === 0) {
-      return [];
-    }
-    if (!providerOverride) {
-      return availableModels;
-    }
-    return availableModels.filter((m) => m.provider === providerOverride);
-  }, [availableModels, providerOverride]);
-
-  /**
-   * Handles provider selection change, resetting model if the currently chosen model
-   * is not valid for the newly selected provider.
-   */
-  const handleProviderChange = (newProvider: string) => {
-    setProviderOverride(newProvider);
-    if (modelOverride && newProvider) {
-      const modelValidForNewProvider = availableModels.some(
-        (m) => m.provider === newProvider && m.model === modelOverride
-      );
-      if (!modelValidForNewProvider) {
-        setModelOverride("");
-      }
-    } else if (!newProvider) {
-      setModelOverride("");
-    }
-  };
-
-  /**
-   * Handles model selection change, automatically inferring the provider if not already set.
-   */
-  const handleModelChange = (newModel: string) => {
-    setModelOverride(newModel);
-    if (!providerOverride && newModel) {
-      const match = availableModels.find((m) => m.model === newModel);
-      if (match) {
-        setProviderOverride(match.provider);
-      }
-    }
-  };
 
   /**
    * Resets error state for a single field if an error currently exists.
@@ -235,21 +146,14 @@ export const PresetForm: React.FC<PresetFormProps> = ({
     if (isBuiltIn) return;
     if (!validate()) return;
 
-    const isEditing = Boolean(initialValues?.id);
     await onSubmit({
       name: name.trim(),
       description: description.trim() || undefined,
       template_set_id: templateSetId,
       system_instructions: systemInstructions.trim(),
-      provider_override: isEditing
-        ? providerOverride.trim()
-        : providerOverride.trim() || undefined,
-      model_override: isEditing
-        ? modelOverride.trim()
-        : modelOverride.trim() || undefined,
-      reasoning_level: (isEditing
-        ? reasoningLevel.trim()
-        : reasoningLevel.trim() || undefined) as CreatePresetRequest["reasoning_level"],
+      provider_override: initialValues?.provider_override,
+      model_override: initialValues?.model_override,
+      reasoning_level: initialValues?.reasoning_level as CreatePresetRequest["reasoning_level"],
       language: language.trim() || "English",
       include_admin_fields: includeAdminFields,
     });
@@ -487,89 +391,13 @@ export const PresetForm: React.FC<PresetFormProps> = ({
         )}
       </div>
 
-      {/* Advanced Overrides & Admin Fields */}
+      {/* Strategy Options */}
       <div className="space-y-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
         <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-          Model Overrides & Invariant Options
+          Strategy Options
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label
-              htmlFor="preset-provider"
-              className="block text-xs font-medium text-slate-700 dark:text-slate-300"
-            >
-              Provider Override (Optional)
-            </label>
-            <select
-              id="preset-provider"
-              value={providerOverride}
-              disabled={isBuiltIn}
-              onChange={(e) => handleProviderChange(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
-            >
-              <option value="">-- System Default (Inherit) --</option>
-              {distinctProviders.map((provider) => (
-                <option key={provider} value={provider}>
-                  {formatProviderName(provider)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="preset-model"
-              className="block text-xs font-medium text-slate-700 dark:text-slate-300"
-            >
-              Model Override (Optional)
-            </label>
-            <select
-              id="preset-model"
-              value={modelOverride}
-              disabled={isBuiltIn}
-              onChange={(e) => handleModelChange(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
-            >
-              <option value="">-- Inherit Default Model --</option>
-              {filteredModels.map((m) => (
-                <option key={`${m.provider}:${m.model}`} value={m.model}>
-                  {m.display_name} {m.is_default ? "(Default)" : ""}
-                </option>
-              ))}
-              {modelOverride &&
-                !filteredModels.some((m) => m.model === modelOverride) && (
-                  <option value={modelOverride}>
-                    {modelOverride} (Custom / Current)
-                  </option>
-                )}
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="preset-reasoning-level"
-              className="block text-xs font-medium text-slate-700 dark:text-slate-300"
-            >
-              Reasoning Level (Optional)
-            </label>
-            <select
-              id="preset-reasoning-level"
-              value={reasoningLevel}
-              disabled={isBuiltIn}
-              onChange={(e) => setReasoningLevel(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
-            >
-              <option value="">-- System Default (Inherit) --</option>
-              <option value="none">None (Standard fast)</option>
-              <option value="low">Low (Basic verification)</option>
-              <option value="medium">Medium (Balanced reasoning)</option>
-              <option value="high">High (Deep analytical reasoning)</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="pt-2 flex items-start gap-2.5">
+        <div className="flex items-start gap-2.5">
           <input
             id="preset-admin-fields"
             type="checkbox"

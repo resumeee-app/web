@@ -26,6 +26,7 @@ import {
   useUpdateBranch,
   useSyncBranch,
   renderPreviewEphemeral,
+  type UpdateBranchRequest,
 } from "@/api/workbench-queries";
 import {
   useGenerateVersion,
@@ -40,6 +41,7 @@ import { VersionTimeline } from "@/components/workbench/version-timeline";
 import { GapAnalysisCard, type GapItem } from "@/components/workbench/gap-analysis-card";
 import { BranchContextEditor } from "@/components/workbench/branch-context-editor";
 import { PromptPreviewCard } from "@/components/workbench/prompt-preview-card";
+import { BranchModelSelectionCard } from "@/components/workbench/branch-model-selection-card";
 import { isUserAdmin } from "@/api/client";
 import { stripScriptTags } from "@/components/templates/template-preview-pane";
 
@@ -380,6 +382,31 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     }
   };
 
+  const handleUpdateModelConfig = async (config: {
+    provider_override?: string;
+    model_override?: string;
+    reasoning_level?: UpdateBranchRequest["reasoning_level"];
+  }) => {
+    try {
+      await updateMutation.mutateAsync(config);
+      setToast({
+        open: true,
+        title: "LLM Configuration Saved",
+        description: "Branch tailoring model and reasoning settings updated successfully.",
+        variant: "success",
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update LLM model configuration";
+      setToast({
+        open: true,
+        title: "Model Configuration Error",
+        description: message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSelectVersion = (ver: BranchVersion) => {
     setSelectedVersion(ver);
     navigate(`/branches/${branchId}/preview?version=${ver.version_number}`);
@@ -573,6 +600,13 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
               <PromptPreviewCard
                 branch={branch}
                 draftOverrides={draftContext}
+              />
+            )}
+            {isUserAdmin() && (
+              <BranchModelSelectionCard
+                branch={branch}
+                isUpdating={updateMutation.isPending}
+                onUpdate={handleUpdateModelConfig}
               />
             )}
           </>

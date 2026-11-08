@@ -55,6 +55,7 @@ export type CreateBranchInput = {
   template_set_id: string;
   provider_override?: string;
   model_override?: string;
+  reasoning_level?: components["schemas"]["CreateBranchRequest"]["reasoning_level"];
   pinned_entity_ids?: string[];
   excluded_entity_ids?: string[];
 };
