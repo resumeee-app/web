@@ -358,6 +358,31 @@ export function useDeleteEducation(): UseMutationResult<void, Error, string> {
   });
 }
 
+export const SKILLS_QUERY_KEY = ["skills"] as const;
+
+/**
+ * Hook to fetch skills list optionally filtered by type ("all" | "global" | "custom").
+ */
+export function useSkills(
+  type: "all" | "global" | "custom" = "all"
+): UseQueryResult<components["schemas"]["Skill"][], Error> {
+  return useQuery({
+    queryKey: [...SKILLS_QUERY_KEY, type],
+    queryFn: async () => {
+      const { data, error } = await api.GET("/skills", {
+        params: { query: { type } },
+      });
+      if (error || !data) {
+        throw new Error(
+          (error as { error?: { message?: string } })?.error?.message ||
+            "Failed to fetch skills"
+        );
+      }
+      return data;
+    },
+  });
+}
+
 /**
  * Hook to create a skill via POST /skills.
  */
@@ -383,6 +408,7 @@ export function useCreateSkill(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -413,6 +439,7 @@ export function useUpdateSkill(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -437,6 +464,7 @@ export function useDeleteSkill(): UseMutationResult<void, Error, string> {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }

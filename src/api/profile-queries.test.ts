@@ -12,6 +12,11 @@ import {
   fetchPDFParseJob,
   MAX_PDF_SIZE_BYTES,
   PROFILE_FULL_QUERY_KEY,
+  SKILLS_QUERY_KEY,
+  useSkills,
+  useCreateSkill,
+  useUpdateSkill,
+  useDeleteSkill,
   type JSONResume,
 } from "./profile-queries";
 import { api } from "./client";
@@ -548,6 +553,125 @@ describe("profile-queries", () => {
       await expect(
         result.current.mutateAsync(candidateResume)
       ).rejects.toThrow("Invalid resume schema: missing name");
+    });
+  });
+
+  describe("skills hooks", () => {
+    it("fetches skills list via useSkills", async () => {
+      const mockSkillList: components["schemas"]["Skill"][] = [
+        { id: "s-1", user_id: "user-1", name: "TypeScript", category: "Languages" },
+        { id: "s-2", user_id: "system", name: "Rust", is_global: true },
+      ];
+
+      vi.mocked(api.GET).mockResolvedValueOnce({
+        data: mockSkillList,
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.GET>>);
+
+      const { wrapper } = createWrapper();
+      const { result } = renderHook(() => useSkills("global"), { wrapper });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data).toHaveLength(2);
+      expect(api.GET).toHaveBeenCalledWith("/skills", {
+        params: { query: { type: "global" } },
+      });
+    });
+
+    it("creates a skill and invalidates snapshot cache", async () => {
+      const createdSkill: components["schemas"]["Skill"] = {
+        id: "s-new",
+        user_id: "user-1",
+        name: "Go",
+        category: "Languages",
+      };
+
+      vi.mocked(api.POST).mockResolvedValueOnce({
+        data: createdSkill,
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.POST>>);
+
+      const { queryClient, wrapper } = createWrapper();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+      const { result } = renderHook(() => useCreateSkill(), { wrapper });
+      const created = await result.current.mutateAsync({
+        name: "Go",
+        category: "Languages",
+      });
+
+      expect(created.id).toBe("s-new");
+      expect(api.POST).toHaveBeenCalledWith("/skills", {
+        body: { name: "Go", category: "Languages" },
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: PROFILE_FULL_QUERY_KEY,
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: SKILLS_QUERY_KEY,
+      });
+    });
+
+    it("updates a skill via useUpdateSkill", async () => {
+      const updatedSkill: components["schemas"]["Skill"] = {
+        id: "s-1",
+        user_id: "user-1",
+        name: "TypeScript 5",
+        category: "Languages",
+      };
+
+      vi.mocked(api.PUT).mockResolvedValueOnce({
+        data: updatedSkill,
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.PUT>>);
+
+      const { queryClient, wrapper } = createWrapper();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+      const { result } = renderHook(() => useUpdateSkill(), { wrapper });
+      const updated = await result.current.mutateAsync({
+        id: "s-1",
+        data: { name: "TypeScript 5" },
+      });
+
+      expect(updated.name).toBe("TypeScript 5");
+      expect(api.PUT).toHaveBeenCalledWith("/skills/{id}", {
+        params: { path: { id: "s-1" } },
+        body: { name: "TypeScript 5" },
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: PROFILE_FULL_QUERY_KEY,
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: SKILLS_QUERY_KEY,
+      });
+    });
+
+    it("deletes a skill via useDeleteSkill", async () => {
+      vi.mocked(api.DELETE).mockResolvedValueOnce({
+        data: undefined,
+        error: undefined,
+        response: new Response(null, { status: 204 }),
+      } as unknown as Awaited<ReturnType<typeof api.DELETE>>);
+
+      const { queryClient, wrapper } = createWrapper();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+      const { result } = renderHook(() => useDeleteSkill(), { wrapper });
+      await result.current.mutateAsync("s-1");
+
+      expect(api.DELETE).toHaveBeenCalledWith("/skills/{id}", {
+        params: { path: { id: "s-1" } },
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: PROFILE_FULL_QUERY_KEY,
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: SKILLS_QUERY_KEY,
+      });
     });
   });
 });

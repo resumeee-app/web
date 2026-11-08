@@ -26,6 +26,7 @@ import {
   useUpdateEducation,
   useDeleteEducation,
   useCreateSkill,
+  useUpdateSkill,
   useDeleteSkill,
   useCreateCertification,
   useUpdateCertification,
@@ -114,6 +115,7 @@ export const ProfilePage: React.FC = () => {
   const updateEduMutation = useUpdateEducation();
   const deleteEduMutation = useDeleteEducation();
   const createSkillMutation = useCreateSkill();
+  const updateSkillMutation = useUpdateSkill();
   const deleteSkillMutation = useDeleteSkill();
   const createCertMutation = useCreateCertification();
   const updateCertMutation = useUpdateCertification();
@@ -465,8 +467,12 @@ export const ProfilePage: React.FC = () => {
             skills={snapshot.skills || []}
             experiences={snapshot.experiences || []}
             projects={snapshot.projects || []}
+            education={snapshot.education || []}
             facts={snapshot.facts || []}
             onAddSkill={(skillData) => createSkillMutation.mutate(skillData)}
+            onUpdateSkill={(id, skillData) =>
+              updateSkillMutation.mutate({ id, data: skillData })
+            }
             onDeleteSkill={(id) => deleteSkillMutation.mutate(id)}
             onAnnouncement={announce}
           />
