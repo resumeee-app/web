@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { Plus, Search, AlertCircle, FileText } from "lucide-react";
+import { Plus, Search, AlertCircle, FileText, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/page-header";
 import { BranchCard } from "@/components/branches/branch-card";
 import { CreateBranchModal } from "@/components/branches/create-branch-modal";
 import { DeleteBranchDialog } from "@/components/branches/delete-branch-dialog";
@@ -121,17 +122,11 @@ export const BranchesPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Page Header Landmark */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Resume Branches
-          </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Manage tailored resume variants, branching lines, and default master profile settings.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <PageHeader
+        title="Resume Branches"
+        description="Manage tailored resume variants, branching lines, and default master profile settings."
+        icon={GitBranch}
+        actions={
           <Button
             onClick={() => setIsCreateOpen(true)}
             className="flex items-center gap-2"
@@ -139,8 +134,8 @@ export const BranchesPage: React.FC = () => {
             <Plus className="h-4 w-4" aria-hidden="true" />
             <span>Create New Branch</span>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Toolbar: Search */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-4">

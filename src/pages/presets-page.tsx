@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Sliders, AlertCircle, Loader2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/page-header";
 import { PresetCard } from "@/components/presets/preset-card";
 import {
   usePresetsQuery,
@@ -54,34 +55,26 @@ export const PresetsPage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+    <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
-        <div>
-          <div className="flex items-center space-x-2">
-            <Sliders className="h-6 w-6 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Tailoring Strategies
-            </h1>
-          </div>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            Configure AI prompt directives, target length constraints,
-            formatting rules, and density guidelines for resume tailoring.
-          </p>
-        </div>
-
-        <Link
-          to="/presets/new"
-          className={buttonVariants({
-            variant: "default",
-            size: "default",
-            className: "gap-2 shrink-0 focus-visible:ring-indigo-500",
-          })}
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" />
-          <span>Create Tailoring Strategy</span>
-        </Link>
-      </div>
+      <PageHeader
+        title="Tailoring Strategies"
+        description="Configure AI prompt directives, target length constraints, formatting rules, and density guidelines for resume tailoring."
+        icon={Sliders}
+        actions={
+          <Link
+            to="/presets/new"
+            className={buttonVariants({
+              variant: "default",
+              size: "default",
+              className: "gap-2 shrink-0 focus-visible:ring-indigo-500",
+            })}
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            <span>Create Tailoring Strategy</span>
+          </Link>
+        }
+      />
 
       {/* Loading state */}
       {isPresetsLoading && (

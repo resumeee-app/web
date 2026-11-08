@@ -27,6 +27,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/page-header";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -124,27 +125,21 @@ export const TemplatesPage: React.FC = () => {
   };
 
   return (
-    <main id="main-content" className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        {/* Page Header */}
-        <div className="sm:flex sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
-              Template Sets
-            </h1>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              Browse standard built-in ATS templates or construct custom Go templates for multi-format resumes.
-            </p>
-          </div>
-          <div className="mt-4 sm:mt-0">
-            <Button asChild className="shadow-sm">
-              <Link to="/templates/new" className="flex items-center space-x-2">
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                <span>Create Template</span>
-              </Link>
-            </Button>
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="Template Sets"
+        description="Browse standard built-in ATS templates or construct custom Go templates for multi-format resumes."
+        icon={Layers}
+        actions={
+          <Button asChild className="shadow-sm">
+            <Link to="/templates/new" className="flex items-center space-x-2">
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              <span>Create Template</span>
+            </Link>
+          </Button>
+        }
+      />
 
         {/* Filter and Search Controls */}
         <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -281,7 +276,6 @@ export const TemplatesPage: React.FC = () => {
             )}
           </div>
         )}
-      </div>
 
       {/* Delete Confirmation Radix AlertDialog */}
       <AlertDialog
@@ -341,6 +335,6 @@ export const TemplatesPage: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </main>
+    </div>
   );
 };

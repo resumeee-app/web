@@ -33,8 +33,10 @@ import {
   Eye,
   ArrowRight,
   BookOpen,
+  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/page-header";
 import {
   DefaultBranchBadge,
   BranchStatusBadge,
@@ -261,33 +263,29 @@ export const HomePage: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Page Header Landmark */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Resume Management Dashboard
-          </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Create, branch, and tailor ATS-optimized resumes with AI LLM models.
-          </p>
-        </div>
+      <PageHeader
+        title="Resume Management Dashboard"
+        description="Create, branch, and tailor ATS-optimized resumes with AI LLM models."
+        icon={LayoutDashboard}
+        actions={
+          <>
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center space-x-2"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              <span>Create Branch</span>
+            </Button>
 
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center space-x-2"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            <span>Create Branch</span>
-          </Button>
-
-          <Button variant="outline" asChild>
-            <Link to="/profile" className="flex items-center space-x-2">
-              <User className="h-4 w-4" aria-hidden="true" />
-              <span>Master Profile</span>
-            </Link>
-          </Button>
-        </div>
-      </div>
+            <Button variant="outline" asChild>
+              <Link to="/profile" className="flex items-center space-x-2">
+                <User className="h-4 w-4" aria-hidden="true" />
+                <span>Master Profile</span>
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       {/* Global Query Error Banner */}
       {activeErrors.length > 0 && (

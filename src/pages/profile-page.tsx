@@ -3,6 +3,7 @@ import { User, Briefcase, GraduationCap, Wrench, Save, RotateCcw, FileUp } from 
 import { useQueryClient } from "@tanstack/react-query";
 import { useBlocker, UNSAFE_DataRouterContext } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ContactForm, type ContactFormData } from "@/components/profile/contact-form";
 import { ExperienceList } from "@/components/profile/experience-list";
@@ -288,65 +289,58 @@ export const ProfilePage: React.FC = () => {
     (snapshot.projects || []).length === 0;
 
   return (
-    <div className="space-y-6">
+    <>
       {/* Screen-reader Live Region */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement}
       </div>
 
-      {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Master Profile &amp; Career Graph
-            </h1>
-            {isDirty && (
+      <div className="space-y-6">
+        {/* Page Header */}
+        <PageHeader
+          title="Master Profile & Career Graph"
+          description="Single-source-of-truth career records, skills, and quantifiable achievements."
+          icon={User}
+          badge={
+            isDirty && (
               <span className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-600/20">
                 Unsaved Changes
               </span>
-            )}
-          </div>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Single-source-of-truth career records, skills, and quantifiable achievements.
-          </p>
-        </div>
-
-        {/* Global Action & Contact Controls */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setImportDialogOpen(true)}
-            className="gap-1.5"
-          >
-            <FileUp className="h-4 w-4" aria-hidden="true" />
-            <span>Import PDF Resume</span>
-          </Button>
-          {isDirty && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDiscardDialogOpen(true)}
-              className="gap-1.5"
-            >
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              <span>Discard</span>
-            </Button>
-          )}
-          <Button
-            size="sm"
-            onClick={handleSaveContact}
-            disabled={!isDirty || !isValid || updateProfileMutation.isPending}
-            className="gap-1.5"
-          >
-            <Save className="h-4 w-4" aria-hidden="true" />
-            <span>
-              {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
-            </span>
-          </Button>
-        </div>
-      </div>
+            )
+          }
+          actions={
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setImportDialogOpen(true)}
+                className="gap-1.5"
+              >
+                <FileUp className="h-4 w-4" aria-hidden="true" />
+                <span>Import PDF Resume</span>
+              </Button>
+              {isDirty && (
+                <Button
+                  variant="outline"
+                  onClick={() => setDiscardDialogOpen(true)}
+                  className="gap-1.5"
+                >
+                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                  <span>Discard</span>
+                </Button>
+              )}
+              <Button
+                onClick={handleSaveContact}
+                disabled={!isDirty || !isValid || updateProfileMutation.isPending}
+                className="gap-1.5"
+              >
+                <Save className="h-4 w-4" aria-hidden="true" />
+                <span>
+                  {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+                </span>
+              </Button>
+            </>
+          }
+        />
 
       {/* Onboarding Callout for Empty Career Graph */}
       {isCareerGraphEmpty && (
@@ -566,5 +560,6 @@ export const ProfilePage: React.FC = () => {
         onAnnouncement={announce}
       />
     </div>
+    </>
   );
 };
