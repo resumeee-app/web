@@ -4,7 +4,9 @@ import {
   type RouteObject,
 } from "react-router-dom";
 import { RootLayout } from "./components/layout/root-layout";
-import { HomePage } from "./pages/home-page";
+import { IndexRoute } from "./pages/index-route";
+import { LandingPage } from "./pages/landing-page";
+import { LoginPage } from "./components/auth/login-page";
 import { BranchesPage } from "./pages/branches-page";
 import { BranchWorkbenchPage } from "./pages/branch-workbench-page";
 import { ResumePreviewPage } from "./pages/resume-preview-page";
@@ -22,7 +24,15 @@ export const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <HomePage />,
+        element: <IndexRoute />,
+      },
+      {
+        path: "landing",
+        element: <LandingPage />,
+      },
+      {
+        path: "login",
+        element: <LoginPage />,
       },
       {
         path: "profile",

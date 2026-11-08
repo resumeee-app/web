@@ -3,7 +3,7 @@ import { RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
-import { AuthProvider } from "@/context/auth-context";
+import { AuthProvider, type AuthUser } from "@/context/auth-context";
 import { router as defaultRouter, type createAppRouter } from "./router";
 
 /**
@@ -35,6 +35,14 @@ export interface AppProps {
    * Optional custom router instance (e.g. MemoryRouter) for testing specific route entries.
    */
   router?: ReturnType<typeof createAppRouter>;
+  /**
+   * Optional initial user for multi-tenant testing scenarios.
+   */
+  initialUser?: AuthUser | null;
+  /**
+   * Optional initial admin mode override for testing scenarios.
+   */
+  initialAdminMode?: boolean;
 }
 
 /**
@@ -50,6 +58,8 @@ export interface AppProps {
 export const App: React.FC<AppProps> = ({
   queryClient: propQueryClient,
   router: propRouter,
+  initialUser,
+  initialAdminMode,
 }) => {
   const [queryClient] = React.useState(
     () => propQueryClient || createDefaultQueryClient()
@@ -59,7 +69,7 @@ export const App: React.FC<AppProps> = ({
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
+        <AuthProvider initialUser={initialUser} initialAdminMode={initialAdminMode}>
           <TooltipProvider>
             <RouterProvider router={activeRouter} />
           </TooltipProvider>

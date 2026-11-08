@@ -52,6 +52,9 @@ describe("RootLayout Landmark Structure", () => {
     const footer = screen.getByRole("contentinfo");
     expect(footer).toBeInTheDocument();
     expect(footer).toHaveTextContent(/One Resume to rule them all\./i);
+    expect(footer).toHaveTextContent(/MIT License/i);
+    const githubLink = within(footer).getByRole("link", { name: /github repository/i });
+    expect(githubLink).toHaveAttribute("href", "https://github.com/rrivera/resumeee");
     expect(footer).not.toHaveTextContent(/Pure Client-Side SPA Architecture/i);
   });
 
@@ -94,7 +97,7 @@ describe("RootLayout Landmark Structure", () => {
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["quota"] });
   });
 
-  it("renders header without navigation and displays login page when unauthenticated in non-admin mode", () => {
+  it("renders header without navigation and displays login page when unauthenticated in non-admin mode on protected routes", () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -102,10 +105,10 @@ describe("RootLayout Landmark Structure", () => {
       <QueryClientProvider client={queryClient}>
         <AuthProvider initialUser={null} initialAdminMode={false}>
           <ThemeProvider>
-            <MemoryRouter initialEntries={["/"]}>
+            <MemoryRouter initialEntries={["/profile"]}>
               <Routes>
                 <Route path="/" element={<RootLayout />}>
-                  <Route index element={<h1>Test Dashboard</h1>} />
+                  <Route path="profile" element={<h1>Test Dashboard</h1>} />
                 </Route>
               </Routes>
             </MemoryRouter>
@@ -126,5 +129,53 @@ describe("RootLayout Landmark Structure", () => {
     // Login page displayed in main
     expect(screen.getByRole("heading", { name: /sign in to resumeee/i })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Test Dashboard" })).not.toBeInTheDocument();
+  });
+
+  it("renders public routes like /landing through outlet when unauthenticated", () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider initialUser={null} initialAdminMode={false}>
+          <ThemeProvider>
+            <MemoryRouter initialEntries={["/landing"]}>
+              <Routes>
+                <Route path="/" element={<RootLayout />}>
+                  <Route path="landing" element={<h1>Public Landing Route</h1>} />
+                </Route>
+              </Routes>
+            </MemoryRouter>
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    expect(screen.getByRole("heading", { name: "Public Landing Route" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /sign in to resumeee/i })).not.toBeInTheDocument();
+  });
+
+  it("normalizes trailing slashes on public routes (e.g. /landing/) so it renders public route", () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider initialUser={null} initialAdminMode={false}>
+          <ThemeProvider>
+            <MemoryRouter initialEntries={["/landing/"]}>
+              <Routes>
+                <Route path="/" element={<RootLayout />}>
+                  <Route path="landing" element={<h1>Public Landing Route With Trailing Slash</h1>} />
+                </Route>
+              </Routes>
+            </MemoryRouter>
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    expect(screen.getByRole("heading", { name: "Public Landing Route With Trailing Slash" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /sign in to resumeee/i })).not.toBeInTheDocument();
   });
 });

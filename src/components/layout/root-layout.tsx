@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, X } from "lucide-react";
 import { Header } from "./header";
@@ -45,7 +45,13 @@ export const RootLayout: React.FC = () => {
     };
   }, [toast, queryClient]);
 
-  const showLogin = !adminMode && !user;
+  const location = useLocation();
+  const normalizedPath = location.pathname.replace(/\/+$/, "") || "/";
+  const isPublicRoute =
+    normalizedPath === "/" ||
+    normalizedPath === "/landing" ||
+    normalizedPath === "/login";
+  const showLogin = !adminMode && !user && !isPublicRoute;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
@@ -89,8 +95,19 @@ export const RootLayout: React.FC = () => {
         role="contentinfo"
         className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 py-6 text-center text-sm text-slate-500 dark:text-slate-400"
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-1.5">
           <p>© {new Date().getFullYear()} Resumeee — One Resume to rule them all.</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            Open source under the MIT License •{" "}
+            <a
+              href="https://github.com/rrivera/resumeee"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline underline-offset-2"
+            >
+              GitHub Repository
+            </a>
+          </p>
         </div>
       </footer>
       <Toaster />

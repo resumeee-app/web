@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { axe } from "vitest-axe";
 import App from "./App";
+import { createAppRouter } from "./router";
 
 describe("Application Root Component", () => {
   afterEach(() => {
@@ -48,11 +49,17 @@ describe("Application Root Component", () => {
       vi.stubEnv("ADMIN_MODE", "false");
     });
 
-    it("renders login screen and hides header navigation links and quota meter when unauthenticated", () => {
+    it("renders public landing page and hides header navigation links and quota meter when unauthenticated on root", () => {
       render(<App />);
 
-      expect(screen.getByRole("heading", { name: /sign in to resumeee/i })).toBeInTheDocument();
-      expect(screen.getByText(/multi-tenant resume tailoring powered by firebase/i)).toBeInTheDocument();
+      // Hero heading and value proposition
+      expect(screen.getByRole("heading", { level: 1, name: /branch your career like git/i })).toBeInTheDocument();
+      expect(screen.getAllByText(/one resume to rule them all/i).length).toBeGreaterThan(0);
+
+      // CTA into login
+      const getStartedLinks = screen.getAllByRole("link", { name: /get started free/i });
+      expect(getStartedLinks.length).toBeGreaterThan(0);
+      expect(getStartedLinks[0]).toHaveAttribute("href", "/login");
 
       const banner = screen.getByRole("banner");
       expect(banner).toBeInTheDocument();
@@ -62,10 +69,45 @@ describe("Application Root Component", () => {
       expect(within(banner).queryByLabelText(/quota/i)).not.toBeInTheDocument();
     });
 
-    it("passes axe-core accessibility audit on login screen render", async () => {
+    it("renders login screen when routed to /login directly", () => {
+      const testRouter = createAppRouter(["/login"]);
+      render(<App router={testRouter} />);
+
+      expect(screen.getByRole("heading", { name: /sign in to resumeee/i })).toBeInTheDocument();
+      expect(screen.getByText(/multi-tenant resume tailoring powered by firebase/i)).toBeInTheDocument();
+    });
+
+    it("passes axe-core accessibility audit on unauthenticated landing page render", async () => {
       const { container } = render(<App />);
       const results = await axe(container);
       expect(results).toHaveNoViolations();
+    });
+  });
+
+  describe("Multi-Tenant Mode (Authenticated)", () => {
+    beforeEach(() => {
+      vi.stubEnv("ADMIN_MODE", "false");
+    });
+
+    it("renders the dashboard (HomePage) instead of LandingPage when authenticated on root", () => {
+      render(
+        <App
+          initialUser={{
+            uid: "user-123",
+            email: "engineer@resumeee.io",
+            displayName: "Jane Engineer",
+          }}
+          initialAdminMode={false}
+        />
+      );
+
+      // Verify dashboard heading is rendered, not landing page hero
+      expect(screen.getByRole("heading", { level: 1, name: /resume management/i })).toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: /branch your career like git/i })).not.toBeInTheDocument();
+
+      // Verify authenticated navigation and user info
+      expect(screen.getByRole("navigation", { name: /main navigation/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
     });
   });
 });

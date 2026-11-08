@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X, User, LogOut } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,9 @@ import { useAuth } from "@/context/auth-context";
 export const Header: React.FC = () => {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const { user, adminMode, signOut } = useAuth();
+  const location = useLocation();
+  const normalizedPath = location.pathname.replace(/\/+$/, "") || "/";
+  const isPublicLanding = normalizedPath === "/" || normalizedPath === "/landing";
   const userIdentifier = user?.email || user?.displayName || user?.uid || "User";
   const showNav = Boolean(adminMode || user);
 
@@ -93,8 +96,61 @@ export const Header: React.FC = () => {
             </div>
           )}
 
+          {/* Desktop Public Navigation (Unauthenticated visitor on public landing routes) */}
+          {!showNav && isPublicLanding && (
+            <div className="hidden md:flex flex-1 items-center justify-center min-[1600px]:justify-start min-w-0 px-1 sm:px-2 lg:px-4">
+              <nav
+                aria-label="Public Navigation"
+                className="flex items-center space-x-1 lg:space-x-3 text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400 min-[1600px]:ml-[calc((100vw-80rem)/2-137px)]"
+              >
+                <a
+                  href="#features"
+                  className="px-2 py-1.5 rounded-md hover:text-slate-900 hover:bg-slate-50 dark:hover:text-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+                >
+                  Features
+                </a>
+                <a
+                  href="#open-source"
+                  className="px-2 py-1.5 rounded-md hover:text-slate-900 hover:bg-slate-50 dark:hover:text-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+                >
+                  Open Source
+                </a>
+                <a
+                  href="#pricing"
+                  className="px-2 py-1.5 rounded-md hover:text-slate-900 hover:bg-slate-50 dark:hover:text-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+                >
+                  Pricing
+                </a>
+                <a
+                  href="#faq"
+                  className="px-2 py-1.5 rounded-md hover:text-slate-900 hover:bg-slate-50 dark:hover:text-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+                >
+                  FAQ
+                </a>
+                <a
+                  href="https://github.com/rrivera/resumeee"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="px-2 py-1.5 rounded-md hover:text-slate-900 hover:bg-slate-50 dark:hover:text-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+                >
+                  GitHub
+                </a>
+              </nav>
+            </div>
+          )}
+
           {/* Right Utilities & Actions - Far Right */}
           <div className="flex items-center space-x-1 sm:space-x-1.5 lg:space-x-3 shrink-0">
+            {!showNav && isPublicLanding && (
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="text-xs px-2 sm:px-3 h-8 text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-slate-100"
+              >
+                <Link to="/login">Sign In</Link>
+              </Button>
+            )}
             {showNav && <QuotaMeter />}
             <ThemeToggle />
 
