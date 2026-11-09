@@ -14,7 +14,8 @@
 
 import * as React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
@@ -40,6 +41,10 @@ export interface TemplateCodeEditorProps {
   readOnly?: boolean;
   /** Server-side syntax or validation error diagnostics returned from the API. */
   serverError?: { message?: string; details?: string } | null;
+  /** Optional callback fired when the user opens the template placeholder reference guide. */
+  onOpenReference?: () => void;
+  /** Whether the template placeholder reference drawer is currently open. */
+  isReferenceOpen?: boolean;
   /** Optional custom CSS classes for the container. */
   className?: string;
 }
@@ -163,6 +168,8 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
   onChange,
   readOnly = false,
   serverError,
+  onOpenReference,
+  isReferenceOpen = false,
   className,
 }) => {
   const [activeTab, setActiveTab] = React.useState<string>("html");
@@ -210,19 +217,38 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
             </TabsTrigger>
           </TabsList>
 
-          {/* Syntax validation status indicator */}
-          <div className="flex items-center space-x-1.5 text-xs">
-            {activeError ? (
-              <span className="flex items-center text-red-600 dark:text-red-400 font-medium">
-                <AlertCircle className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
-                Syntax Diagnostic
-              </span>
-            ) : (
-              <span className="flex items-center text-emerald-600 dark:text-emerald-400 font-medium">
-                <CheckCircle2 className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
-                Syntax Valid
-              </span>
+          <div className="flex items-center space-x-2">
+            {onOpenReference && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onOpenReference}
+                aria-label="Open template placeholder reference guide"
+                aria-haspopup="dialog"
+                aria-expanded={isReferenceOpen}
+                aria-controls="template-reference-drawer"
+                className="h-7 px-2 text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+              >
+                <BookOpen className="h-3.5 w-3.5 mr-1 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+                <span>Placeholder Hints</span>
+              </Button>
             )}
+
+            {/* Syntax validation status indicator */}
+            <div className="flex items-center space-x-1.5 text-xs">
+              {activeError ? (
+                <span className="flex items-center text-red-600 dark:text-red-400 font-medium">
+                  <AlertCircle className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
+                  Syntax Diagnostic
+                </span>
+              ) : (
+                <span className="flex items-center text-emerald-600 dark:text-emerald-400 font-medium">
+                  <CheckCircle2 className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
+                  Syntax Valid
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

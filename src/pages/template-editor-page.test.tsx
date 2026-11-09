@@ -289,4 +289,37 @@ describe("TemplateEditorPage Component", () => {
     const results = await axe(container, { iframes: false });
     expect(results).toHaveNoViolations();
   });
+
+  it("opens placeholder hints reference drawer when clicking Placeholder Hints button in top bar", async () => {
+    const user = userEvent.setup();
+    renderEditor("/templates/new");
+
+    const hintsBtns = screen.getAllByRole("button", { name: /open template placeholder reference guide/i });
+    expect(hintsBtns.length).toBeGreaterThan(0);
+
+    await user.click(hintsBtns[0]!);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /go template placeholder reference/i })).toBeInTheDocument();
+    expect(screen.getByText("{{.FullName}}")).toBeInTheDocument();
+
+    const closeBtn = screen.getByRole("button", { name: /close reference drawer/i });
+    await user.click(closeBtn);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("opens placeholder hints reference drawer when clicking toolbar trigger in code editor", async () => {
+    const user = userEvent.setup();
+    renderEditor("/templates/new");
+
+    // Top bar and editor toolbar both provide access
+    const hintsBtns = screen.getAllByRole("button", { name: /open template placeholder reference guide/i });
+    expect(hintsBtns.length).toBeGreaterThanOrEqual(2);
+
+    // Click the second one (in the code editor toolbar)
+    await user.click(hintsBtns[1]!);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("{{range .Experiences}}...{{end}}")).toBeInTheDocument();
+  });
 });

@@ -129,6 +129,25 @@ describe("TemplateForm Component", () => {
     expect(rootDiv).toHaveClass("custom-form-class");
   });
 
+  it("calls onOpenReference callback when clicking the placeholder hints toolbar button", async () => {
+    const user = userEvent.setup();
+    const handleOpenReference = vi.fn();
+
+    render(
+      <TemplateForm
+        data={mockInitialData}
+        onChange={vi.fn()}
+        onOpenReference={handleOpenReference}
+      />
+    );
+
+    const hintsBtn = screen.getByRole("button", { name: /open template placeholder reference guide/i });
+    expect(hintsBtn).toBeInTheDocument();
+    await user.click(hintsBtn);
+
+    expect(handleOpenReference).toHaveBeenCalledTimes(1);
+  });
+
   it("has zero accessibility violations according to axe-core", async () => {
     const { container } = render(
       <TemplateForm

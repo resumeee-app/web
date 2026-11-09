@@ -27,6 +27,7 @@ import {
   Copy,
   ShieldAlert,
   Loader2,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +39,7 @@ import {
 import { TemplateMetadataCard } from "@/components/templates/template-metadata-card";
 import { TemplateCodeEditor } from "@/components/templates/template-code-editor";
 import { TemplatePreviewPane } from "@/components/templates/template-preview-pane";
+import { TemplateReferenceDrawer } from "@/components/templates/template-reference-drawer";
 
 /**
  * Starter Go HTML template used when creating a new custom template set from scratch.
@@ -149,6 +151,9 @@ export const TemplateEditorPage: React.FC = () => {
 
   // Server error diagnostic state
   const [serverError, setServerError] = React.useState<{ message?: string; details?: string } | null>(null);
+
+  // Template placeholder reference drawer state
+  const [isReferenceOpen, setIsReferenceOpen] = React.useState(false);
 
   // Check if viewing an immutable built-in template
   const isBuiltIn = React.useMemo(() => {
@@ -286,6 +291,21 @@ export const TemplateEditorPage: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsReferenceOpen(true)}
+              aria-label="Open template placeholder reference guide"
+              aria-haspopup="dialog"
+              aria-expanded={isReferenceOpen}
+              aria-controls="template-reference-drawer"
+              className="text-xs"
+            >
+              <BookOpen className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
+              Placeholder Hints
+            </Button>
+
             {isBuiltIn && (
               <Button
                 type="button"
@@ -365,6 +385,8 @@ export const TemplateEditorPage: React.FC = () => {
               }}
               readOnly={isBuiltIn}
               serverError={serverError}
+              onOpenReference={() => setIsReferenceOpen(true)}
+              isReferenceOpen={isReferenceOpen}
             />
           </div>
 
@@ -381,6 +403,12 @@ export const TemplateEditorPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Go Template Placeholder Reference & Hints Drawer */}
+      <TemplateReferenceDrawer
+        open={isReferenceOpen}
+        onOpenChange={setIsReferenceOpen}
+      />
     </main>
   );
 };

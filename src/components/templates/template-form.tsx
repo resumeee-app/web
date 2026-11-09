@@ -46,6 +46,10 @@ export interface TemplateFormProps {
   readOnly?: boolean;
   /** Server-side syntax or validation error diagnostics returned from the API. */
   serverError?: { message?: string; details?: string } | null;
+  /** Optional callback fired when the user opens the template placeholder reference guide. */
+  onOpenReference?: () => void;
+  /** Whether the template placeholder reference drawer is currently open. */
+  isReferenceOpen?: boolean;
   /** Optional custom CSS classes for the container. */
   className?: string;
 }
@@ -64,6 +68,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
   onChange,
   readOnly = false,
   serverError,
+  onOpenReference,
+  isReferenceOpen = false,
   className,
 }) => {
   return (
@@ -87,6 +93,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
           onChange={onChange}
           readOnly={readOnly}
           serverError={serverError}
+          onOpenReference={onOpenReference}
+          isReferenceOpen={isReferenceOpen}
         />
       </div>
     </div>
