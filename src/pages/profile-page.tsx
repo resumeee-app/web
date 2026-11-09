@@ -16,6 +16,7 @@ import { ImportPDFDialog } from "@/components/profile/import-pdf-dialog";
 import {
   PROFILE_FULL_QUERY_KEY,
   useFullProfile,
+  useSkills,
   useUpdateProfile,
   useCreateExperience,
   useUpdateExperience,
@@ -103,6 +104,37 @@ const RouterBlocker: React.FC<RouterBlockerProps> = ({ when, onBlocked }) => {
 export const ProfilePage: React.FC = () => {
   const queryClient = useQueryClient();
   const { data: snapshot, isLoading, isError, error } = useFullProfile();
+  const { data: allSkillsData } = useSkills("all");
+
+  // Consolidated pool of available skills (merging system global catalog with profile-attached skills)
+  const allAvailableSkills = React.useMemo(() => {
+    const rawSkills = [
+      ...(Array.isArray(allSkillsData) ? allSkillsData : []),
+      ...(snapshot?.skills ?? []),
+    ];
+    const seenIds = new Set<string>();
+    const seenNames = new Set<string>();
+    const result: components["schemas"]["Skill"][] = [];
+
+    for (const s of rawSkills) {
+      const id = s.id?.trim();
+      const name = s.name?.trim().toLowerCase();
+
+      if ((id && seenIds.has(id)) || (name && seenNames.has(name))) {
+        continue;
+      }
+
+      if (id) {
+        seenIds.add(id);
+      }
+      if (name) {
+        seenNames.add(name);
+      }
+      result.push(s);
+    }
+
+    return result;
+  }, [allSkillsData, snapshot?.skills]);
 
   // Query mutations
   const updateProfileMutation = useUpdateProfile();
@@ -411,7 +443,7 @@ export const ProfilePage: React.FC = () => {
         <TabsContent value="experience" className="mt-6 space-y-8">
           <ExperienceList
             experiences={snapshot.experiences || []}
-            availableSkills={snapshot.skills || []}
+            availableSkills={allAvailableSkills}
             onReorder={(reordered) => {
               queryClient.setQueryData<components["schemas"]["MainProfileSnapshot"]>(
                 PROFILE_FULL_QUERY_KEY,
@@ -437,7 +469,7 @@ export const ProfilePage: React.FC = () => {
 
           <ProjectsList
             projects={snapshot.projects || []}
-            availableSkills={snapshot.skills || []}
+            availableSkills={allAvailableSkills}
             onAddProject={(projData) => createProjMutation.mutate(projData)}
             onUpdateProject={(id, projData) =>
               updateProjMutation.mutate({ id, data: projData })
@@ -458,7 +490,7 @@ export const ProfilePage: React.FC = () => {
         {/* Tab 3: Skills */}
         <TabsContent value="skills" className="mt-6">
           <SkillsManager
-            skills={snapshot.skills || []}
+            skills={allAvailableSkills}
             experiences={snapshot.experiences || []}
             projects={snapshot.projects || []}
             education={snapshot.education || []}

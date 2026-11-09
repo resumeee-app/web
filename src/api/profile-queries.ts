@@ -105,6 +105,7 @@ export function useUpdateProfile(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -134,6 +135,7 @@ export function useCreateExperience(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -164,6 +166,7 @@ export function useUpdateExperience(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -188,6 +191,7 @@ export function useDeleteExperience(): UseMutationResult<void, Error, string> {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -217,6 +221,7 @@ export function useCreateProject(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -247,6 +252,7 @@ export function useUpdateProject(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -271,6 +277,7 @@ export function useDeleteProject(): UseMutationResult<void, Error, string> {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -300,6 +307,7 @@ export function useCreateEducation(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -330,6 +338,7 @@ export function useUpdateEducation(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -354,6 +363,7 @@ export function useDeleteEducation(): UseMutationResult<void, Error, string> {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -494,6 +504,7 @@ export function useCreateCertification(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -524,6 +535,7 @@ export function useUpdateCertification(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -548,6 +560,7 @@ export function useDeleteCertification(): UseMutationResult<void, Error, string>
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -577,6 +590,7 @@ export function useCreateFact(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -601,6 +615,7 @@ export function useDeleteFact(): UseMutationResult<void, Error, string> {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }
@@ -946,6 +961,7 @@ export function useCommitPDFResume(): UseMutationResult<
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
     },
   });
 }

@@ -700,4 +700,185 @@ describe("ProfilePage", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("renders global skills in Skills tab with origin badge and enables global filtering", async () => {
+    const user = userEvent.setup();
+    const globalSkillsSample: components["schemas"]["Skill"][] = [
+      {
+        id: "global-skill-go",
+        user_id: "system",
+        name: "Go",
+        slug: "go",
+        is_global: true,
+        category: "Languages",
+        proficiency: "Proficient",
+      },
+      {
+        id: "global-skill-react",
+        user_id: "system",
+        name: "React",
+        slug: "react",
+        is_global: true,
+        category: "Web Technologies",
+        proficiency: "Proficient",
+      },
+    ];
+
+    // Snapshot contains overlapping skills: one matching by exact ID, one matching by case-insensitive name
+    const overlappingSnapshot: components["schemas"]["MainProfileSnapshot"] = {
+      ...mockFullSnapshot,
+      skills: [
+        {
+          id: "skill-11111111-2222-3333-4444-555555555555",
+          user_id: "user-1",
+          name: "Cryptanalysis",
+          category: "Languages",
+        },
+        {
+          id: "global-skill-go",
+          user_id: "user-1",
+          name: "Go",
+          category: "Languages",
+        },
+        {
+          id: "custom-duplicate-react-uuid",
+          user_id: "user-1",
+          name: "react",
+          category: "Web Technologies",
+        },
+      ],
+    };
+
+    vi.mocked(api.GET).mockImplementation(async (path: string) => {
+      if (path === "/skills") {
+        return {
+          data: globalSkillsSample,
+          error: undefined,
+          response: new Response(),
+        } as unknown as Awaited<ReturnType<typeof api.GET>>;
+      }
+      return {
+        data: overlappingSnapshot,
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.GET>>;
+    });
+
+    renderProfilePage();
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { level: 1, name: /Main Profile & Career Graph/i })).toBeInTheDocument();
+    });
+
+    // Switch to Skills tab
+    const skillsTab = screen.getByRole("tab", { name: /Skills/i });
+    await user.click(skillsTab);
+
+    // Global skill "React" should be visible in the catalog with "Global" origin badge
+    await waitFor(() => {
+      expect(screen.getByText("React")).toBeInTheDocument();
+      expect(screen.getAllByText("Global").length).toBeGreaterThan(0);
+    });
+
+    // Uniqueness & cardinality: ensure deduplication results in exactly 1 element per skill
+    expect(screen.getAllByText("React")).toHaveLength(1);
+    expect(screen.getAllByText("Go")).toHaveLength(1);
+
+    // Filter by Global origin
+    const globalFilterBtn = screen.getByRole("button", { name: /^Global$/i });
+    await user.click(globalFilterBtn);
+
+    // React and Go must remain visible under Global filter (exact 1 instance each)
+    expect(screen.getAllByText("React")).toHaveLength(1);
+    expect(screen.getAllByText("Go")).toHaveLength(1);
+    // Custom skill "Cryptanalysis" should not be visible under Global filter
+    expect(screen.queryByText("Cryptanalysis")).not.toBeInTheDocument();
+  });
+
+  it("provides global skills in Experience and Project skill selection quick-add chips", async () => {
+    const user = userEvent.setup();
+    const globalSkillsSample: components["schemas"]["Skill"][] = [
+      {
+        id: "global-skill-go",
+        user_id: "system",
+        name: "Go",
+        slug: "go",
+        is_global: true,
+        category: "Languages",
+        proficiency: "Proficient",
+      },
+      {
+        id: "global-skill-react",
+        user_id: "system",
+        name: "React",
+        slug: "react",
+        is_global: true,
+        category: "Web Technologies",
+        proficiency: "Proficient",
+      },
+    ];
+
+    // Snapshot contains overlapping Go by ID and React by name
+    const overlappingSnapshot: components["schemas"]["MainProfileSnapshot"] = {
+      ...mockFullSnapshot,
+      skills: [
+        {
+          id: "global-skill-go",
+          user_id: "user-1",
+          name: "Go",
+          category: "Languages",
+        },
+        {
+          id: "custom-duplicate-react-uuid",
+          user_id: "user-1",
+          name: "react",
+          category: "Web Technologies",
+        },
+      ],
+    };
+
+    vi.mocked(api.GET).mockImplementation(async (path: string) => {
+      if (path === "/skills") {
+        return {
+          data: globalSkillsSample,
+          error: undefined,
+          response: new Response(),
+        } as unknown as Awaited<ReturnType<typeof api.GET>>;
+      }
+      return {
+        data: overlappingSnapshot,
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.GET>>;
+    });
+
+    renderProfilePage();
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { level: 1, name: /Main Profile & Career Graph/i })).toBeInTheDocument();
+    });
+
+    // Switch to Experience tab
+    const expTab = screen.getByRole("tab", { name: /Experience & Projects/i });
+    await user.click(expTab);
+
+    // Click Add Work Experience
+    const addExpBtn = screen.getByRole("button", { name: /add work experience/i });
+    await user.click(addExpBtn);
+
+    // Expand extended details to reveal Skills input & quick add chips
+    const extendedDetailsBtn = screen.getByRole("button", { name: /extended details/i });
+    await user.click(extendedDetailsBtn);
+
+    // Global skills should appear in Quick Add chip group with exact cardinality of 1 each
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: /^React/i })).toHaveLength(1);
+      expect(screen.getAllByRole("button", { name: /^Go/i })).toHaveLength(1);
+    });
+
+    // Clicking quick add chip adds skill to input
+    await user.click(screen.getByRole("button", { name: /^React/i }));
+    const expSkillsInput = screen.getByRole("dialog").querySelector("#exp-skills") as HTMLInputElement;
+    expect(expSkillsInput).toHaveValue("React");
+  });
 });
