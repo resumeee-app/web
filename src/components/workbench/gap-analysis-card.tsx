@@ -11,6 +11,9 @@ import {
   RotateCcw,
   MessageSquareQuote,
   Sparkles,
+  ScanSearch,
+  Loader2,
+  FileCheck2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "./badge";
@@ -23,6 +26,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import type { components } from "@/api/schema";
+import type { ATSScore } from "@/api/workbench-queries";
 
 /**
  * GapItem represents an identified gap or missing qualification.
@@ -41,7 +45,9 @@ export type GapReport = components["schemas"]["GapReport"];
 export interface GapAnalysisCardProps {
   /** The LLM-generated gap analysis report containing match score, identified gaps, and recommendations. */
   gapReport?: GapReport | null;
-  /** Sequential version number for which this gap report was generated. */
+  /** Persisted ATS evaluation score for the currently inspected tailored version. */
+  atsScore?: ATSScore | null;
+  /** Sequential version number for which this gap report and ATS score were generated. */
   versionNumber?: number;
   /** Whether the panel starts expanded by default. Defaults to false. */
   defaultExpanded?: boolean;
@@ -49,25 +55,56 @@ export interface GapAnalysisCardProps {
   onQuickAddFact?: (gap: GapItem, factText: string) => Promise<void> | void;
   /** Callback invoked when a user marks a gap as dismissed (false positive) or restores it. */
   onDismissGap?: (gap: GapItem, dismissed: boolean) => void;
+  /** Whether the current branch is the protected Default Main Branch. */
+  isDefaultBranch?: boolean;
+  /** Whether the branch has a non-empty Job Description (target_requirements). */
+  hasJobDescription?: boolean;
+  /** Whether the inspected version is a completed tailored version. */
+  hasCompletedVersion?: boolean;
+  /** Whether an ATS simulation request is currently in flight. */
+  isSimulating?: boolean;
+  /** Callback invoked when the user clicks the on-demand ATS simulation trigger button. */
+  onSimulate?: () => Promise<void> | void;
+}
+
+function clampPercent(value?: number | null): number | null {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return null;
+  }
+  const clamped = Math.max(0, Math.min(100, value));
+  return Math.round(clamped * 10) / 10;
+}
+
+function meterColorClass(score: number): string {
+  if (score >= 80) return "bg-emerald-500";
+  if (score >= 60) return "bg-amber-500";
+  return "bg-rose-500";
 }
 
 /**
- * GapAnalysisCard renders an accessible, expandable audit panel displaying the
- * job requirement match score, identified qualification gaps,
- * importance levels, interactive gap resolution, and strategic recommendations.
+ * GapAnalysisCard renders an accessible, unified card displaying all three resume evaluation scores:
+ * 1. "Target Match Score" (0 to 100%, with interactive qualification gap analysis & recommendations)
+ * 2. "Extraction Confidence Score" (0 to 100%, on-demand ATS extraction completeness simulation)
+ * 3. "Job Matching Score" (0 to 100%, downstream job alignment computed strictly from extracted ATS content)
  *
  * Accessibility / WAI-ARIA Considerations:
  * - Uses semantic `<section>` landmark with `aria-labelledby`.
  * - Disclosure button utilizes `aria-expanded` and `aria-controls` referencing the collapsible content panel.
- * - Match score meter provides `role="meter"` with explicit `aria-valuenow`, `aria-valuemin`, and `aria-valuemax`.
+ * - All three score meters provide `role="meter"` with explicit `aria-valuenow`, `aria-valuemin`, and `aria-valuemax`.
  * - Interactive dialogs use Radix UI focus traps and accessible heading descriptions.
  */
 export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
   gapReport,
+  atsScore,
   versionNumber,
   defaultExpanded = false,
   onQuickAddFact,
   onDismissGap,
+  isDefaultBranch = false,
+  hasJobDescription = false,
+  hasCompletedVersion = false,
+  isSimulating = false,
+  onSimulate,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
   const [dismissedMap, setDismissedMap] = React.useState<Record<string, boolean>>({});
@@ -97,36 +134,42 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
   const panelId = React.useId();
   const headingId = React.useId();
 
-  if (!gapReport) {
-    return (
-      <section
-        aria-label="Gap Analysis Report"
-        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
-      >
-        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-          <Target className="h-5 w-5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
-          <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200">
-            No gap analysis report available
-          </h2>
-        </div>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Select a completed version from the timeline to review target match
-          scoring and identified qualification gaps.
-        </p>
-      </section>
-    );
+  // ATS perception scores
+  const extractionScore = clampPercent(atsScore?.extraction_confidence_score);
+  const matchingScore = clampPercent(atsScore?.job_matching_score);
+  const hasEvaluatedScore =
+    atsScore !== null &&
+    atsScore !== undefined &&
+    extractionScore !== null &&
+    matchingScore !== null;
+
+  const isSimulateDisabled =
+    isDefaultBranch ||
+    !hasJobDescription ||
+    !hasCompletedVersion ||
+    hasEvaluatedScore ||
+    isSimulating;
+
+  let statusNote: string | null = null;
+  if (isDefaultBranch) {
+    statusNote = "ATS scoring is disabled for the Default Main Branch.";
+  } else if (!hasJobDescription) {
+    statusNote =
+      "Provide a Job Description in branch context to enable ATS scoring.";
+  } else if (!hasCompletedVersion) {
+    statusNote = "Tailor a resume version first to run ATS scoring.";
   }
 
   // Support both schema variations during migration:
-  const rawGaps = gapReport.missing_requirements ?? gapReport.identified_gaps ?? [];
+  const rawGaps = gapReport?.missing_requirements ?? gapReport?.identified_gaps ?? [];
   const allGaps: GapItem[] = rawGaps.map((g) => ({
     ...g,
     missing_area: g.missing_area || "General Domain",
     recommended_action: g.recommended_action || g.clarifying_prompt || "",
   }));
 
-  const recommendations = gapReport.strategic_recommendations ?? [];
-  const rawScore = gapReport.match_score;
+  const recommendations = gapReport?.strategic_recommendations ?? [];
+  const rawScore = gapReport?.match_score;
   const hasScore = typeof rawScore === "number" && !Number.isNaN(rawScore);
 
   // Recalculate live display score if user dismissed some gaps:
@@ -197,247 +240,402 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
     <>
       <section
         aria-labelledby={headingId}
-        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
+        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-5"
       >
-        {/* Header and Toggle */}
+        {/* Header, On-Demand ATS Trigger, and Gap Report Toggle */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
               <Target className="h-6 w-6" aria-hidden="true" />
             </div>
             <div>
-              <h2
-                id={headingId}
-                className="text-lg font-bold text-slate-900 dark:text-slate-100"
-              >
-                Target Match & Gap Analysis
-                {versionNumber ? ` (v${versionNumber})` : ""}
-              </h2>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2
+                  id={headingId}
+                  className="text-lg font-bold text-slate-900 dark:text-slate-100"
+                >
+                  Target Match, ATS Perception & Gap Analysis
+                  {versionNumber ? ` (v${versionNumber})` : ""}
+                </h2>
+                {hasEvaluatedScore && (
+                  <Badge variant="success" className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+                    <span>Evaluated</span>
+                  </Badge>
+                )}
+              </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {gapReport.overall_match_summary ||
-                  "Evaluated against target role requirements and industry benchmarks."}
+                {gapReport?.overall_match_summary ||
+                  "Evaluated against target role requirements, ATS extraction confidence, and downstream job matching."}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Match Score Indicator (defensively rendered) */}
-            {displayScore !== null ? (
-              <div className="flex items-center gap-2">
-                <div
-                  role="meter"
-                  aria-label="Target Match Score"
-                  aria-valuenow={displayScore}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  className="relative h-3 w-28 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
-                >
-                  <div
-                    className={`h-full transition-all duration-500 ${
-                      displayScore >= 80
-                        ? "bg-emerald-500"
-                        : displayScore >= 60
-                        ? "bg-amber-500"
-                        : "bg-rose-500"
-                    }`}
-                    style={{ width: `${displayScore}%` }}
-                  />
-                </div>
-                <span className="text-base font-bold text-slate-900 dark:text-slate-100">
-                  {displayScore.toFixed(1)}%
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">
-                  Match Analysis
-                </Badge>
-              </div>
-            )}
+          <div className="flex flex-col items-start sm:items-end gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant={hasEvaluatedScore ? "outline" : "default"}
+                size="sm"
+                disabled={isSimulateDisabled}
+                aria-disabled={isSimulateDisabled}
+                onClick={() => {
+                  if (!isSimulateDisabled && onSimulate) {
+                    void onSimulate();
+                  }
+                }}
+                className="flex items-center gap-1.5"
+              >
+                {isSimulating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    <span>Calculating ATS Score...</span>
+                  </>
+                ) : hasEvaluatedScore ? (
+                  <>
+                    <FileCheck2 className="h-4 w-4" aria-hidden="true" />
+                    <span>ATS Score Calculated</span>
+                  </>
+                ) : (
+                  <>
+                    <ScanSearch className="h-4 w-4" aria-hidden="true" />
+                    <span>Calculate ATS Score</span>
+                  </>
+                )}
+              </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsExpanded((prev) => !prev)}
-              aria-expanded={isExpanded}
-              aria-controls={panelId}
-              aria-label="Toggle gap analysis report"
-              className="flex items-center gap-1.5"
-            >
-              <span>{isExpanded ? "Collapse" : "Expand Report"}</span>
-              {isExpanded ? (
-                <ChevronUp className="h-4 w-4" aria-hidden="true" />
-              ) : (
-                <ChevronDown className="h-4 w-4" aria-hidden="true" />
+              {gapReport && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsExpanded((prev) => !prev)}
+                  aria-expanded={isExpanded}
+                  aria-controls={panelId}
+                  aria-label="Toggle gap analysis report"
+                  className="flex items-center gap-1.5"
+                >
+                  <span>{isExpanded ? "Collapse" : "Expand Report"}</span>
+                  {isExpanded ? (
+                    <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </Button>
               )}
-            </Button>
+            </div>
+            {statusNote && (
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {statusNote}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Expandable Report Panel */}
-        {isExpanded && (
-          <div id={panelId} className="mt-6 space-y-6 border-t border-slate-100 dark:border-slate-800 pt-6">
-            {/* Identified Gaps */}
-            <div>
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
-                <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-                <span>Identified Qualification Gaps ({allGaps.length})</span>
-              </h3>
-
-              {allGaps.length === 0 ? (
-                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                  No critical qualification gaps detected for this version.
-                </p>
+        {/* Unified Three-Score Breakdown */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {/* Score 1: Target Match Score */}
+          <div className="rounded-md border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-4 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Target Match Score
+              </span>
+              {displayScore !== null ? (
+                <span className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  {displayScore.toFixed(1)}%
+                </span>
+              ) : gapReport ? (
+                <Badge
+                  variant="outline"
+                  className="text-xs font-semibold text-indigo-700 dark:text-indigo-300"
+                >
+                  Match Analysis
+                </Badge>
               ) : (
-                <div className="mt-3 grid gap-3">
-                  {allGaps.map((gap) => {
-                    const isDismissed = Boolean(dismissedMap[gap.requirement]);
-                    const showTalkingPoint = Boolean(talkingPointMap[gap.requirement]);
-
-                    return (
-                      <div
-                        key={gap.requirement}
-                        className={`rounded-md border border-slate-200 dark:border-slate-800 p-3 text-sm transition-all ${
-                          isDismissed
-                            ? "bg-slate-100/60 dark:bg-slate-800/20 opacity-70"
-                            : "bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/60"
-                        }`}
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`font-semibold text-slate-900 dark:text-slate-100 ${
-                                isDismissed ? "line-through text-slate-500 dark:text-slate-400" : ""
-                              }`}
-                            >
-                              {gap.requirement}
-                            </span>
-                            {isDismissed && (
-                              <Badge variant="secondary" className="text-[10px]">
-                                Dismissed (False Positive)
-                              </Badge>
-                            )}
-                          </div>
-                          <Badge
-                            variant={
-                              gap.importance === "critical"
-                                ? "destructive"
-                                : gap.importance === "preferred"
-                                ? "warning"
-                                : "secondary"
-                            }
-                          >
-                            {gap.importance}
-                          </Badge>
-                        </div>
-
-                        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                          <span className="font-medium text-slate-700 dark:text-slate-300">Area:</span>{" "}
-                          {gap.missing_area}
-                        </p>
-
-                        {gap.recommended_action && (
-                          <div className="mt-2 flex items-start gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                            <CheckCircle2
-                              className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400"
-                              aria-hidden="true"
-                            />
-                            <span>{gap.recommended_action}</span>
-                          </div>
-                        )}
-
-                        {/* Interactive Resolution Action Bar */}
-                        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/60 dark:border-slate-700/60 pt-2.5">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenQuickAdd(gap)}
-                            aria-label={`I have this experience: ${gap.requirement}`}
-                            className="h-7 text-xs border-emerald-600/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-                          >
-                            <PlusCircle className="mr-1 h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                            <span>I Have This Experience</span>
-                          </Button>
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleTalkingPoint(gap.requirement)}
-                            aria-label={`Interview talking point for ${gap.requirement}`}
-                            className="h-7 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
-                          >
-                            <MessageSquareQuote className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
-                            <span>Interview Talking Point</span>
-                          </Button>
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleDismiss(gap)}
-                            aria-label={
-                              isDismissed
-                                ? `Restore gap: ${gap.requirement}`
-                                : `Dismiss gap as false positive: ${gap.requirement}`
-                            }
-                            className="h-7 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                          >
-                            {isDismissed ? (
-                              <>
-                                <RotateCcw className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
-                                <span>Restore</span>
-                              </>
-                            ) : (
-                              <>
-                                <EyeOff className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
-                                <span>Dismiss (False Positive)</span>
-                              </>
-                            )}
-                          </Button>
-                        </div>
-
-                        {/* Contextual Interview Talking Point Drawer */}
-                        {showTalkingPoint && (
-                          <div className="mt-2.5 rounded-md border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/40 p-3 text-xs text-indigo-950 dark:text-indigo-200">
-                            <div className="flex items-center gap-1.5 font-semibold text-indigo-700 dark:text-indigo-300">
-                              <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
-                              <span>Interview Talking Point: Framing Adjacent Experience</span>
-                            </div>
-                            <p className="mt-1.5 leading-relaxed text-slate-700 dark:text-slate-300">
-                              &ldquo;While I have not directly operated <strong>{gap.requirement}</strong>, I have deep foundational expertise in <strong>{gap.missing_area}</strong>. In past production systems, I successfully designed and reconciled complex state transitions with strict reliability guarantees, allowing me to ramp up on {gap.requirement} rapidly.&rdquo;
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  Not evaluated
+                </span>
               )}
             </div>
 
-            {/* Strategic Recommendations */}
-            {recommendations.length > 0 && (
-              <div>
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  <Lightbulb
-                    className="h-4 w-4 text-indigo-600 dark:text-indigo-400"
-                    aria-hidden="true"
-                  />
-                  <span>Strategic Tailoring Recommendations</span>
-                </h3>
-                <ul className="mt-2 space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                  {recommendations.map((rec, index) => (
-                    <li
-                      key={`${index}-${rec.slice(0, 32)}`}
-                      className="flex items-start gap-2 rounded-md bg-indigo-50/50 dark:bg-indigo-950/30 p-2 text-xs text-indigo-950 dark:text-indigo-200"
-                    >
-                      <span className="font-bold text-indigo-600 dark:text-indigo-400">•</span>
-                      <span>{rec}</span>
-                    </li>
-                  ))}
-                </ul>
+            {displayScore !== null && (
+              <div
+                role="meter"
+                aria-label="Target Match Score"
+                aria-valuenow={displayScore}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"
+              >
+                <div
+                  className={`h-full transition-all duration-500 ${meterColorClass(displayScore)}`}
+                  style={{ width: `${displayScore}%` }}
+                />
               </div>
             )}
+
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              {gapReport?.overall_match_summary ||
+                "Direct alignment between your career profile facts and target role requirements."}
+            </p>
           </div>
+
+          {/* Score 2: Extraction Confidence Score */}
+          <div className="rounded-md border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-4 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Extraction Confidence Score
+              </span>
+              {extractionScore !== null ? (
+                <span className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  {extractionScore.toFixed(1)}%
+                </span>
+              ) : (
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  Not evaluated
+                </span>
+              )}
+            </div>
+
+            {extractionScore !== null && (
+              <div
+                role="meter"
+                aria-label="Extraction Confidence Score"
+                aria-valuenow={extractionScore}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"
+              >
+                <div
+                  className={`h-full transition-all duration-500 ${meterColorClass(extractionScore)}`}
+                  style={{ width: `${extractionScore}%` }}
+                />
+              </div>
+            )}
+
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              {atsScore?.extraction_summary ||
+                "Measures how completely an ATS parser extracts and categorizes your rendered resume content."}
+            </p>
+          </div>
+
+          {/* Score 3: Job Matching Score */}
+          <div className="rounded-md border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-4 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Job Matching Score
+              </span>
+              {matchingScore !== null ? (
+                <span className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  {matchingScore.toFixed(1)}%
+                </span>
+              ) : (
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  Not evaluated
+                </span>
+              )}
+            </div>
+
+            {matchingScore !== null && (
+              <div
+                role="meter"
+                aria-label="Job Matching Score"
+                aria-valuenow={matchingScore}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"
+              >
+                <div
+                  className={`h-full transition-all duration-500 ${meterColorClass(matchingScore)}`}
+                  style={{ width: `${matchingScore}%` }}
+                />
+              </div>
+            )}
+
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              {atsScore?.matching_summary ||
+                "Computes perceived alignment against the target job description using only the extracted ATS data."}
+            </p>
+          </div>
+        </div>
+
+        {/* Empty State or Expandable Gap Analysis Report Panel */}
+        {!gapReport ? (
+          !isDefaultBranch && (
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                No gap analysis report available
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Select a completed version from the timeline to review target match
+                scoring and identified qualification gaps.
+              </p>
+            </div>
+          )
+        ) : (
+          isExpanded && (
+            <div id={panelId} className="space-y-6 border-t border-slate-100 dark:border-slate-800 pt-6">
+              {/* Identified Gaps */}
+              <div>
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                  <span>Identified Qualification Gaps ({allGaps.length})</span>
+                </h3>
+
+                {allGaps.length === 0 ? (
+                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                    No critical qualification gaps detected for this version.
+                  </p>
+                ) : (
+                  <div className="mt-3 grid gap-3">
+                    {allGaps.map((gap) => {
+                      const isDismissed = Boolean(dismissedMap[gap.requirement]);
+                      const showTalkingPoint = Boolean(talkingPointMap[gap.requirement]);
+
+                      return (
+                        <div
+                          key={gap.requirement}
+                          className={`rounded-md border border-slate-200 dark:border-slate-800 p-3 text-sm transition-all ${
+                            isDismissed
+                              ? "bg-slate-100/60 dark:bg-slate-800/20 opacity-70"
+                              : "bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                          }`}
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`font-semibold text-slate-900 dark:text-slate-100 ${
+                                  isDismissed ? "line-through text-slate-500 dark:text-slate-400" : ""
+                                }`}
+                              >
+                                {gap.requirement}
+                              </span>
+                              {isDismissed && (
+                                <Badge variant="secondary" className="text-[10px]">
+                                  Dismissed (False Positive)
+                                </Badge>
+                              )}
+                            </div>
+                            <Badge
+                              variant={
+                                gap.importance === "critical"
+                                  ? "destructive"
+                                  : gap.importance === "preferred"
+                                  ? "warning"
+                                  : "secondary"
+                              }
+                            >
+                              {gap.importance}
+                            </Badge>
+                          </div>
+
+                          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                            <span className="font-medium text-slate-700 dark:text-slate-300">Area:</span>{" "}
+                            {gap.missing_area}
+                          </p>
+
+                          {gap.recommended_action && (
+                            <div className="mt-2 flex items-start gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                              <CheckCircle2
+                                className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400"
+                                aria-hidden="true"
+                              />
+                              <span>{gap.recommended_action}</span>
+                            </div>
+                          )}
+
+                          {/* Interactive Resolution Action Bar */}
+                          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/60 dark:border-slate-700/60 pt-2.5">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenQuickAdd(gap)}
+                              aria-label={`I have this experience: ${gap.requirement}`}
+                              className="h-7 text-xs border-emerald-600/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                            >
+                              <PlusCircle className="mr-1 h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                              <span>I Have This Experience</span>
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleTalkingPoint(gap.requirement)}
+                              aria-label={`Interview talking point for ${gap.requirement}`}
+                              className="h-7 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+                            >
+                              <MessageSquareQuote className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+                              <span>Interview Talking Point</span>
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleDismiss(gap)}
+                              aria-label={
+                                isDismissed
+                                  ? `Restore gap: ${gap.requirement}`
+                                  : `Dismiss gap as false positive: ${gap.requirement}`
+                              }
+                              className="h-7 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                            >
+                              {isDismissed ? (
+                                <>
+                                  <RotateCcw className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+                                  <span>Restore</span>
+                                </>
+                              ) : (
+                                <>
+                                  <EyeOff className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+                                  <span>Dismiss (False Positive)</span>
+                                </>
+                              )}
+                            </Button>
+                          </div>
+
+                          {/* Contextual Interview Talking Point Drawer */}
+                          {showTalkingPoint && (
+                            <div className="mt-2.5 rounded-md border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/40 p-3 text-xs text-indigo-950 dark:text-indigo-200">
+                              <div className="flex items-center gap-1.5 font-semibold text-indigo-700 dark:text-indigo-300">
+                                <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+                                <span>Interview Talking Point: Framing Adjacent Experience</span>
+                              </div>
+                              <p className="mt-1.5 leading-relaxed text-slate-700 dark:text-slate-300">
+                                &ldquo;While I have not directly operated <strong>{gap.requirement}</strong>, I have deep foundational expertise in <strong>{gap.missing_area}</strong>. In past production systems, I successfully designed and reconciled complex state transitions with strict reliability guarantees, allowing me to ramp up on {gap.requirement} rapidly.&rdquo;
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Strategic Recommendations */}
+              {recommendations.length > 0 && (
+                <div>
+                  <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    <Lightbulb
+                      className="h-4 w-4 text-indigo-600 dark:text-indigo-400"
+                      aria-hidden="true"
+                    />
+                    <span>Strategic Tailoring Recommendations</span>
+                  </h3>
+                  <ul className="mt-2 space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                    {recommendations.map((rec, index) => (
+                      <li
+                        key={`${index}-${rec.slice(0, 32)}`}
+                        className="flex items-start gap-2 rounded-md bg-indigo-50/50 dark:bg-indigo-950/30 p-2 text-xs text-indigo-950 dark:text-indigo-200"
+                      >
+                        <span className="font-bold text-indigo-600 dark:text-indigo-400">•</span>
+                        <span>{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )
         )}
       </section>
 

@@ -41,7 +41,6 @@ import { TailorActionBar } from "@/components/workbench/tailor-action-bar";
 import { GenerationProgress } from "@/components/workbench/generation-progress";
 import { VersionTimeline } from "@/components/workbench/version-timeline";
 import { GapAnalysisCard, type GapItem } from "@/components/workbench/gap-analysis-card";
-import { ATSScoreCard } from "@/components/workbench/ats-score-card";
 import { BranchContextEditor } from "@/components/workbench/branch-context-editor";
 import { PromptPreviewCard } from "@/components/workbench/prompt-preview-card";
 import { BranchModelSelectionCard } from "@/components/workbench/branch-model-selection-card";
@@ -704,20 +703,17 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
           />
         )}
 
-        {/* Gap Analysis Card for Currently Inspected Version */}
-        {!branch.is_default && (
-          <GapAnalysisCard
-            gapReport={inspectedVersion?.gap_report ?? branch.gap_report}
-            versionNumber={inspectedVersion?.version_number}
-            defaultExpanded={true}
-            onQuickAddFact={handleQuickAddFact}
-          />
-        )}
-
-        {/* ATS Perception & Matching Score Card for Currently Inspected Version */}
-        <ATSScoreCard
+        {/* Unified Target Match, ATS Perception & Gap Analysis Card for Currently Inspected Version */}
+        <GapAnalysisCard
+          gapReport={
+            branch.is_default
+              ? null
+              : inspectedVersion?.gap_report ?? branch.gap_report
+          }
           atsScore={inspectedVersion ? inspectedVersion.ats_score : branch.ats_score}
           versionNumber={inspectedVersion?.version_number}
+          defaultExpanded={true}
+          onQuickAddFact={handleQuickAddFact}
           isDefaultBranch={Boolean(branch.is_default)}
           hasJobDescription={Boolean(
             (draftContext?.target_requirements ?? branch.target_requirements ?? "").trim()

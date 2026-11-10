@@ -1,9 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { GapAnalysisCard } from "./gap-analysis-card";
 import type { components } from "@/api/schema";
+import type { ATSScore } from "@/api/workbench-queries";
 
 type GapReport = components["schemas"]["GapReport"];
 
@@ -30,22 +31,73 @@ const mockGapReport: GapReport = {
   ],
 };
 
+const mockATSScore: ATSScore = {
+  extraction_confidence_score: 94.0,
+  job_matching_score: 86.5,
+  extraction_summary: "All work history, skills, and education fields parsed cleanly.",
+  matching_summary: "Extracted profile matches Go and distributed consensus requirements.",
+  format_used: "markdown",
+  evaluated_at: "2026-11-10T01:00:00Z",
+};
+
 describe("GapAnalysisCard", () => {
-  it("renders match score and toggle button with target match heading and accessible meter", () => {
-    render(<GapAnalysisCard gapReport={mockGapReport} versionNumber={2} />);
+  it("renders unified card heading covering all 3 scoring purposes and displays all 3 scores in a single card", () => {
+    render(
+      <GapAnalysisCard
+        gapReport={mockGapReport}
+        atsScore={mockATSScore}
+        versionNumber={2}
+        isDefaultBranch={false}
+        hasJobDescription={true}
+        hasCompletedVersion={true}
+      />
+    );
+
+    const cardSection = screen.getByRole("region", {
+      name: /Target Match, ATS Perception & Gap Analysis \(v2\)/i,
+    });
+    expect(cardSection).toBeInTheDocument();
 
     expect(
-      screen.getByRole("heading", { level: 2, name: /Target Match & Gap Analysis \(v2\)/i })
+      within(cardSection).getByRole("heading", {
+        level: 2,
+        name: /Target Match, ATS Perception & Gap Analysis \(v2\)/i,
+      })
     ).toBeInTheDocument();
     expect(screen.queryByText(/ATS Match/i)).not.toBeInTheDocument();
 
-    const meter = screen.getByRole("meter");
-    expect(meter).toHaveAttribute("aria-label", "Target Match Score");
-    expect(meter).not.toHaveAttribute("aria-label", "ATS Match Score");
+    // All 3 scores live within the single card section
+    expect(within(cardSection).getByText("Target Match Score")).toBeInTheDocument();
+    expect(within(cardSection).getByText("Extraction Confidence Score")).toBeInTheDocument();
+    expect(within(cardSection).getByText("Job Matching Score")).toBeInTheDocument();
 
-    expect(screen.getByText("87.5%")).toBeInTheDocument();
+    const targetMeter = within(cardSection).getByRole("meter", {
+      name: "Target Match Score",
+    });
+    expect(targetMeter).toHaveAttribute("aria-valuenow", "87.5");
+    expect(targetMeter).toHaveAttribute("aria-valuemin", "0");
+    expect(targetMeter).toHaveAttribute("aria-valuemax", "100");
+
+    const extractionMeter = within(cardSection).getByRole("meter", {
+      name: "Extraction Confidence Score",
+    });
+    expect(extractionMeter).toHaveAttribute("aria-valuenow", "94");
+    expect(extractionMeter).toHaveAttribute("aria-valuemin", "0");
+    expect(extractionMeter).toHaveAttribute("aria-valuemax", "100");
+
+    const matchingMeter = within(cardSection).getByRole("meter", {
+      name: "Job Matching Score",
+    });
+    expect(matchingMeter).toHaveAttribute("aria-valuenow", "86.5");
+    expect(matchingMeter).toHaveAttribute("aria-valuemin", "0");
+    expect(matchingMeter).toHaveAttribute("aria-valuemax", "100");
+
+    expect(within(cardSection).getByText("87.5%")).toBeInTheDocument();
+    expect(within(cardSection).getByText("94.0%")).toBeInTheDocument();
+    expect(within(cardSection).getByText("86.5%")).toBeInTheDocument();
+
     expect(
-      screen.getByRole("button", { name: /toggle gap analysis report/i })
+      within(cardSection).getByRole("button", { name: /toggle gap analysis report/i })
     ).toBeInTheDocument();
   });
 
@@ -72,9 +124,15 @@ describe("GapAnalysisCard", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders empty state gracefully when report is absent", () => {
+  it("renders empty state gracefully when report is absent while keeping the 3 score slots visible", () => {
     render(<GapAnalysisCard gapReport={undefined} versionNumber={1} />);
 
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: /Target Match, ATS Perception & Gap Analysis \(v1\)/i,
+      })
+    ).toBeInTheDocument();
     expect(
       screen.getByText(/no gap analysis report available/i)
     ).toBeInTheDocument();
@@ -84,10 +142,188 @@ describe("GapAnalysisCard", () => {
     expect(screen.queryByText(/ATS match/i)).not.toBeInTheDocument();
   });
 
-  it("passes accessibility audit with 0 violations in both collapsed and expanded states", async () => {
+  it("renders Extraction Confidence Score and Job Matching Score labels and triggers on-demand", async () => {
+    const user = userEvent.setup();
+    const onSimulate = vi.fn();
+
+    render(
+      <GapAnalysisCard
+        gapReport={mockGapReport}
+        atsScore={null}
+        versionNumber={2}
+        isDefaultBranch={false}
+        hasJobDescription={true}
+        hasCompletedVersion={true}
+        onSimulate={onSimulate}
+      />
+    );
+
+    expect(screen.getByText("Target Match Score")).toBeInTheDocument();
+    expect(screen.getByText("Extraction Confidence Score")).toBeInTheDocument();
+    expect(screen.getByText("Job Matching Score")).toBeInTheDocument();
+
+    // Must not trigger automatically on mount
+    expect(onSimulate).not.toHaveBeenCalled();
+
+    const triggerBtn = screen.getByRole("button", { name: /calculate ats score/i });
+    expect(triggerBtn).toBeEnabled();
+
+    await user.click(triggerBtn);
+    expect(onSimulate).toHaveBeenCalledTimes(1);
+  });
+
+  it("displays 0 to 100% meter values when atsScore is present and disables re-triggering for the version", () => {
+    const onSimulate = vi.fn();
+
+    render(
+      <GapAnalysisCard
+        gapReport={mockGapReport}
+        atsScore={mockATSScore}
+        versionNumber={2}
+        isDefaultBranch={false}
+        hasJobDescription={true}
+        hasCompletedVersion={true}
+        onSimulate={onSimulate}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        "All work history, skills, and education fields parsed cleanly."
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Extracted profile matches Go and distributed consensus requirements."
+      )
+    ).toBeInTheDocument();
+
+    // Triggers once per tailored version: button is disabled once score exists
+    const triggerBtn = screen.getByRole("button", { name: /ats score calculated/i });
+    expect(triggerBtn).toBeDisabled();
+  });
+
+  it("disables ATS calculation for Default Main Branch", () => {
+    render(
+      <GapAnalysisCard
+        gapReport={null}
+        atsScore={null}
+        versionNumber={1}
+        isDefaultBranch={true}
+        hasJobDescription={true}
+        hasCompletedVersion={true}
+        onSimulate={vi.fn()}
+      />
+    );
+
+    const triggerBtn = screen.getByRole("button", { name: /calculate ats score/i });
+    expect(triggerBtn).toBeDisabled();
+    expect(
+      screen.getByText(/disabled for the default main branch/i)
+    ).toBeInTheDocument();
+  });
+
+  it("disables ATS calculation when Job Description is not provided in a tailored branch", () => {
+    render(
+      <GapAnalysisCard
+        gapReport={mockGapReport}
+        atsScore={null}
+        versionNumber={1}
+        isDefaultBranch={false}
+        hasJobDescription={false}
+        hasCompletedVersion={true}
+        onSimulate={vi.fn()}
+      />
+    );
+
+    const triggerBtn = screen.getByRole("button", { name: /calculate ats score/i });
+    expect(triggerBtn).toBeDisabled();
+    expect(
+      screen.getByText(/provide a job description/i)
+    ).toBeInTheDocument();
+  });
+
+  it("disables ATS calculation when no completed tailored version exists", () => {
+    render(
+      <GapAnalysisCard
+        gapReport={null}
+        atsScore={null}
+        versionNumber={undefined}
+        isDefaultBranch={false}
+        hasJobDescription={true}
+        hasCompletedVersion={false}
+        onSimulate={vi.fn()}
+      />
+    );
+
+    const triggerBtn = screen.getByRole("button", { name: /calculate ats score/i });
+    expect(triggerBtn).toBeDisabled();
+    expect(
+      screen.getByText(/tailor a resume version first/i)
+    ).toBeInTheDocument();
+  });
+
+  it("disables ATS calculation and shows loading label when isSimulating is true", () => {
+    render(
+      <GapAnalysisCard
+        gapReport={mockGapReport}
+        atsScore={null}
+        versionNumber={1}
+        isDefaultBranch={false}
+        hasJobDescription={true}
+        hasCompletedVersion={true}
+        isSimulating={true}
+        onSimulate={vi.fn()}
+      />
+    );
+
+    const triggerBtn = screen.getByRole("button", {
+      name: /calculating ats score/i,
+    });
+    expect(triggerBtn).toBeDisabled();
+    expect(triggerBtn).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("clamps out-of-range ATS score values to 0..100%", () => {
+    render(
+      <GapAnalysisCard
+        gapReport={mockGapReport}
+        atsScore={{
+          extraction_confidence_score: 120,
+          job_matching_score: -5,
+        }}
+        versionNumber={1}
+        isDefaultBranch={false}
+        hasJobDescription={true}
+        hasCompletedVersion={true}
+      />
+    );
+
+    const extractionMeter = screen.getByRole("meter", {
+      name: "Extraction Confidence Score",
+    });
+    expect(extractionMeter).toHaveAttribute("aria-valuenow", "100");
+    expect(screen.getByText("100.0%")).toBeInTheDocument();
+
+    const matchingMeter = screen.getByRole("meter", {
+      name: "Job Matching Score",
+    });
+    expect(matchingMeter).toHaveAttribute("aria-valuenow", "0");
+    expect(screen.getByText("0.0%")).toBeInTheDocument();
+  });
+
+  it("passes accessibility audit with 0 violations across empty, collapsed, expanded, and evaluated states", async () => {
     const user = userEvent.setup();
     const { container } = render(
-      <GapAnalysisCard gapReport={mockGapReport} versionNumber={2} />
+      <GapAnalysisCard
+        gapReport={mockGapReport}
+        atsScore={mockATSScore}
+        versionNumber={2}
+        isDefaultBranch={false}
+        hasJobDescription={true}
+        hasCompletedVersion={true}
+        onSimulate={vi.fn()}
+      />
     );
 
     let results = await axe(container);
@@ -100,6 +336,19 @@ describe("GapAnalysisCard", () => {
 
     results = await axe(container);
     expect(results).toHaveNoViolations();
+
+    const { container: emptyContainer } = render(
+      <GapAnalysisCard
+        gapReport={null}
+        atsScore={null}
+        versionNumber={1}
+        isDefaultBranch={false}
+        hasJobDescription={true}
+        hasCompletedVersion={false}
+        onSimulate={vi.fn()}
+      />
+    );
+    expect(await axe(emptyContainer)).toHaveNoViolations();
   });
 
   it("defensively handles backend payload with missing_requirements and no match score without crashing or displaying NaN%", async () => {

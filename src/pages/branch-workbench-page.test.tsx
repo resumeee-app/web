@@ -1584,9 +1584,16 @@ describe("BranchWorkbenchPage", () => {
     render(<BranchWorkbenchPage pollIntervalMs={30} />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText("Extraction Confidence Score")).toBeInTheDocument();
-      expect(screen.getByText("Job Matching Score")).toBeInTheDocument();
+      const unifiedCard = screen.getByRole("region", {
+        name: /Target Match, ATS Perception & Gap Analysis \(v1\)/i,
+      });
+      expect(within(unifiedCard).getByText("Target Match Score")).toBeInTheDocument();
+      expect(within(unifiedCard).getByText("Extraction Confidence Score")).toBeInTheDocument();
+      expect(within(unifiedCard).getByText("Job Matching Score")).toBeInTheDocument();
     });
+    expect(
+      screen.queryByRole("heading", { name: /ATS Perception & Matching Score/i })
+    ).not.toBeInTheDocument();
 
     // Must not trigger automatically on mount
     expect(postSpy).not.toHaveBeenCalled();
