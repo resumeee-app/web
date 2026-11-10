@@ -11,6 +11,11 @@ export type { Branch } from "./branch-queries";
 export type BranchVersion = components["schemas"]["BranchVersion"];
 
 /**
+ * ATSScore represents the two-signal ATS simulation evaluation for a tailored resume version.
+ */
+export type ATSScore = components["schemas"]["ATSScore"];
+
+/**
  * Preset represents a set of LLM prompts and targeting instructions.
  */
 export type Preset = components["schemas"]["Preset"];
@@ -423,6 +428,82 @@ export function useEphemeralPreviewMutation(resumeId: string, versionId: string 
   return useMutation({
     mutationFn: (templateSetId: string) =>
       renderPreviewEphemeral(resumeId, versionId, templateSetId),
+  });
+}
+
+/**
+ * Input options for triggering an on-demand ATS extraction and matching simulation.
+ */
+export interface SimulateATSVariables {
+  versionId?: string | number;
+  format?: "markdown" | "html" | "text";
+}
+
+/**
+ * Triggers an on-demand two-stage ATS simulation via POST /branches/{id}/versions/{v}/ats-score
+ * (or POST /branches/{id}/ats-score when versionId is omitted).
+ *
+ * @param branchId - Unique UUID identifier of the resume branch.
+ * @param options - Optional target version identifier and rendered text format.
+ * @returns Promise resolving to the persisted ATSScore record.
+ */
+export async function simulateATSScore(
+  branchId: string,
+  options?: SimulateATSVariables
+): Promise<ATSScore> {
+  const body = options?.format ? { format: options.format } : {};
+  const hasVersion =
+    options?.versionId !== undefined &&
+    options.versionId !== null &&
+    String(options.versionId) !== "";
+
+  const { data, error } = hasVersion
+    ? await api.POST("/branches/{id}/versions/{v}/ats-score", {
+        params: {
+          path: {
+            id: branchId,
+            v: String(options.versionId),
+          },
+        },
+        body,
+      })
+    : await api.POST("/branches/{id}/ats-score", {
+        params: { path: { id: branchId } },
+        body,
+      });
+
+  if (error || !data) {
+    throw new Error(
+      extractApiErrorMessage(error, "Failed to calculate ATS score")
+    );
+  }
+
+  return data;
+}
+
+/**
+ * Mutation hook to trigger an on-demand ATS simulation for a tailored resume version.
+ * Automatically invalidates branch and version queries upon completion.
+ *
+ * @param branchId - Unique UUID identifier of the branch.
+ */
+export function useSimulateATSMutation(branchId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (options?: SimulateATSVariables) =>
+      simulateATSScore(branchId, options),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: workbenchKeys.branch(branchId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: workbenchKeys.versions(branchId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["branches"],
+      });
+    },
   });
 }
 

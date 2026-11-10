@@ -754,6 +754,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/branches/{id}/ats-score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Simulate ATS extraction and job matching score on-demand
+         * @description Executes a two-stage ATS parsing simulation on the active (or specified) completed tailored version, producing an Extraction Confidence Score and Job Matching Score (0-100%). Triggers once per successfully tailored version.
+         */
+        post: operations["simulateBranchATSScore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/branches/{id}/versions/{v}/ats-score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+                /** @description Sequential version number (e.g. 1, 2) or version UUID */
+                v: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Simulate ATS extraction and job matching score for a specific tailored version
+         * @description Executes a two-stage ATS parsing simulation on the specified completed tailored version, producing an Extraction Confidence Score and Job Matching Score (0-100%). Triggers once per successfully tailored version.
+         */
+        post: operations["simulateBranchVersionATSScore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/resumes/{id}/ats-score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Simulate ATS extraction and job matching score on-demand for target resume
+         * @description Executes a two-stage ATS parsing simulation on the active (or specified) completed tailored version of a target resume, producing an Extraction Confidence Score and Job Matching Score (0-100%). Triggers once per successfully tailored version.
+         */
+        post: operations["simulateResumeATSScore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/resumes/{id}/versions/{v}/ats-score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+                /** @description Sequential version number (e.g. 1, 2) or version UUID */
+                v: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Simulate ATS extraction and job matching score for a specific target resume version
+         * @description Executes a two-stage ATS parsing simulation on the specified completed tailored version of a target resume, producing an Extraction Confidence Score and Job Matching Score (0-100%). Triggers once per successfully tailored version.
+         */
+        post: operations["simulateResumeVersionATSScore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/branches/{id}/prompt-preview": {
         parameters: {
             query?: never;
@@ -1487,6 +1583,7 @@ export interface components {
             excluded_entity_ids?: string[];
             active_version_id?: string | null;
             gap_report?: components["schemas"]["GapReport"];
+            ats_score?: components["schemas"]["ATSScore"];
             /** Format: int64 */
             last_synced_main_revision?: number;
             /** @description Computed flag indicating whether main profile has advanced past last_synced_main_revision */
@@ -1652,6 +1749,53 @@ export interface components {
             strategic_recommendations?: string[];
             skill_coverage_ratio?: number | null;
         };
+        ATSSimulationRequest: {
+            /** @description Optional version ID or sequential version number (defaults to active version) */
+            version_id?: string;
+            /**
+             * @description Optional text resume format to evaluate (defaults to markdown)
+             * @enum {string}
+             */
+            format?: "markdown" | "html" | "text";
+        };
+        ATSExtractedExperience: {
+            company: string;
+            title: string;
+            date_range?: string;
+            highlights?: string[];
+        };
+        ATSExtractedEducation: {
+            institution: string;
+            degree: string;
+            field?: string;
+            date_range?: string;
+        };
+        ATSExtractedCandidate: {
+            summary?: string;
+            skills?: string[];
+            experiences?: components["schemas"]["ATSExtractedExperience"][];
+            educations?: components["schemas"]["ATSExtractedEducation"][];
+            certifications?: string[];
+        };
+        ATSScore: {
+            /**
+             * @description Extraction confidence score ranging from 0 to 100%
+             * @example 92.5
+             */
+            extraction_confidence_score: number;
+            /**
+             * @description Perceived job matching score ranging from 0 to 100%
+             * @example 86
+             */
+            job_matching_score: number;
+            /** @example markdown */
+            format_used?: string;
+            extraction_summary?: string;
+            matching_summary?: string;
+            extracted_candidate?: components["schemas"]["ATSExtractedCandidate"];
+            /** Format: date-time */
+            evaluated_at?: string;
+        };
         BranchVersion: {
             id: string;
             branch_id: string;
@@ -1666,6 +1810,7 @@ export interface components {
             parent_version_id?: string | null;
             tailored_content?: components["schemas"]["TailoredContent"];
             gap_report?: components["schemas"]["GapReport"];
+            ats_score?: components["schemas"]["ATSScore"];
             validation_warnings?: string[];
             error_message?: string;
             html_output?: string;
@@ -1939,6 +2084,23 @@ export interface components {
                  *       "error": {
                  *         "code": "UNPROCESSABLE_ENTITY",
                  *         "message": "Version does not have tailored content to render"
+                 *       }
+                 *     }
+                 */
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description Tenant daily request or monthly token quota exceeded */
+        TooManyRequests: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "error": {
+                 *         "code": "QUOTA_EXCEEDED",
+                 *         "message": "Daily LLM request quota exceeded"
                  *       }
                  *     }
                  */
@@ -3619,6 +3781,142 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    simulateBranchATSScore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ATSSimulationRequest"];
+            };
+        };
+        responses: {
+            /** @description ATS extraction and matching score calculated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ATSScore"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["UnprocessableEntity"];
+            429: components["responses"]["TooManyRequests"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    simulateBranchVersionATSScore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+                /** @description Sequential version number (e.g. 1, 2) or version UUID */
+                v: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ATSSimulationRequest"];
+            };
+        };
+        responses: {
+            /** @description ATS extraction and matching score calculated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ATSScore"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["UnprocessableEntity"];
+            429: components["responses"]["TooManyRequests"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    simulateResumeATSScore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ATSSimulationRequest"];
+            };
+        };
+        responses: {
+            /** @description ATS extraction and matching score calculated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ATSScore"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["UnprocessableEntity"];
+            429: components["responses"]["TooManyRequests"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    simulateResumeVersionATSScore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique UUID identifier of the entity */
+                id: components["parameters"]["EntityId"];
+                /** @description Sequential version number (e.g. 1, 2) or version UUID */
+                v: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ATSSimulationRequest"];
+            };
+        };
+        responses: {
+            /** @description ATS extraction and matching score calculated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ATSScore"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["UnprocessableEntity"];
+            429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
         };
     };

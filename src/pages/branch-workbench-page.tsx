@@ -25,6 +25,7 @@ import {
   useTemplates,
   useSetActiveVersion,
   useUpdateBranch,
+  useSimulateATSMutation,
   renderPreviewEphemeral,
   type UpdateBranchRequest,
   workbenchKeys,
@@ -40,6 +41,7 @@ import { TailorActionBar } from "@/components/workbench/tailor-action-bar";
 import { GenerationProgress } from "@/components/workbench/generation-progress";
 import { VersionTimeline } from "@/components/workbench/version-timeline";
 import { GapAnalysisCard, type GapItem } from "@/components/workbench/gap-analysis-card";
+import { ATSScoreCard } from "@/components/workbench/ats-score-card";
 import { BranchContextEditor } from "@/components/workbench/branch-context-editor";
 import { PromptPreviewCard } from "@/components/workbench/prompt-preview-card";
 import { BranchModelSelectionCard } from "@/components/workbench/branch-model-selection-card";
@@ -134,14 +136,14 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     }
   }, [pollingVersionId, ongoingVersionFromList]);
 
-  // Selected version for inspection (defaults to active version, latest version, or currently polling version)
-  const [selectedVersion, setSelectedVersion] =
-    React.useState<BranchVersion | null>(null);
+  // Selected version ID for inspection (defaults to active version, latest version, or currently polling version)
+  const [selectedVersionId, setSelectedVersionId] =
+    React.useState<string | null>(null);
 
   // Reset polling, selection, and handled version tracking when navigating between branches
   React.useEffect(() => {
     setPollingVersionId(null);
-    setSelectedVersion(null);
+    setSelectedVersionId(null);
     handledVersionIdsRef.current.clear();
   }, [branchId]);
 
@@ -163,6 +165,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
   const generateMutation = useGenerateVersion(branchId);
   const setActiveMutation = useSetActiveVersion(branchId);
   const updateMutation = useUpdateBranch(branchId);
+  const simulateATSMutation = useSimulateATSMutation(branchId);
   const createFactMutation = useCreateFact();
   const { data: fullProfile } = useFullProfile();
 
@@ -192,7 +195,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
           description: `Resume version v${polledVersion.version_number} was successfully generated.`,
           variant: "success",
         });
-        setSelectedVersion(null);
+        setSelectedVersionId(null);
       } else if (polledVersion.status === "completed_with_warnings") {
         setToast({
           open: true,
@@ -200,7 +203,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
           description: `Version v${polledVersion.version_number} generated with validation warnings. Review the report below.`,
           variant: "default",
         });
-        setSelectedVersion(null);
+        setSelectedVersionId(null);
       } else if (polledVersion.status === "failed") {
         setToast({
           open: true,
@@ -238,11 +241,14 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     return null;
   }, [branch?.active_version_id, versions]);
 
-  // Version currently inspected in Gap Analysis (defaults to selectedVersion if timeline clicked, else branchActiveVersion)
+  // Version currently inspected in Gap Analysis and ATS Score (defaults to selectedVersionId if timeline clicked, else branchActiveVersion)
   const inspectedVersion = React.useMemo(() => {
-    if (selectedVersion) return selectedVersion;
+    if (selectedVersionId) {
+      const liveMatch = versions.find((v) => v.id === selectedVersionId);
+      if (liveMatch) return liveMatch;
+    }
     return branchActiveVersion;
-  }, [selectedVersion, branchActiveVersion]);
+  }, [selectedVersionId, versions, branchActiveVersion]);
 
   // Handlers
   const handleTailorResume = async () => {
@@ -271,6 +277,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
   const handleSetActiveVersion = async (versionId: string) => {
     try {
       await setActiveMutation.mutateAsync(versionId);
+      setSelectedVersionId(null);
       setToast({
         open: true,
         title: "Active Version Updated",
@@ -439,8 +446,35 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
     }
   };
 
+  const handleSimulateATS = async () => {
+    try {
+      if (draftContext) {
+        await updateMutation.mutateAsync(draftContext);
+        setDraftContext(null);
+      }
+      await simulateATSMutation.mutateAsync({
+        versionId: inspectedVersion?.version_number,
+      });
+      setToast({
+        open: true,
+        title: "ATS Score Calculated",
+        description: "Extraction confidence and job matching scores evaluated.",
+        variant: "success",
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to calculate ATS score";
+      setToast({
+        open: true,
+        title: "ATS Evaluation Error",
+        description: message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSelectVersion = (ver: BranchVersion) => {
-    setSelectedVersion(ver);
+    setSelectedVersionId(ver.id);
     navigate(`/branches/${branchId}/preview?version=${ver.version_number}`);
   };
 
@@ -679,6 +713,23 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
             onQuickAddFact={handleQuickAddFact}
           />
         )}
+
+        {/* ATS Perception & Matching Score Card for Currently Inspected Version */}
+        <ATSScoreCard
+          atsScore={inspectedVersion ? inspectedVersion.ats_score : branch.ats_score}
+          versionNumber={inspectedVersion?.version_number}
+          isDefaultBranch={Boolean(branch.is_default)}
+          hasJobDescription={Boolean(
+            (draftContext?.target_requirements ?? branch.target_requirements ?? "").trim()
+          )}
+          hasCompletedVersion={Boolean(
+            inspectedVersion &&
+              (inspectedVersion.status === "completed" ||
+                inspectedVersion.status === "completed_with_warnings")
+          )}
+          isSimulating={simulateATSMutation.isPending}
+          onSimulate={handleSimulateATS}
+        />
 
         {/* Version Timeline & History Exploration */}
         <VersionTimeline

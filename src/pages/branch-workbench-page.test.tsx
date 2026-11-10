@@ -1534,4 +1534,353 @@ describe("BranchWorkbenchPage", () => {
     });
     expect(pollCount).toBe(1);
   });
+
+  it("triggers ATS extraction and matching score on-demand once per completed version without automated triggering", async () => {
+    const user = userEvent.setup();
+    let simulatedScore: BranchVersion["ats_score"] = undefined;
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({
+          data: { ...mockBranch, ats_score: simulatedScore },
+          error: undefined,
+        }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({
+          data: mockVersions.map((v) =>
+            v.id === "v-1" ? { ...v, ats_score: simulatedScore } : v
+          ),
+          error: undefined,
+        }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    const postSpy = vi.spyOn(api, "POST").mockImplementation((path: string) => {
+      if (path === "/branches/{id}/versions/{v}/ats-score") {
+        simulatedScore = {
+          extraction_confidence_score: 94.0,
+          job_matching_score: 88.5,
+          extraction_summary: "Complete extraction of experience and skills.",
+          matching_summary: "Strong alignment with Go and Raft requirements.",
+          format_used: "markdown",
+        };
+        return Promise.resolve({
+          data: simulatedScore,
+          error: undefined,
+        }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    const { Wrapper } = createTestWrapper();
+    render(<BranchWorkbenchPage pollIntervalMs={30} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText("Extraction Confidence Score")).toBeInTheDocument();
+      expect(screen.getByText("Job Matching Score")).toBeInTheDocument();
+    });
+
+    // Must not trigger automatically on mount
+    expect(postSpy).not.toHaveBeenCalled();
+
+    const calcBtn = screen.getByRole("button", { name: /calculate ats score/i });
+    expect(calcBtn).toBeEnabled();
+
+    await user.click(calcBtn);
+
+    expect(postSpy).toHaveBeenCalledWith(
+      "/branches/{id}/versions/{v}/ats-score",
+      {
+        params: { path: { id: "b-123", v: "1" } },
+        body: {},
+      }
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("94.0%")).toBeInTheDocument();
+      expect(screen.getByText("88.5%")).toBeInTheDocument();
+    });
+
+    // Button disables after calculation so it triggers once per version
+    expect(
+      screen.getByRole("button", { name: /ats score calculated/i })
+    ).toBeDisabled();
+  });
+
+  it("disables ATS score simulation on Default Main Branch and when Job Description is missing", async () => {
+    const defaultBranch: Branch = {
+      ...mockBranch,
+      id: "branch-default",
+      name: "Main Profile (Default)",
+      is_default: true,
+    };
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({ data: defaultBranch, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({ data: mockVersions, error: undefined }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    const { Wrapper: DefaultWrapper } = createTestWrapper("/branches/branch-default");
+    const { unmount } = render(<BranchWorkbenchPage />, { wrapper: DefaultWrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /calculate ats score/i })
+      ).toBeDisabled();
+    });
+    expect(
+      screen.getByText(/disabled for the default main branch/i)
+    ).toBeInTheDocument();
+    unmount();
+
+    // Now test tailored branch with empty job description
+    const noJDBranch: Branch = {
+      ...mockBranch,
+      id: "branch-no-jd",
+      is_default: false,
+      target_requirements: "   ",
+    };
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({ data: noJDBranch, error: undefined }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({ data: mockVersions, error: undefined }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    const { Wrapper: NoJDWrapper } = createTestWrapper("/branches/branch-no-jd");
+    render(<BranchWorkbenchPage />, { wrapper: NoJDWrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /calculate ats score/i })
+      ).toBeDisabled();
+    });
+    expect(
+      screen.getByText(/provide a job description/i)
+    ).toBeInTheDocument();
+  });
+
+  it("persists ATS scores across active version switching and reloading", async () => {
+    const user = userEvent.setup();
+    let activeVersionId = "v-1";
+
+    const versionsWithATSScores: BranchVersion[] = [
+      {
+        ...mockVersions[0]!,
+        id: "v-1",
+        version_number: 1,
+        ats_score: {
+          extraction_confidence_score: 91.0,
+          job_matching_score: 84.5,
+          extraction_summary: "v1 extraction summary",
+          matching_summary: "v1 matching summary",
+        },
+      },
+      {
+        ...mockVersions[1]!,
+        id: "v-2",
+        version_number: 2,
+        ats_score: {
+          extraction_confidence_score: 97.5,
+          job_matching_score: 93.0,
+          extraction_summary: "v2 extraction summary",
+          matching_summary: "v2 matching summary",
+        },
+      },
+    ];
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        const activeVer = versionsWithATSScores.find((v) => v.id === activeVersionId);
+        return Promise.resolve({
+          data: {
+            ...mockBranch,
+            active_version_id: activeVersionId,
+            ats_score: activeVer?.ats_score,
+          },
+          error: undefined,
+        }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({
+          data: versionsWithATSScores,
+          error: undefined,
+        }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    vi.spyOn(api, "PUT").mockImplementation(
+      (_path: string, options?: { body?: { active_version_id?: string } }) => {
+        if (options?.body?.active_version_id) {
+          activeVersionId = options.body.active_version_id;
+        }
+        const activeVer = versionsWithATSScores.find((v) => v.id === activeVersionId);
+        return Promise.resolve({
+          data: {
+            ...mockBranch,
+            active_version_id: activeVersionId,
+            ats_score: activeVer?.ats_score,
+          },
+          error: undefined,
+          response: new Response(),
+        }) as never;
+      }
+    );
+
+    const { Wrapper } = createTestWrapper();
+    const { unmount } = render(<BranchWorkbenchPage pollIntervalMs={30} />, {
+      wrapper: Wrapper,
+    });
+
+    // Initially active v1 shows 91.0% and 84.5%
+    await waitFor(() => {
+      expect(screen.getByText("91.0%")).toBeInTheDocument();
+      expect(screen.getByText("84.5%")).toBeInTheDocument();
+    });
+
+    // Switch active version to v2
+    const setV2ActiveBtn = screen.getByRole("button", {
+      name: /set v2 as active/i,
+    });
+    await user.click(setV2ActiveBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("97.5%")).toBeInTheDocument();
+      expect(screen.getByText("93.0%")).toBeInTheDocument();
+    });
+
+    // Simulate reload: unmount and remount with fresh QueryClient
+    unmount();
+    const { Wrapper: ReloadedWrapper } = createTestWrapper();
+    render(<BranchWorkbenchPage pollIntervalMs={30} />, {
+      wrapper: ReloadedWrapper,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("97.5%")).toBeInTheDocument();
+      expect(screen.getByText("93.0%")).toBeInTheDocument();
+    });
+  });
+
+  it("displays ATS Evaluation Error destructive toast when ATS simulation fails and auto-saves dirty draftContext before simulating", async () => {
+    const user = userEvent.setup();
+
+    vi.spyOn(api, "GET").mockImplementation((path: string) => {
+      if (path === "/branches/{id}") {
+        return Promise.resolve({
+          data: { ...mockBranch, target_requirements: "" },
+          error: undefined,
+        }) as never;
+      }
+      if (path === "/branches/{id}/versions") {
+        return Promise.resolve({ data: mockVersions, error: undefined }) as never;
+      }
+      if (path === "/presets") {
+        return Promise.resolve({ data: mockPresets, error: undefined }) as never;
+      }
+      if (path === "/templates") {
+        return Promise.resolve({ data: mockTemplates, error: undefined }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    const putSpy = vi.spyOn(api, "PUT").mockResolvedValue({
+      data: { ...mockBranch, target_requirements: "Draft JD requirements" },
+      error: undefined,
+      response: new Response(),
+    } as never);
+
+    vi.spyOn(api, "POST").mockImplementation((path: string) => {
+      if (path === "/branches/{id}/versions/{v}/ats-score") {
+        return Promise.resolve({
+          data: undefined,
+          error: { error: { message: "Upstream ATS provider rate limited" } },
+        }) as never;
+      }
+      return Promise.resolve({ data: undefined, error: undefined }) as never;
+    });
+
+    const { Wrapper } = createTestWrapper();
+    render(<BranchWorkbenchPage pollIntervalMs={30} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /edit job description & context/i })
+      ).toBeInTheDocument();
+    });
+
+    // Initially Calculate ATS Score is disabled because target_requirements is empty
+    expect(
+      screen.getByRole("button", { name: /calculate ats score/i })
+    ).toBeDisabled();
+
+    // Type a draft job description without clicking Save Context
+    await user.click(
+      screen.getByRole("button", { name: /edit job description & context/i })
+    );
+    const jdInput = screen.getByLabelText(
+      /job description & target requirements/i
+    );
+    await user.type(jdInput, "Draft JD requirements");
+
+    const calcBtn = screen.getByRole("button", { name: /calculate ats score/i });
+    expect(calcBtn).toBeEnabled();
+
+    await user.click(calcBtn);
+
+    // Should auto-save draft context first via PUT /branches/{id}
+    expect(putSpy).toHaveBeenCalledWith(
+      "/branches/{id}",
+      expect.objectContaining({
+        params: { path: { id: "b-123" } },
+        body: expect.objectContaining({
+          target_requirements: "Draft JD requirements",
+        }),
+      })
+    );
+
+    // Should surface destructive toast when POST /ats-score fails
+    await waitFor(() => {
+      expect(screen.getByText("ATS Evaluation Error")).toBeInTheDocument();
+      expect(
+        screen.getByText("Upstream ATS provider rate limited")
+      ).toBeInTheDocument();
+    });
+  });
 });
