@@ -1,0 +1,3934 @@
+openapi: 3.1.0
+info:
+  title: Resumeee REST API
+  version: 0.1.0
+  description: >-
+    Headless resume tailoring and career graph engine. Provides Main Profile
+    CRUD with transactional atomic revision tracking, reusable presets,
+    multi-format Go templates (HTML, Markdown, Plain Text), dynamic resume
+    branches, asynchronous LLM generation with provenance validation ("No
+    Lies"), and rendered artifact exports.
+servers:
+  - url: /api/v1
+    description: Primary API v1 endpoint
+
+tags:
+  - name: Main Profile
+    description: Operations on root user profile, career snapshot, and JSON Resume import/export
+  - name: Career Entities
+    description: Granular career graph entities (skills, experiences, projects, education, certs, facts)
+  - name: Presets & Templates
+    description: Tier-2 reusable instruction presets and database-stored Go template sets
+  - name: Branches & Versions
+    description: Tier-3 tailored resume lines, asynchronous generation, and immutable version snapshots
+  - name: System
+    description: Service health, liveness probes, and diagnostics
+
+paths:
+  /models:
+    get:
+      tags:
+        - System
+      summary: List available LLM models
+      description: >-
+        Returns all configured LLM providers and their supported models based on active
+        environment credentials. Only providers with active API keys or endpoints are returned.
+        Zero credential leakage invariant.
+      operationId: listAvailableModels
+      responses:
+        '200':
+          description: List of available model options
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModelOption'
+  /health:
+    get:
+      tags:
+        - System
+      summary: Service health check
+      description: Returns service liveness and operational health status.
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy and operational
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /quota:
+    get:
+      tags:
+        - System
+      summary: Get tenant LLM quota and usage status
+      description: >-
+        Returns the authenticated tenant's current daily request and monthly token quota status,
+        including usage counters, remaining capacity, and window reset timestamps.
+      operationId: getQuota
+      responses:
+        '200':
+          description: Tenant quota retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantQuota'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /profile:
+    get:
+      tags:
+        - Main Profile
+      summary: Get user main profile
+      operationId: getProfile
+      responses:
+        '200':
+          description: Main profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags:
+        - Main Profile
+      summary: Update main profile
+      description: Updates basic profile details, contact info, default LLM provider/model, or Tier-1 global rules. Atomically increments main_revision.
+      operationId: updateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated and revision incremented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /profile/full:
+    get:
+      tags:
+        - Main Profile
+      summary: Get full main profile career graph
+      description: Returns the complete career graph snapshot including profile, all skills, experiences, projects, education, certifications, and polymorphic facts.
+      operationId: getFullProfile
+      responses:
+        '200':
+          description: Complete career graph snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MainProfileSnapshot'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /profile/jsonresume/import:
+    post:
+      tags:
+        - Main Profile
+      summary: Import standard JSON Resume payload
+      description: Ingests an external JSON Resume schema payload into the Main Profile, replacing or merging career records and incrementing main_revision.
+      operationId: importJSONResume
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Standard JSON Resume compliant object
+      responses:
+        '200':
+          description: Successfully imported JSON Resume
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MainProfileSnapshot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /profile/jsonresume/export:
+    get:
+      tags:
+        - Main Profile
+      summary: Export career data in standard JSON Resume format
+      description: Exports either the Main Profile or a specific tailored branch version formatted according to the standard JSON Resume schema.
+      operationId: exportJSONResume
+      parameters:
+        - name: version_id
+          in: query
+          required: false
+          description: Optional branch version UUID. If omitted, exports current Main Profile.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exported JSON Resume document
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /profile/pdf/parse:
+    post:
+      tags:
+        - Main Profile
+      summary: Parse PDF resume using LLM
+      description: Extracts raw text from an uploaded PDF resume (max 10MB) and invokes structured LLM extraction into candidate JSON Resume format for interactive staging and review.
+      operationId: parsePDFResume
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Binary PDF resume file to parse (max 10MB)
+                provider:
+                  type: string
+                  description: Optional LLM provider override
+                model:
+                  type: string
+                  description: Optional LLM model override
+      responses:
+        '200':
+          description: Successfully parsed PDF into candidate JSON Resume (synchronous mode)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Candidate JSON Resume draft
+        '202':
+          description: PDF parsing job queued for asynchronous background processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncPDFJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /profile/pdf/jobs/{id}:
+    get:
+      tags:
+        - Main Profile
+      summary: Get asynchronous PDF parse job status and candidate result
+      description: Returns the lifecycle state and candidate JSON Resume result of an asynchronous PDF parsing job.
+      operationId: getPDFParseJob
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique PDF parse job identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: PDF parse job state and result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PDFParseJob'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /profile/pdf/commit:
+    post:
+      tags:
+        - Main Profile
+      summary: Commit reviewed PDF resume into Main Profile
+      description: Ingests verified/edited JSON Resume draft, updates the Main Profile career graph, initializes profile for new users if not previously present, and increments main_revision.
+      operationId: commitPDFResume
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Standard JSON Resume compliant object
+      responses:
+        '200':
+          description: Successfully committed resume into Main Profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MainProfileSnapshot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /skills:
+    get:
+      tags:
+        - Career Entities
+      summary: List all skills
+      operationId: listSkills
+      parameters:
+        - name: type
+          in: query
+          required: false
+          description: Filter skills by origin type (all returns union of custom and global, global returns system-seeded skills, custom returns tenant-owned skills)
+          schema:
+            type: string
+            enum:
+              - all
+              - global
+              - custom
+            default: all
+      responses:
+        '200':
+          description: List of main skills
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Skill'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Career Entities
+      summary: Create a new skill
+      description: Adds a skill and atomically increments main_revision.
+      operationId: createSkill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSkillRequest'
+      responses:
+        '201':
+          description: Skill created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /skills/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Career Entities
+      summary: Get skill by ID
+      operationId: getSkill
+      responses:
+        '200':
+          description: Skill details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags:
+        - Career Entities
+      summary: Update skill
+      description: Updates a skill and atomically increments main_revision.
+      operationId: updateSkill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSkillRequest'
+      responses:
+        '200':
+          description: Skill updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags:
+        - Career Entities
+      summary: Delete skill
+      description: Deletes a skill and atomically increments main_revision.
+      operationId: deleteSkill
+      responses:
+        '204':
+          description: Skill deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /experiences:
+    get:
+      tags:
+        - Career Entities
+      summary: List all work experiences
+      operationId: listExperiences
+      responses:
+        '200':
+          description: List of work experiences with polymorphic facts and linked skills
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkExperience'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Career Entities
+      summary: Create work experience
+      description: Adds a work experience entry and atomically increments main_revision.
+      operationId: createExperience
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExperienceRequest'
+      responses:
+        '201':
+          description: Work experience created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkExperience'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /experiences/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Career Entities
+      summary: Get work experience by ID
+      operationId: getExperience
+      responses:
+        '200':
+          description: Work experience details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkExperience'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags:
+        - Career Entities
+      summary: Update work experience
+      description: Updates work experience and atomically increments main_revision.
+      operationId: updateExperience
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExperienceRequest'
+      responses:
+        '200':
+          description: Work experience updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkExperience'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags:
+        - Career Entities
+      summary: Delete work experience
+      description: Deletes work experience, associated polymorphic facts, and increments main_revision.
+      operationId: deleteExperience
+      responses:
+        '204':
+          description: Work experience deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /projects:
+    get:
+      tags:
+        - Career Entities
+      summary: List all projects
+      operationId: listProjects
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Career Entities
+      summary: Create project
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /projects/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Career Entities
+      summary: Get project by ID
+      operationId: getProject
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags:
+        - Career Entities
+      summary: Update project
+      operationId: updateProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags:
+        - Career Entities
+      summary: Delete project
+      operationId: deleteProject
+      responses:
+        '204':
+          description: Project deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /education:
+    get:
+      tags:
+        - Career Entities
+      summary: List all education records
+      operationId: listEducation
+      responses:
+        '200':
+          description: List of education credentials
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Education'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Career Entities
+      summary: Create education entry
+      operationId: createEducation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEducationRequest'
+      responses:
+        '201':
+          description: Education entry created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Education'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /education/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Career Entities
+      summary: Get education entry by ID
+      operationId: getEducation
+      responses:
+        '200':
+          description: Education entry details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Education'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags:
+        - Career Entities
+      summary: Update education entry
+      operationId: updateEducation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEducationRequest'
+      responses:
+        '200':
+          description: Education entry updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Education'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags:
+        - Career Entities
+      summary: Delete education entry
+      operationId: deleteEducation
+      responses:
+        '204':
+          description: Education entry deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /certifications:
+    get:
+      tags:
+        - Career Entities
+      summary: List all certifications
+      operationId: listCertifications
+      responses:
+        '200':
+          description: List of certifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Certification'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Career Entities
+      summary: Create certification
+      operationId: createCertification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCertificationRequest'
+      responses:
+        '201':
+          description: Certification created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certification'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /certifications/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Career Entities
+      summary: Get certification by ID
+      operationId: getCertification
+      responses:
+        '200':
+          description: Certification details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certification'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags:
+        - Career Entities
+      summary: Update certification
+      operationId: updateCertification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCertificationRequest'
+      responses:
+        '200':
+          description: Certification updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certification'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags:
+        - Career Entities
+      summary: Delete certification
+      operationId: deleteCertification
+      responses:
+        '204':
+          description: Certification deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /facts:
+    get:
+      tags:
+        - Career Entities
+      summary: List facts by owner
+      description: Retrieves polymorphic facts filtered by owner entity type and owner entity UUID.
+      operationId: listFacts
+      parameters:
+        - name: owner_type
+          in: query
+          required: true
+          description: Entity type owning the fact
+          schema:
+            $ref: '#/components/schemas/OwnerType'
+        - name: owner_id
+          in: query
+          required: true
+          description: UUID of the owning entity
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of facts matching owner criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Fact'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Career Entities
+      summary: Create granular fact
+      description: Creates an atomic achievement or responsibility bullet and attaches relational skill IDs. Increments main_revision.
+      operationId: createFact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFactRequest'
+      responses:
+        '201':
+          description: Fact created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fact'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /facts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Career Entities
+      summary: Get fact by ID
+      operationId: getFact
+      responses:
+        '200':
+          description: Fact details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fact'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags:
+        - Career Entities
+      summary: Update fact
+      description: Updates statement, impact metric, or skill associations, incrementing main_revision.
+      operationId: updateFact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFactRequest'
+      responses:
+        '200':
+          description: Fact updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fact'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags:
+        - Career Entities
+      summary: Delete fact
+      description: Deletes fact and increments main_revision.
+      operationId: deleteFact
+      responses:
+        '204':
+          description: Fact deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /presets:
+    get:
+      tags:
+        - Presets & Templates
+      summary: List presets
+      description: Lists Tier-2 reusable instruction configurations.
+      operationId: listPresets
+      responses:
+        '200':
+          description: List of presets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Preset'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Presets & Templates
+      summary: Create preset
+      operationId: createPreset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePresetRequest'
+      responses:
+        '201':
+          description: Preset created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /presets/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Presets & Templates
+      summary: Get preset by ID
+      operationId: getPreset
+      responses:
+        '200':
+          description: Preset details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preset'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags:
+        - Presets & Templates
+      summary: Update preset
+      operationId: updatePreset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePresetRequest'
+      responses:
+        '200':
+          description: Preset updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags:
+        - Presets & Templates
+      summary: Delete preset
+      operationId: deletePreset
+      responses:
+        '204':
+          description: Preset deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /tailoring-strategies:
+    get:
+      tags:
+        - Presets & Templates
+      summary: List tailoring strategies
+      description: Lists Tier-2 reusable AI prompt and tailoring strategies.
+      operationId: listTailoringStrategies
+      responses:
+        '200':
+          description: List of tailoring strategies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TailoringStrategy'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Presets & Templates
+      summary: Create tailoring strategy
+      operationId: createTailoringStrategy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStrategyRequest'
+      responses:
+        '201':
+          description: Tailoring strategy created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TailoringStrategy'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /tailoring-strategies/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Presets & Templates
+      summary: Get tailoring strategy by ID
+      operationId: getTailoringStrategy
+      responses:
+        '200':
+          description: Tailoring strategy details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TailoringStrategy'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags:
+        - Presets & Templates
+      summary: Update tailoring strategy
+      operationId: updateTailoringStrategy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStrategyRequest'
+      responses:
+        '200':
+          description: Tailoring strategy updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TailoringStrategy'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags:
+        - Presets & Templates
+      summary: Delete tailoring strategy
+      operationId: deleteTailoringStrategy
+      responses:
+        '204':
+          description: Tailoring strategy deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /templates:
+    get:
+      tags:
+        - Presets & Templates
+      summary: List template sets
+      description: Lists user-defined and built-in template bundles.
+      operationId: listTemplates
+      responses:
+        '200':
+          description: List of template sets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TemplateSet'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Presets & Templates
+      summary: Create template set
+      description: Validates HTML, Markdown, and PlainText template syntax against safe whitelisted FuncMap and stores the template set.
+      operationId: createTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTemplateRequest'
+      responses:
+        '201':
+          description: Template set created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSet'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/TemplateValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /templates/preview:
+    post:
+      tags:
+        - Presets & Templates
+      summary: Render draft template preview
+      description: Renders arbitrary Go template definitions using the server Go template engine populated with server data.
+      operationId: renderTemplatePreview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenderTemplatePreviewRequest'
+      responses:
+        '200':
+          description: Rendered template outputs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderOutput'
+            text/html:
+              schema:
+                type: string
+            text/markdown:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/TemplateValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /templates/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Presets & Templates
+      summary: Get template set by ID
+      operationId: getTemplate
+      responses:
+        '200':
+          description: Template set details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSet'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags:
+        - Presets & Templates
+      summary: Update template set
+      description: Re-validates Go template syntax and updates the template set.
+      operationId: updateTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTemplateRequest'
+      responses:
+        '200':
+          description: Template set updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSet'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/TemplateValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags:
+        - Presets & Templates
+      summary: Delete template set
+      operationId: deleteTemplate
+      responses:
+        '204':
+          description: Template set deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /templates/{id}/preview:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+      - name: format
+        in: query
+        required: false
+        description: Desired preview format (html, markdown, text). Defaults to JSON with all formats.
+        schema:
+          type: string
+          enum: [html, markdown, text]
+    get:
+      tags:
+        - Presets & Templates
+      summary: Preview template set
+      description: Renders saved template set using Go template engine and server values.
+      operationId: previewTemplate
+      responses:
+        '200':
+          description: Rendered template preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderOutput'
+            text/html:
+              schema:
+                type: string
+            text/markdown:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/TemplateValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches:
+    get:
+      tags:
+        - Branches & Versions
+      summary: List resume branches
+      description: Lists all tailored resume lines. Includes dynamically computed is_stale boolean indicating whether Profile.MainRevision has advanced past last_synced_main_revision.
+      operationId: listBranches
+      parameters:
+        - name: stale
+          in: query
+          required: false
+          description: If true, filters list to only return out-of-date branches
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of branches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Branch'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Branches & Versions
+      summary: Create resume branch
+      description: Configures a tailored line with target role/company, requirements, Tier-3 instructions, preset/template bindings, and force-pinned/excluded IDs.
+      operationId: createBranch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBranchRequest'
+      responses:
+        '201':
+          description: Branch created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Branches & Versions
+      summary: Get branch by ID
+      operationId: getBranch
+      responses:
+        '200':
+          description: Branch details with staleness and active version pointer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags:
+        - Branches & Versions
+      summary: Update branch
+      description: Updates targeting rules, instructions, pinned/excluded IDs, or promotes/rolls back active_version_id.
+      operationId: updateBranch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBranchRequest'
+      responses:
+        '200':
+          description: Branch updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags:
+        - Branches & Versions
+      summary: Delete branch
+      description: Deletes branch and all associated historical versions.
+      operationId: deleteBranch
+      responses:
+        '204':
+          description: Branch deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}/generate:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    post:
+      tags:
+        - Branches & Versions
+      summary: Enqueue asynchronous resume generation
+      description: >-
+        Creates a new immutable BranchVersion (vN) in pending status and enqueues
+        it into the in-memory worker pool. Returns immediately with 202 Accepted.
+      operationId: generateBranchVersion
+      responses:
+        '202':
+          description: Job accepted and queued for generation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJobEnqueued'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/QueueFull'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}/gap-analysis:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    post:
+      tags:
+        - Branches & Versions
+      summary: Perform fast decoupled gap analysis
+      description: >-
+        Evaluates candidate fit against branch target requirements returning an explainable
+        gap report and deterministic match score without running full resume tailoring.
+      operationId: analyzeBranchGaps
+      responses:
+        '200':
+          description: Gap analysis completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GapReport'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}/ats-score:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    post:
+      tags:
+        - Branches & Versions
+      summary: Simulate ATS extraction and job matching score on-demand
+      description: >-
+        Executes a two-stage ATS parsing simulation on the active (or specified) completed
+        tailored version, producing an Extraction Confidence Score and Job Matching Score (0-100%).
+        Triggers once per successfully tailored version.
+      operationId: simulateBranchATSScore
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ATSSimulationRequest'
+      responses:
+        '200':
+          description: ATS extraction and matching score calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ATSScore'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}/versions/{v}/ats-score:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+      - name: v
+        in: path
+        required: true
+        description: Sequential version number (e.g. 1, 2) or version UUID
+        schema:
+          type: string
+    post:
+      tags:
+        - Branches & Versions
+      summary: Simulate ATS extraction and job matching score for a specific tailored version
+      description: >-
+        Executes a two-stage ATS parsing simulation on the specified completed tailored version,
+        producing an Extraction Confidence Score and Job Matching Score (0-100%).
+        Triggers once per successfully tailored version.
+      operationId: simulateBranchVersionATSScore
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ATSSimulationRequest'
+      responses:
+        '200':
+          description: ATS extraction and matching score calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ATSScore'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /resumes/{id}/ats-score:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    post:
+      tags:
+        - Branches & Versions
+      summary: Simulate ATS extraction and job matching score on-demand for target resume
+      description: >-
+        Executes a two-stage ATS parsing simulation on the active (or specified) completed
+        tailored version of a target resume, producing an Extraction Confidence Score and Job Matching Score (0-100%).
+        Triggers once per successfully tailored version.
+      operationId: simulateResumeATSScore
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ATSSimulationRequest'
+      responses:
+        '200':
+          description: ATS extraction and matching score calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ATSScore'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /resumes/{id}/versions/{v}/ats-score:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+      - name: v
+        in: path
+        required: true
+        description: Sequential version number (e.g. 1, 2) or version UUID
+        schema:
+          type: string
+    post:
+      tags:
+        - Branches & Versions
+      summary: Simulate ATS extraction and job matching score for a specific target resume version
+      description: >-
+        Executes a two-stage ATS parsing simulation on the specified completed tailored version
+        of a target resume, producing an Extraction Confidence Score and Job Matching Score (0-100%).
+        Triggers once per successfully tailored version.
+      operationId: simulateResumeVersionATSScore
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ATSSimulationRequest'
+      responses:
+        '200':
+          description: ATS extraction and matching score calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ATSScore'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}/prompt-preview:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Branches & Versions
+      summary: Preview prompt draft for a branch
+      description: >-
+        Renders the assembled system and user prompt templates against the candidate's
+        current main profile and branch target requirements without calling the LLM.
+      operationId: getPromptPreview
+      responses:
+        '200':
+          description: Rendered prompt draft preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptPreviewResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Branches & Versions
+      summary: Preview prompt draft with transient modifications
+      description: >-
+        Renders the assembled system and user prompt templates incorporating optional
+        transient draft overrides (target role, company, requirements, branch instructions)
+        without calling the LLM or persisting changes to the branch.
+      operationId: previewPrompt
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromptPreviewRequest'
+      responses:
+        '200':
+          description: Rendered prompt draft preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptPreviewResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/sync:
+    post:
+      tags:
+        - Branches & Versions
+      summary: Batch sync stale branches
+      description: Enqueues generation jobs for all stale branches (or an explicitly provided subset of branch IDs).
+      operationId: syncStaleBranches
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncBranchesRequest'
+      responses:
+        '202':
+          description: Sync jobs accepted and queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncBranchesResponse'
+        '503':
+          $ref: '#/components/responses/QueueFull'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}/versions:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags:
+        - Branches & Versions
+      summary: List historical versions for a branch
+      description: Lists all versions (v1..vN) with lifecycle status and metadata.
+      operationId: listBranchVersions
+      responses:
+        '200':
+          description: List of branch versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BranchVersion'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}/versions/{v}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+      - name: v
+        in: path
+        required: true
+        description: Sequential version number (e.g. 1, 2) or version UUID
+        schema:
+          type: string
+    get:
+      tags:
+        - Branches & Versions
+      summary: Get full version details
+      description: Retrieves complete version payload including structured tailored_content, gap_report, validation_warnings, and rendered outputs.
+      operationId: getBranchVersion
+      responses:
+        '200':
+          description: Detailed version record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BranchVersion'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}/versions/{v}/preview:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+      - name: v
+        in: path
+        required: true
+        description: Sequential version number (e.g. 1, 2) or version UUID
+        schema:
+          type: string
+      - name: format
+        in: query
+        required: false
+        description: Desired preview format (html, markdown, text). Defaults to JSON with all formats.
+        schema:
+          type: string
+          enum: [html, markdown, text]
+      - name: template_set_id
+        in: query
+        required: false
+        description: Optional visual template set ID override for dynamic preview.
+        schema:
+          type: string
+    get:
+      tags:
+        - Branches & Versions
+      summary: Preview branch resume version
+      description: Serves pre-rendered resume version preview generated by the Go template engine.
+      operationId: previewBranchVersion
+      responses:
+        '200':
+          description: Rendered branch version outputs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderOutput'
+            text/html:
+              schema:
+                type: string
+            text/markdown:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}/versions/{v}/export:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+      - name: v
+        in: path
+        required: true
+        description: Sequential version number or version UUID
+        schema:
+          type: string
+      - name: format
+        in: query
+        required: false
+        description: Desired export format (defaults to html)
+        schema:
+          type: string
+          enum: [html, markdown, text, jsonresume]
+          default: html
+      - name: template_set_id
+        in: query
+        required: false
+        description: Optional visual template set ID override for dynamic export rendering
+        schema:
+          type: string
+    get:
+      tags:
+        - Branches & Versions
+      summary: Download rendered resume artifact
+      description: Serves pre-rendered resume artifact directly with appropriate Content-Type header.
+      operationId: exportBranchVersion
+      responses:
+        '200':
+          description: Rendered resume document
+          content:
+            text/html:
+              schema:
+                type: string
+            text/markdown:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: object
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}/versions/{v}/edit:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+      - name: v
+        in: path
+        required: true
+        description: Sequential version number or version UUID
+        schema:
+          type: string
+    post:
+      tags:
+        - Branches & Versions
+      summary: Submit manual JSON edit to create version vN+1
+      description: >-
+        Synchronously validates provenance on edited TailoredContent JSON, executes Go
+        templates to render HTML/Markdown/Text, and produces immutable version vN+1
+        without invoking an external LLM.
+      operationId: editBranchVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditVersionRequest'
+      responses:
+        '201':
+          description: Version vN+1 created from manual edit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BranchVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ProvenanceError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /branches/{id}/versions/{v}/render-preview:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+      - name: v
+        in: path
+        required: true
+        description: Sequential version number or version UUID
+        schema:
+          type: string
+    post:
+      tags:
+        - Branches & Versions
+      summary: Ephemeral fast layout render preview
+      description: >-
+        Synchronously renders snapshot TailoredContent JSON under a requested template_set_id
+        with zero LLM provider calls and zero persistent side effects.
+      operationId: renderBranchVersionPreviewEphemeral
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenderPreviewRequest'
+      responses:
+        '200':
+          description: Ephemerally rendered resume outputs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderOutput'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /resumes/{id}/versions/{v}/render-preview:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+      - name: v
+        in: path
+        required: true
+        description: Sequential version number or version UUID
+        schema:
+          type: string
+    post:
+      tags:
+        - Branches & Versions
+      summary: Ephemeral fast layout render preview for target resume
+      description: >-
+        Synchronously renders snapshot TailoredContent JSON under a requested template_set_id
+        with zero LLM provider calls and zero persistent side effects.
+      operationId: renderResumeVersionPreviewEphemeral
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenderPreviewRequest'
+      responses:
+        '200':
+          description: Ephemerally rendered resume outputs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderOutput'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  parameters:
+    EntityId:
+      name: id
+      in: path
+      required: true
+      description: Unique UUID identifier of the entity
+      schema:
+        type: string
+
+  responses:
+    Unauthorized:
+      description: Authentication required or invalid bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: UNAUTHORIZED
+              message: Missing or invalid Authorization header
+
+    BadRequest:
+      description: Invalid request payload or parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: INVALID_REQUEST
+              message: Missing required field full_name
+
+    NotFound:
+      description: Requested entity does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: NOT_FOUND
+              message: Resource with specified ID was not found
+
+    Forbidden:
+      description: Action is forbidden (e.g. attempting to modify or delete built-in system presets)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: FORBIDDEN
+              message: Built-in system presets cannot be modified or deleted
+
+    TemplateValidationError:
+      description: Go template failed syntax or security validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: TEMPLATE_VALIDATION_ERROR
+              message: template syntax error in html_template
+              details: "template: html:12: function 'exec' not defined"
+
+    ProvenanceError:
+      description: Provenance validation failure ("No Lies" invariant)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: PROVENANCE_ERROR
+              message: Source entity or fact UUID does not exist in user Main Profile
+              details: "invalid source_fact_id: fact-999"
+
+    QueueFull:
+      description: In-memory worker queue channel is at maximum capacity
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: QUEUE_FULL
+              message: Background generation queue is full; retry with backoff
+
+    InternalError:
+      description: Unexpected internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: INTERNAL_ERROR
+              message: An internal error occurred while processing the request
+
+    Conflict:
+      description: Resource state conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: CONFLICT
+              message: Version generation is still in progress
+
+    UnprocessableEntity:
+      description: Unprocessable entity state
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: UNPROCESSABLE_ENTITY
+              message: Version does not have tailored content to render
+
+    TooManyRequests:
+      description: Tenant daily request or monthly token quota exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: QUOTA_EXCEEDED
+              message: Daily LLM request quota exceeded
+
+  schemas:
+    TenantQuota:
+      type: object
+      required:
+        - user_id
+        - daily_requests_used
+        - daily_request_limit
+        - daily_window_start
+        - monthly_tokens_used
+        - monthly_token_limit
+        - monthly_window_start
+        - daily_requests_remaining
+        - monthly_tokens_remaining
+        - daily_reset_at
+        - monthly_reset_at
+        - updated_at
+      properties:
+        user_id:
+          type: string
+          description: Unique tenant identifier
+        daily_requests_used:
+          type: integer
+          description: Number of LLM generation and parse requests executed in current daily window
+        daily_request_limit:
+          type: integer
+          description: Maximum allowed LLM requests in a 24-hour window
+        daily_window_start:
+          type: string
+          format: date-time
+          description: Timestamp when the current 24-hour daily request quota window began
+        monthly_tokens_used:
+          type: integer
+          description: Cumulative tokens consumed across all LLM operations in current monthly window
+        monthly_token_limit:
+          type: integer
+          description: Maximum allowed LLM tokens in a 30-day billing window
+        monthly_window_start:
+          type: string
+          format: date-time
+          description: Timestamp when the current 30-day monthly token quota window began
+        daily_requests_remaining:
+          type: integer
+          description: Remaining allowed LLM requests before daily rate limit is enforced
+        monthly_tokens_remaining:
+          type: integer
+          description: Remaining allowed LLM tokens before monthly ceiling is enforced
+        daily_reset_at:
+          type: string
+          format: date-time
+          description: Expected timestamp when the daily request window resets
+        monthly_reset_at:
+          type: string
+          format: date-time
+          description: Expected timestamp when the monthly token window resets
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when quota counters were last modified
+    ModelOption:
+      type: object
+      required:
+        - provider
+        - model
+        - display_name
+        - is_default
+      properties:
+        provider:
+          type: string
+          example: gemini
+          description: LLM provider identifier (e.g. gemini, openai, anthropic, compat)
+        model:
+          type: string
+          example: gemini-3.8-flash
+          description: Specific model name identifier
+        display_name:
+          type: string
+          example: Google Gemini — gemini-3.8-flash
+          description: Human-readable provider and model label for UI dropdowns
+        is_default:
+          type: boolean
+          example: true
+          description: Whether this provider/model is configured as the system default
+    OwnerType:
+      type: string
+      enum:
+        - work_experience
+        - project
+        - education
+
+    EmploymentType:
+      type: string
+      enum:
+        - Full-time
+        - Part-time
+        - Contract
+        - Internship
+
+    ContactType:
+      type: string
+      enum:
+        - Email
+        - Phone
+
+    VersionStatus:
+      type: string
+      enum:
+        - pending
+        - processing
+        - completed
+        - completed_with_warnings
+        - failed
+
+    SourceType:
+      type: string
+      enum:
+        - llm_generation
+        - manual_edit
+
+    GapImportance:
+      type: string
+      enum:
+        - critical
+        - preferred
+        - nice_to_have
+        - suggested
+
+    Location:
+      type: object
+      properties:
+        address:
+          type: string
+        postal_code:
+          type: string
+        city:
+          type: string
+        country_code:
+          type: string
+        region:
+          type: string
+
+    SocialLink:
+      type: object
+      required:
+        - network
+        - url
+      properties:
+        network:
+          type: string
+          example: GitHub
+        username:
+          type: string
+          example: octocat
+        url:
+          type: string
+          format: uri
+          example: https://github.com/octocat
+
+    ContactDetail:
+      type: object
+      required:
+        - type
+        - value
+      properties:
+        type:
+          $ref: '#/components/schemas/ContactType'
+        value:
+          type: string
+          example: hr@example.com
+
+    Profile:
+      type: object
+      required:
+        - id
+        - user_id
+        - full_name
+        - main_revision
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        full_name:
+          type: string
+        headline:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        location:
+          $ref: '#/components/schemas/Location'
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/SocialLink'
+        summary:
+          type: string
+        global_writing_rules:
+          type: string
+        default_provider:
+          type: string
+          default: gemini
+        default_model:
+          type: string
+          default: gemini-3.8-flash
+        main_revision:
+          type: integer
+          format: int64
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+        headline:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        location:
+          $ref: '#/components/schemas/Location'
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/SocialLink'
+        summary:
+          type: string
+        global_writing_rules:
+          type: string
+        default_provider:
+          type: string
+        default_model:
+          type: string
+        metadata:
+          type: object
+
+    Skill:
+      type: object
+      required:
+        - id
+        - user_id
+        - name
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        is_global:
+          type: boolean
+        category:
+          type: string
+        proficiency:
+          type: string
+        years_experience:
+          type: number
+        keywords:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateSkillRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        proficiency:
+          type: string
+        years_experience:
+          type: number
+        keywords:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+
+    UpdateSkillRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        proficiency:
+          type: string
+        years_experience:
+          type: number
+        keywords:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+
+    WorkExperience:
+      type: object
+      required:
+        - id
+        - user_id
+        - company
+        - role_title
+        - start_date
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        company:
+          type: string
+        role_title:
+          type: string
+        employment_type:
+          $ref: '#/components/schemas/EmploymentType'
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        is_current:
+          type: boolean
+        location:
+          $ref: '#/components/schemas/Location'
+        company_location:
+          $ref: '#/components/schemas/Location'
+        company_contact:
+          $ref: '#/components/schemas/ContactDetail'
+        hours_per_week:
+          type: integer
+          nullable: true
+        supervisor_name:
+          type: string
+        supervisor_contact:
+          type: string
+        duties_summary:
+          type: string
+        facts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fact'
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/Skill'
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateExperienceRequest:
+      type: object
+      required:
+        - company
+        - role_title
+        - start_date
+      properties:
+        company:
+          type: string
+        role_title:
+          type: string
+        employment_type:
+          $ref: '#/components/schemas/EmploymentType'
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        is_current:
+          type: boolean
+        location:
+          $ref: '#/components/schemas/Location'
+        company_location:
+          $ref: '#/components/schemas/Location'
+        company_contact:
+          $ref: '#/components/schemas/ContactDetail'
+        hours_per_week:
+          type: integer
+        supervisor_name:
+          type: string
+        supervisor_contact:
+          type: string
+        duties_summary:
+          type: string
+        skill_ids:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+
+    UpdateExperienceRequest:
+      type: object
+      properties:
+        company:
+          type: string
+        role_title:
+          type: string
+        employment_type:
+          $ref: '#/components/schemas/EmploymentType'
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        is_current:
+          type: boolean
+        location:
+          $ref: '#/components/schemas/Location'
+        company_location:
+          $ref: '#/components/schemas/Location'
+        company_contact:
+          $ref: '#/components/schemas/ContactDetail'
+        hours_per_week:
+          type: integer
+        supervisor_name:
+          type: string
+        supervisor_contact:
+          type: string
+        duties_summary:
+          type: string
+        skill_ids:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+
+    Project:
+      type: object
+      required:
+        - id
+        - user_id
+        - name
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+        url:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        summary:
+          type: string
+        facts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fact'
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/Skill'
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateProjectRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        url:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        summary:
+          type: string
+        skill_ids:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+
+    UpdateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        url:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        summary:
+          type: string
+        skill_ids:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+
+    Education:
+      type: object
+      required:
+        - id
+        - user_id
+        - institution
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        institution:
+          type: string
+        degree:
+          type: string
+        field:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        score:
+          type: string
+        location:
+          $ref: '#/components/schemas/Location'
+        facts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fact'
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateEducationRequest:
+      type: object
+      required:
+        - institution
+      properties:
+        institution:
+          type: string
+        degree:
+          type: string
+        field:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        score:
+          type: string
+        location:
+          $ref: '#/components/schemas/Location'
+        metadata:
+          type: object
+
+    UpdateEducationRequest:
+      type: object
+      properties:
+        institution:
+          type: string
+        degree:
+          type: string
+        field:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        score:
+          type: string
+        location:
+          $ref: '#/components/schemas/Location'
+        metadata:
+          type: object
+
+    Certification:
+      type: object
+      required:
+        - id
+        - user_id
+        - name
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        name:
+          type: string
+        issuer:
+          type: string
+        date:
+          type: string
+          format: date
+        url:
+          type: string
+        summary:
+          type: string
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateCertificationRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        issuer:
+          type: string
+        date:
+          type: string
+          format: date
+        url:
+          type: string
+        summary:
+          type: string
+        metadata:
+          type: object
+
+    UpdateCertificationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        issuer:
+          type: string
+        date:
+          type: string
+          format: date
+        url:
+          type: string
+        summary:
+          type: string
+        metadata:
+          type: object
+
+    Fact:
+      type: object
+      required:
+        - id
+        - user_id
+        - owner_id
+        - owner_type
+        - statement
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        owner_id:
+          type: string
+        owner_type:
+          $ref: '#/components/schemas/OwnerType'
+        statement:
+          type: string
+        impact:
+          type: string
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/Skill'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateFactRequest:
+      type: object
+      required:
+        - owner_id
+        - owner_type
+        - statement
+      properties:
+        owner_id:
+          type: string
+        owner_type:
+          $ref: '#/components/schemas/OwnerType'
+        statement:
+          type: string
+        impact:
+          type: string
+        skill_ids:
+          type: array
+          items:
+            type: string
+
+    UpdateFactRequest:
+      type: object
+      properties:
+        statement:
+          type: string
+        impact:
+          type: string
+        skill_ids:
+          type: array
+          items:
+            type: string
+
+    Preset:
+      type: object
+      required:
+        - id
+        - user_id
+        - name
+        - system_instructions
+        - template_set_id
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        system_instructions:
+          type: string
+        suggested_theme_id:
+          type: string
+          nullable: true
+        template_set_id:
+          type: string
+        language:
+          type: string
+          description: Target language for contextual translation (defaults to English)
+        is_built_in:
+          type: boolean
+          description: Whether this is a system-provided built-in preset
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreatePresetRequest:
+      type: object
+      required:
+        - name
+        - system_instructions
+        - template_set_id
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        system_instructions:
+          type: string
+        suggested_theme_id:
+          type: string
+          nullable: true
+        template_set_id:
+          type: string
+        language:
+          type: string
+          description: Target language for contextual translation (defaults to English)
+
+    UpdatePresetRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        system_instructions:
+          type: string
+        suggested_theme_id:
+          type: string
+          nullable: true
+        template_set_id:
+          type: string
+        language:
+          type: string
+          description: Target language for contextual translation
+
+    TailoringStrategy:
+      type: object
+      required:
+        - id
+        - user_id
+        - name
+        - system_instructions
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        system_instructions:
+          type: string
+        suggested_theme_id:
+          type: string
+          nullable: true
+        template_set_id:
+          type: string
+        language:
+          type: string
+          description: Target language for contextual translation (defaults to English)
+        is_built_in:
+          type: boolean
+          description: Whether this is a system-provided built-in tailoring strategy
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateStrategyRequest:
+      type: object
+      required:
+        - name
+        - system_instructions
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        system_instructions:
+          type: string
+        suggested_theme_id:
+          type: string
+          nullable: true
+        template_set_id:
+          type: string
+        language:
+          type: string
+          description: Target language for contextual translation (defaults to English)
+
+    UpdateStrategyRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        system_instructions:
+          type: string
+        suggested_theme_id:
+          type: string
+          nullable: true
+        template_set_id:
+          type: string
+        language:
+          type: string
+          description: Target language for contextual translation
+
+    TemplateSet:
+      type: object
+      required:
+        - id
+        - user_id
+        - name
+        - html_template
+        - markdown_template
+        - text_template
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        is_built_in:
+          type: boolean
+        html_template:
+          type: string
+        css_styles:
+          type: string
+        markdown_template:
+          type: string
+        text_template:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateTemplateRequest:
+      type: object
+      required:
+        - name
+        - html_template
+        - markdown_template
+        - text_template
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        html_template:
+          type: string
+        css_styles:
+          type: string
+        markdown_template:
+          type: string
+        text_template:
+          type: string
+
+    UpdateTemplateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        html_template:
+          type: string
+        css_styles:
+          type: string
+        markdown_template:
+          type: string
+        text_template:
+          type: string
+
+    Branch:
+      type: object
+      required:
+        - id
+        - user_id
+        - name
+        - template_set_id
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        name:
+          type: string
+          example: "Stripe - Staff Backend Engineer"
+        target_role:
+          type: string
+        target_company:
+          type: string
+        target_requirements:
+          type: string
+        branch_instructions:
+          type: string
+        custom_directives:
+          type: string
+        preset_id:
+          type: string
+          nullable: true
+        tailoring_strategy_id:
+          type: string
+          nullable: true
+        template_set_id:
+          type: string
+        provider_override:
+          type: string
+        model_override:
+          type: string
+        reasoning_level:
+          type: string
+          enum:
+            - ""
+            - none
+            - low
+            - medium
+            - high
+          description: Optional reasoning effort constraint for thinking models (e.g. none, low, medium, high)
+        pinned_entity_ids:
+          type: array
+          items:
+            type: string
+        excluded_entity_ids:
+          type: array
+          items:
+            type: string
+        active_version_id:
+          type: string
+          nullable: true
+        gap_report:
+          $ref: '#/components/schemas/GapReport'
+        ats_score:
+          $ref: '#/components/schemas/ATSScore'
+        last_synced_main_revision:
+          type: integer
+          format: int64
+        is_stale:
+          type: boolean
+          description: Computed flag indicating whether main profile has advanced past last_synced_main_revision
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateBranchRequest:
+      type: object
+      required:
+        - name
+        - template_set_id
+      properties:
+        name:
+          type: string
+        target_role:
+          type: string
+        target_company:
+          type: string
+        target_requirements:
+          type: string
+        branch_instructions:
+          type: string
+        custom_directives:
+          type: string
+        preset_id:
+          type: string
+          nullable: true
+        tailoring_strategy_id:
+          type: string
+          nullable: true
+        template_set_id:
+          type: string
+        provider_override:
+          type: string
+        model_override:
+          type: string
+        reasoning_level:
+          type: string
+          enum:
+            - ""
+            - none
+            - low
+            - medium
+            - high
+          description: Optional reasoning effort constraint for thinking models (e.g. none, low, medium, high)
+        pinned_entity_ids:
+          type: array
+          items:
+            type: string
+        excluded_entity_ids:
+          type: array
+          items:
+            type: string
+
+    UpdateBranchRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        target_role:
+          type: string
+        target_company:
+          type: string
+        target_requirements:
+          type: string
+        branch_instructions:
+          type: string
+        custom_directives:
+          type: string
+        preset_id:
+          type: string
+          nullable: true
+        tailoring_strategy_id:
+          type: string
+          nullable: true
+        template_set_id:
+          type: string
+        provider_override:
+          type: string
+        model_override:
+          type: string
+        reasoning_level:
+          type: string
+          enum:
+            - ""
+            - none
+            - low
+            - medium
+            - high
+          description: Optional reasoning effort constraint for thinking models (e.g. none, low, medium, high)
+        pinned_entity_ids:
+          type: array
+          items:
+            type: string
+        excluded_entity_ids:
+          type: array
+          items:
+            type: string
+        active_version_id:
+          type: string
+
+    PromptPreviewResponse:
+      type: object
+      required:
+        - system_prompt
+        - user_prompt
+      properties:
+        system_prompt:
+          type: string
+          description: Rendered system prompt containing grounding rules and provenance constraints.
+        user_prompt:
+          type: string
+          description: Rendered user prompt containing writing rules, target requirements, and serialized profile data.
+
+    PromptPreviewRequest:
+      type: object
+      properties:
+        target_role:
+          type: string
+          description: Optional override for the target role.
+        target_company:
+          type: string
+          description: Optional override for the target company.
+        target_requirements:
+          type: string
+          description: Optional override for target requirements / job description.
+        branch_instructions:
+          type: string
+          description: Optional override for custom branch instructions.
+        custom_directives:
+          type: string
+          description: Optional override for custom branch instructions.
+        preset_id:
+          type: string
+          nullable: true
+          description: Optional override for formatting preset ID.
+        tailoring_strategy_id:
+          type: string
+          nullable: true
+          description: Optional override for tailoring strategy ID.
+        pinned_entity_ids:
+          type: array
+          items:
+            type: string
+          description: Optional override for pinned entity IDs.
+        excluded_entity_ids:
+          type: array
+          items:
+            type: string
+          description: Optional override for excluded entity IDs.
+
+    TailoredBullet:
+      type: object
+      required:
+        - text
+        - source_fact_ids
+      properties:
+        text:
+          type: string
+        source_fact_ids:
+          type: array
+          items:
+            type: string
+
+    TailoredSkillGroup:
+      type: object
+      required:
+        - category
+        - skills
+      properties:
+        category:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        source_skill_ids:
+          type: array
+          items:
+            type: string
+
+    TailoredExperience:
+      type: object
+      required:
+        - source_entity_id
+        - company
+        - role_title
+        - start_date
+        - bullet_points
+      properties:
+        source_entity_id:
+          type: string
+        company:
+          type: string
+        role_title:
+          type: string
+        employment_type:
+          $ref: '#/components/schemas/EmploymentType'
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        location:
+          $ref: '#/components/schemas/Location'
+        company_location:
+          $ref: '#/components/schemas/Location'
+        company_contact:
+          $ref: '#/components/schemas/ContactDetail'
+        hours_per_week:
+          type: integer
+        supervisor_name:
+          type: string
+        supervisor_contact:
+          type: string
+        duties_summary:
+          type: string
+        bullet_points:
+          type: array
+          items:
+            $ref: '#/components/schemas/TailoredBullet'
+
+    TailoredProject:
+      type: object
+      required:
+        - source_entity_id
+        - name
+        - bullet_points
+      properties:
+        source_entity_id:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+        url:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        bullet_points:
+          type: array
+          items:
+            $ref: '#/components/schemas/TailoredBullet'
+
+    TailoredEducation:
+      type: object
+      required:
+        - source_entity_id
+        - institution
+      properties:
+        source_entity_id:
+          type: string
+        institution:
+          type: string
+        degree:
+          type: string
+        field:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        score:
+          type: string
+        location:
+          $ref: '#/components/schemas/Location'
+        highlights:
+          type: array
+          items:
+            type: string
+
+    TailoredCert:
+      type: object
+      required:
+        - source_entity_id
+        - name
+      properties:
+        source_entity_id:
+          type: string
+        name:
+          type: string
+        issuer:
+          type: string
+        date:
+          type: string
+          format: date
+        url:
+          type: string
+
+    TailoredContent:
+      type: object
+      required:
+        - full_name
+        - headline
+        - summary
+        - skill_groups
+        - experiences
+      properties:
+        full_name:
+          type: string
+        headline:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        location:
+          $ref: '#/components/schemas/Location'
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/SocialLink'
+        summary:
+          type: string
+        skill_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/TailoredSkillGroup'
+        experiences:
+          type: array
+          items:
+            $ref: '#/components/schemas/TailoredExperience'
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/TailoredProject'
+        education:
+          type: array
+          items:
+            $ref: '#/components/schemas/TailoredEducation'
+        certifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/TailoredCert'
+
+    GapItem:
+      type: object
+      required:
+        - requirement
+        - importance
+      properties:
+        requirement:
+          type: string
+        missing_area:
+          type: string
+        importance:
+          $ref: '#/components/schemas/GapImportance'
+        clarifying_prompt:
+          type: string
+        recommended_action:
+          type: string
+
+    GapReport:
+      type: object
+      properties:
+        overall_match_summary:
+          type: string
+        match_score:
+          type: number
+          nullable: true
+          minimum: 0
+          maximum: 100
+          example: 87.5
+        missing_requirements:
+          type: array
+          items:
+            $ref: '#/components/schemas/GapItem'
+        identified_gaps:
+          type: array
+          items:
+            $ref: '#/components/schemas/GapItem'
+        strategic_recommendations:
+          type: array
+          items:
+            type: string
+        skill_coverage_ratio:
+          type: number
+          nullable: true
+
+    ATSSimulationRequest:
+      type: object
+      properties:
+        version_id:
+          type: string
+          description: Optional version ID or sequential version number (defaults to active version)
+        format:
+          type: string
+          enum:
+            - markdown
+            - html
+            - text
+          description: Optional text resume format to evaluate (defaults to markdown)
+
+    ATSExtractedExperience:
+      type: object
+      required:
+        - company
+        - title
+      properties:
+        company:
+          type: string
+        title:
+          type: string
+        date_range:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+
+    ATSExtractedEducation:
+      type: object
+      required:
+        - institution
+        - degree
+      properties:
+        institution:
+          type: string
+        degree:
+          type: string
+        field:
+          type: string
+        date_range:
+          type: string
+
+    ATSExtractedCandidate:
+      type: object
+      properties:
+        summary:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        experiences:
+          type: array
+          items:
+            $ref: '#/components/schemas/ATSExtractedExperience'
+        educations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ATSExtractedEducation'
+        certifications:
+          type: array
+          items:
+            type: string
+
+    ATSScore:
+      type: object
+      required:
+        - extraction_confidence_score
+        - job_matching_score
+      properties:
+        extraction_confidence_score:
+          type: number
+          minimum: 0
+          maximum: 100
+          example: 92.5
+          description: Extraction confidence score ranging from 0 to 100%
+        job_matching_score:
+          type: number
+          minimum: 0
+          maximum: 100
+          example: 86.0
+          description: Perceived job matching score ranging from 0 to 100%
+        format_used:
+          type: string
+          example: markdown
+        extraction_summary:
+          type: string
+        matching_summary:
+          type: string
+        extracted_candidate:
+          $ref: '#/components/schemas/ATSExtractedCandidate'
+        evaluated_at:
+          type: string
+          format: date-time
+
+    BranchVersion:
+      type: object
+      required:
+        - id
+        - branch_id
+        - version_number
+        - status
+      properties:
+        id:
+          type: string
+        branch_id:
+          type: string
+        version_number:
+          type: integer
+        status:
+          $ref: '#/components/schemas/VersionStatus'
+        main_revision_used:
+          type: integer
+          format: int64
+        template_set_id_used:
+          type: string
+        provider_used:
+          type: string
+        model_used:
+          type: string
+        source_type:
+          $ref: '#/components/schemas/SourceType'
+        parent_version_id:
+          type: string
+          nullable: true
+        tailored_content:
+          $ref: '#/components/schemas/TailoredContent'
+        gap_report:
+          $ref: '#/components/schemas/GapReport'
+        ats_score:
+          $ref: '#/components/schemas/ATSScore'
+        validation_warnings:
+          type: array
+          items:
+            type: string
+        error_message:
+          type: string
+        html_output:
+          type: string
+        markdown_output:
+          type: string
+        plain_text_output:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    AsyncJobEnqueued:
+      type: object
+      required:
+        - version_id
+        - status
+        - message
+      properties:
+        version_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/VersionStatus'
+        message:
+          type: string
+          example: "Resume generation job queued"
+
+    AsyncPDFJobResponse:
+      type: object
+      required:
+        - job_id
+        - status
+        - message
+      properties:
+        job_id:
+          type: string
+          example: "pdf-job-7a3b8c4d-1234-5678-90ab-cdef12345678"
+        status:
+          $ref: '#/components/schemas/PDFParseJobStatus'
+        message:
+          type: string
+          example: "PDF parsing job queued"
+
+    PDFParseJobStatus:
+      type: string
+      enum:
+        - pending
+        - processing
+        - completed
+        - failed
+      example: "pending"
+
+    PDFParseJob:
+      type: object
+      required:
+        - id
+        - user_id
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          example: "pdf-job-7a3b8c4d-1234-5678-90ab-cdef12345678"
+        user_id:
+          type: string
+          example: "default"
+        status:
+          $ref: '#/components/schemas/PDFParseJobStatus'
+        filename:
+          type: string
+          example: "resume.pdf"
+        provider:
+          type: string
+          example: "google"
+        model:
+          type: string
+          example: "gemini-4-argon"
+        result:
+          type: object
+          description: Structured JSON Resume extracted by LLM
+          nullable: true
+        error_message:
+          type: string
+          description: Technical error message if parsing failed
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    SyncBranchesRequest:
+      type: object
+      properties:
+        branch_ids:
+          type: array
+          items:
+            type: string
+          description: Optional list of branch UUIDs to sync. If omitted, all stale branches are queued.
+
+    SyncBranchesResponse:
+      type: object
+      required:
+        - enqueued_count
+        - version_ids
+      properties:
+        enqueued_count:
+          type: integer
+        version_ids:
+          type: array
+          items:
+            type: string
+
+    EditVersionRequest:
+      type: object
+      required:
+        - tailored_content
+      properties:
+        tailored_content:
+          $ref: '#/components/schemas/TailoredContent'
+
+    MainProfileSnapshot:
+      type: object
+      required:
+        - profile
+        - main_revision
+        - exported_at
+      properties:
+        profile:
+          $ref: '#/components/schemas/Profile'
+        main_revision:
+          type: integer
+          format: int64
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/Skill'
+        experiences:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkExperience'
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        education:
+          type: array
+          items:
+            $ref: '#/components/schemas/Education'
+        certifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Certification'
+        facts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Fact'
+        exported_at:
+          type: string
+          format: date-time
+
+    ErrorDetail:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: NOT_FOUND
+        message:
+          type: string
+          example: Resource was not found
+        details:
+          type: string
+          example: Additional error context or validation diagnostics
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+
+    RenderOutput:
+      type: object
+      required:
+        - html
+        - markdown
+        - plain_text
+      properties:
+        html:
+          type: string
+          description: Rendered HTML resume output
+        markdown:
+          type: string
+          description: Rendered Markdown resume output
+        plain_text:
+          type: string
+          description: Rendered plain text ATS output
+
+    RenderPreviewRequest:
+      type: object
+      required:
+        - template_set_id
+      properties:
+        template_set_id:
+          type: string
+          description: Template set ID to ephemerally render with
+
+    RenderTemplatePreviewRequest:
+      type: object
+      properties:
+        template_id:
+          type: string
+        html_template:
+          type: string
+        css_styles:
+          type: string
+        markdown_template:
+          type: string
+        text_template:
+          type: string
+
