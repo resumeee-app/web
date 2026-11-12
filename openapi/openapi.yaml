@@ -2299,12 +2299,6 @@ components:
           type: string
         global_writing_rules:
           type: string
-        default_provider:
-          type: string
-          default: gemini
-        default_model:
-          type: string
-          default: gemini-3.8-flash
         main_revision:
           type: integer
           format: int64
@@ -2337,10 +2331,6 @@ components:
         summary:
           type: string
         global_writing_rules:
-          type: string
-        default_provider:
-          type: string
-        default_model:
           type: string
         metadata:
           type: object

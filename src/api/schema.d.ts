@@ -1193,10 +1193,6 @@ export interface components {
             profiles?: components["schemas"]["SocialLink"][];
             summary?: string;
             global_writing_rules?: string;
-            /** @default gemini */
-            default_provider: string;
-            /** @default gemini-3.8-flash */
-            default_model: string;
             /** Format: int64 */
             main_revision: number;
             metadata?: Record<string, never>;
@@ -1214,8 +1210,6 @@ export interface components {
             profiles?: components["schemas"]["SocialLink"][];
             summary?: string;
             global_writing_rules?: string;
-            default_provider?: string;
-            default_model?: string;
             metadata?: Record<string, never>;
         };
         Skill: {

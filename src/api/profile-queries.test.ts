@@ -37,8 +37,6 @@ const mockSnapshot: components["schemas"]["MainProfileSnapshot"] = {
     user_id: "user-1",
     full_name: "Grace Hopper",
     headline: "Computer Scientist",
-    default_provider: "gemini",
-    default_model: "gemini-3.8-flash",
     main_revision: 1,
   },
   main_revision: 1,

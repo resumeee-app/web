@@ -63,8 +63,6 @@ describe("HomePage Dashboard Integration & Views", () => {
       full_name: "Alex Morgan",
       headline: "Staff Distributed Systems Engineer",
       email: "alex.morgan@example.com",
-      default_provider: "gemini",
-      default_model: "gemini-3.8-flash",
       main_revision: 5,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: "2026-11-01T00:00:00Z",

@@ -172,8 +172,6 @@ describe("render-queries API hooks", () => {
           user_id: "u-1",
           full_name: "Jane Doe",
           main_revision: 5,
-          default_provider: "anthropic",
-          default_model: "claude-3-5-sonnet",
           created_at: "2026-01-01T00:00:00Z",
           updated_at: "2026-01-01T00:00:00Z",
         },

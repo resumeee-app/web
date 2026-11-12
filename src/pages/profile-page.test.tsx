@@ -31,8 +31,6 @@ const mockFullSnapshot: components["schemas"]["MainProfileSnapshot"] = {
     profiles: [
       { network: "GitHub", url: "https://github.com/alan-turing" },
     ],
-    default_provider: "gemini",
-    default_model: "gemini-3.8-flash",
     main_revision: 2,
   },
   main_revision: 2,
@@ -573,8 +571,6 @@ describe("ProfilePage", () => {
         user_id: "user-new",
         full_name: "",
         headline: "",
-        default_provider: "gemini",
-        default_model: "gemini-3.8-flash",
         main_revision: 0,
       },
       main_revision: 0,
