@@ -12,6 +12,19 @@ RUN npm ci
 # Copy application source code and configurations
 COPY . .
 
+# Build-time Vite environment variables
+ARG VITE_API_BASE_URL=/api/v1
+ARG ADMIN_MODE=true
+ARG FIREBASE_PROJECT_ID=
+ARG FIREBASE_API_KEY=
+ARG FIREBASE_AUTH_DOMAIN=
+
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL} \
+    ADMIN_MODE=${ADMIN_MODE} \
+    FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID} \
+    FIREBASE_API_KEY=${FIREBASE_API_KEY} \
+    FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}
+
 # Compile production SPA bundle
 RUN npm run build
 
