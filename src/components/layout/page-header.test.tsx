@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import { axe } from "vitest-axe";
 import { PageHeader } from "./page-header";
 import { LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -104,9 +105,35 @@ describe("PageHeader", () => {
       />
     );
 
-    const actionContainer = screen.getByRole("button", {
-      name: "Import JSON Resume",
-    }).parentElement;
+    const actionContainer = screen.getByRole("group", { name: "Page actions" });
+    expect(
+      within(actionContainer).getByRole("button", { name: "Import PDF Resume" })
+    ).toBeInTheDocument();
+    expect(
+      within(actionContainer).getByRole("button", { name: "Import JSON Resume" })
+    ).toBeInTheDocument();
+    expect(
+      within(actionContainer).getByRole("button", { name: "Save Changes" })
+    ).toBeInTheDocument();
     expect(actionContainer).toHaveClass("flex", "flex-wrap");
+  });
+
+  it("passes axe-core accessibility audit with zero violations", async () => {
+    const { container } = render(
+      <PageHeader
+        title="Main Profile"
+        description="Manage career records"
+        icon={LayoutDashboard}
+        actions={
+          <>
+            <Button>Import PDF Resume</Button>
+            <Button>Import JSON Resume</Button>
+          </>
+        }
+      />
+    );
+
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
   });
 });

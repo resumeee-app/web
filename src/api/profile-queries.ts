@@ -5,7 +5,7 @@ import {
   type UseQueryResult,
   type UseMutationResult,
 } from "@tanstack/react-query";
-import { api } from "./client";
+import { api, extractApiErrorMessage } from "./client";
 import { branchKeys } from "./branch-queries";
 import type { components } from "./schema";
 
@@ -628,8 +628,8 @@ export interface JSONResume {
   /** Optional JSON Resume schema URL */
   $schema?: string;
   /** Personal contact, title, and identity details */
-  basics: {
-    name: string;
+  basics?: {
+    name?: string;
     label?: string;
     image?: string;
     email?: string;
@@ -741,10 +741,26 @@ export interface JSONResume {
   }>;
   /** Arbitrary metadata */
   meta?: Record<string, unknown>;
+  /** Additional custom top-level extensions preserved across round-trip import/export */
+  [key: string]: unknown;
 }
 
 /** Maximum allowed upload file size for candidate PDF resumes (10 megabytes) */
 export const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024;
+
+function validateUploadFileBounds(
+  file: File,
+  emptyMessage: string,
+  maxBytes: number
+): string | null {
+  if (file.size <= 0) {
+    return emptyMessage;
+  }
+  if (file.size > maxBytes) {
+    return "File exceeds maximum allowed size (10MB)";
+  }
+  return null;
+}
 
 /**
  * Validates candidate PDF file boundary invariants prior to network dispatch.
@@ -759,13 +775,11 @@ export function validatePDFFile(file: File): string | null {
   if (!isPdfExtension && !isPdfMime) {
     return "Only PDF files are supported";
   }
-  if (file.size <= 0) {
-    return "The selected PDF file is empty.";
-  }
-  if (file.size > MAX_PDF_SIZE_BYTES) {
-    return "File exceeds maximum allowed size (10MB)";
-  }
-  return null;
+  return validateUploadFileBounds(
+    file,
+    "The selected PDF file is empty.",
+    MAX_PDF_SIZE_BYTES
+  );
 }
 
 /**
@@ -969,21 +983,88 @@ export function useCommitPDFResume(): UseMutationResult<
 }
 
 /** Maximum allowed upload/paste payload size for JSON Resume documents (10 megabytes). */
-export const MAX_JSON_RESUME_SIZE_BYTES = 10 * 1024 * 1024;
+export const MAX_JSON_RESUME_SIZE_BYTES = MAX_PDF_SIZE_BYTES;
 
-const JSON_RESUME_ARRAY_SECTIONS = [
-  "work",
-  "volunteer",
-  "education",
-  "awards",
-  "certificates",
-  "publications",
-  "skills",
-  "languages",
-  "interests",
-  "references",
-  "projects",
-] as const;
+interface SectionFieldSchema {
+  strings: readonly string[];
+  stringArrays?: readonly string[];
+}
+
+const JSON_RESUME_SECTION_FIELDS: Record<string, SectionFieldSchema> = {
+  work: {
+    strings: [
+      "name",
+      "company",
+      "position",
+      "url",
+      "startDate",
+      "endDate",
+      "summary",
+      "location",
+    ],
+    stringArrays: ["highlights"],
+  },
+  volunteer: {
+    strings: [
+      "organization",
+      "position",
+      "url",
+      "startDate",
+      "endDate",
+      "summary",
+    ],
+    stringArrays: ["highlights"],
+  },
+  education: {
+    strings: [
+      "institution",
+      "url",
+      "area",
+      "studyType",
+      "startDate",
+      "endDate",
+      "score",
+    ],
+    stringArrays: ["courses", "highlights"],
+  },
+  awards: {
+    strings: ["title", "date", "awarder", "summary"],
+  },
+  certificates: {
+    strings: ["name", "date", "issuer", "url"],
+  },
+  publications: {
+    strings: ["name", "publisher", "releaseDate", "url", "summary"],
+  },
+  skills: {
+    strings: ["name", "level"],
+    stringArrays: ["keywords"],
+  },
+  languages: {
+    strings: ["language", "fluency"],
+  },
+  interests: {
+    strings: ["name"],
+    stringArrays: ["keywords"],
+  },
+  references: {
+    strings: ["name", "reference"],
+  },
+  projects: {
+    strings: [
+      "name",
+      "description",
+      "startDate",
+      "endDate",
+      "url",
+      "entity",
+      "type",
+    ],
+    stringArrays: ["highlights", "keywords", "roles"],
+  },
+};
+
+const JSON_RESUME_ARRAY_SECTIONS = Object.keys(JSON_RESUME_SECTION_FIELDS);
 
 /**
  * Validates candidate JSON Resume file metadata prior to reading or dispatching over the network.
@@ -1003,13 +1084,11 @@ export function validateJSONResumeFile(file: File): string | null {
   if (!isJsonExtension && !isJsonMime) {
     return "Only JSON (.json) files are supported";
   }
-  if (file.size <= 0) {
-    return "The selected JSON file is empty.";
-  }
-  if (file.size > MAX_JSON_RESUME_SIZE_BYTES) {
-    return "File exceeds maximum allowed size (10MB)";
-  }
-  return null;
+  return validateUploadFileBounds(
+    file,
+    "The selected JSON file is empty.",
+    MAX_JSON_RESUME_SIZE_BYTES
+  );
 }
 
 /**
@@ -1036,14 +1115,109 @@ export function readFileAsText(file: File): Promise<string> {
   });
 }
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
+/**
+ * Type guard checking whether a value is a non-null, non-array plain JSON object.
+ *
+ * @param value - Unknown value to inspect.
+ * @returns True if value is a plain record object.
+ */
+export function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function validateOptionalStrings(
+  obj: Record<string, unknown>,
+  prefix: string,
+  fields: readonly string[]
+): string | null {
+  for (const field of fields) {
+    const val = obj[field];
+    if (val !== undefined && val !== null && typeof val !== "string") {
+      return `Invalid JSON Resume: "${prefix}.${field}" must be a string.`;
+    }
+  }
+  return null;
+}
+
+function validateOptionalStringArrays(
+  obj: Record<string, unknown>,
+  prefix: string,
+  fields: readonly string[]
+): string | null {
+  for (const field of fields) {
+    const val = obj[field];
+    if (val === undefined || val === null) {
+      continue;
+    }
+    if (!Array.isArray(val) || !val.every((el) => typeof el === "string")) {
+      return `Invalid JSON Resume: "${prefix}.${field}" must be an array of strings.`;
+    }
+  }
+  return null;
+}
+
+function validateBasicsSection(basics: unknown): string | null {
+  if (basics === undefined || basics === null) {
+    return null;
+  }
+  if (!isPlainObject(basics)) {
+    return 'Invalid JSON Resume: "basics" must be an object.';
+  }
+
+  const scalarErr = validateOptionalStrings(basics, "basics", [
+    "name",
+    "label",
+    "image",
+    "email",
+    "phone",
+    "url",
+    "summary",
+  ]);
+  if (scalarErr) {
+    return scalarErr;
+  }
+
+  if (basics.location !== undefined && basics.location !== null) {
+    if (!isPlainObject(basics.location)) {
+      return 'Invalid JSON Resume: "basics.location" must be an object.';
+    }
+    const locationErr = validateOptionalStrings(
+      basics.location,
+      "basics.location",
+      ["address", "postalCode", "city", "countryCode", "region"]
+    );
+    if (locationErr) {
+      return locationErr;
+    }
+  }
+
+  if (basics.profiles !== undefined && basics.profiles !== null) {
+    if (!Array.isArray(basics.profiles)) {
+      return 'Invalid JSON Resume: "basics.profiles" must be an array.';
+    }
+    for (let i = 0; i < basics.profiles.length; i++) {
+      const profile = basics.profiles[i];
+      if (!isPlainObject(profile)) {
+        return 'Invalid JSON Resume: each item in "basics.profiles" must be an object.';
+      }
+      const profileErr = validateOptionalStrings(
+        profile,
+        `basics.profiles[${i}]`,
+        ["network", "username", "url"]
+      );
+      if (profileErr) {
+        return profileErr;
+      }
+    }
+  }
+
+  return null;
 }
 
 /**
  * Parses and validates raw JSON Resume text before staging it for review or sending it to the API.
  * Enforces UTF-8 byte ceiling (10MB), valid JSON syntax, a non-empty root JSON object, and structural
- * types for core JSON Resume v1.0.0 sections (`basics`, `meta`, and array sections).
+ * types for core JSON Resume v1.0.0 sections (`$schema`, `basics`, `meta`, and array sections/items).
  * Preserves unknown/extended keys cleanly for lossless round-trip export.
  *
  * @param raw - Raw UTF-8 JSON string uploaded or pasted by the user.
@@ -1079,27 +1253,82 @@ export function parseJSONResumeText(raw: string): {
     return { error: "JSON Resume object cannot be empty." };
   }
 
-  for (const objKey of ["basics", "meta"] as const) {
-    const val = parsed[objKey];
-    if (val !== undefined && val !== null && !isPlainObject(val)) {
-      return { error: `Invalid JSON Resume: "${objKey}" must be an object.` };
+  if (
+    parsed.$schema !== undefined &&
+    parsed.$schema !== null &&
+    typeof parsed.$schema !== "string"
+  ) {
+    return { error: 'Invalid JSON Resume: "$schema" must be a string.' };
+  }
+
+  const basicsErr = validateBasicsSection(parsed.basics);
+  if (basicsErr) {
+    return { error: basicsErr };
+  }
+
+  if (parsed.meta !== undefined && parsed.meta !== null) {
+    if (!isPlainObject(parsed.meta)) {
+      return { error: 'Invalid JSON Resume: "meta" must be an object.' };
+    }
+    const metaErr = validateOptionalStrings(parsed.meta, "meta", [
+      "canonical",
+      "version",
+      "lastModified",
+    ]);
+    if (metaErr) {
+      return { error: metaErr };
     }
   }
 
   for (const section of JSON_RESUME_ARRAY_SECTIONS) {
     const val = parsed[section];
-    if (val !== undefined && val !== null && !Array.isArray(val)) {
+    if (val === undefined || val === null) {
+      continue;
+    }
+    if (!Array.isArray(val)) {
       return { error: `Invalid JSON Resume: "${section}" must be an array.` };
+    }
+
+    const fieldSchema = JSON_RESUME_SECTION_FIELDS[section];
+    if (!fieldSchema) {
+      continue;
+    }
+
+    for (let i = 0; i < val.length; i++) {
+      const item = val[i];
+      if (!isPlainObject(item)) {
+        return {
+          error: `Invalid JSON Resume: each item in "${section}" must be an object.`,
+        };
+      }
+      const strErr = validateOptionalStrings(
+        item,
+        `${section}[${i}]`,
+        fieldSchema.strings
+      );
+      if (strErr) {
+        return { error: strErr };
+      }
+      if (fieldSchema.stringArrays) {
+        const arrErr = validateOptionalStringArrays(
+          item,
+          `${section}[${i}]`,
+          fieldSchema.stringArrays
+        );
+        if (arrErr) {
+          return { error: arrErr };
+        }
+      }
     }
   }
 
-  return { data: parsed as unknown as JSONResume };
+  return { data: parsed as JSONResume };
 }
 
 /**
  * Hook to import a validated JSON Resume payload directly into the Main Profile via POST /profile/jsonresume/import.
  * Replaces existing Main Profile career entities on the backend, updates the snapshot cache, and invalidates
- * profile, skills, and branch caches so stale revision status refreshes across views.
+ * profile, skills, and branch caches on success so stale revision status refreshes across views.
  *
  * @returns TanStack UseMutationResult for importing a JSON Resume payload.
  */
@@ -1118,8 +1347,10 @@ export function useImportJSONResume(): UseMutationResult<
 
       if (error || !data) {
         throw new Error(
-          (error as { error?: { message?: string } })?.error?.message ||
+          extractApiErrorMessage(
+            error,
             "Failed to import JSON Resume into main profile"
+          )
         );
       }
 
@@ -1127,8 +1358,6 @@ export function useImportJSONResume(): UseMutationResult<
     },
     onSuccess: (snapshot) => {
       queryClient.setQueryData(PROFILE_FULL_QUERY_KEY, snapshot);
-    },
-    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: branchKeys.all });

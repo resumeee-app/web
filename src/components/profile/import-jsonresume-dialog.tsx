@@ -3,9 +3,7 @@ import {
   FileJson,
   AlertTriangle,
   Loader2,
-  FileText,
   CheckCircle2,
-  X,
   ArrowLeft,
 } from "lucide-react";
 import {
@@ -19,6 +17,7 @@ import {
   FORM_DIALOG_CONTENT_CLASS,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
   useImportJSONResume,
@@ -28,6 +27,10 @@ import {
   type JSONResume,
 } from "@/api/profile-queries";
 import { ResumeReviewSummary } from "./resume-review-summary";
+import {
+  ResumeFileDropzone,
+  useDialogTriggerFocusRestore,
+} from "./resume-file-dropzone";
 import type { components } from "@/api/schema";
 
 /**
@@ -54,6 +57,9 @@ export interface ImportJSONResumeDialogProps {
  * 2. Review parsed career items, preserved extended sections, and an explicit replacement warning
  *    before committing to `POST /api/v1/profile/jsonresume/import`.
  *
+ * Implements Radix UI `Dialog` and `Tabs` primitives, deterministic focus restoration,
+ * mid-flight dismissal/race-condition guards, and WCAG 2.1 AA dual-theme contrast styling.
+ *
  * @param props - Component configuration defined in {@link ImportJSONResumeDialogProps}.
  * @returns Accessible Radix UI modal dialog for JSON Resume import.
  */
@@ -74,38 +80,31 @@ export const ImportJSONResumeDialog: React.FC<ImportJSONResumeDialogProps> = ({
   const [validationError, setValidationError] = React.useState<string | null>(
     null
   );
-  const [isDragOver, setIsDragOver] = React.useState(false);
   const [isReadingFile, setIsReadingFile] = React.useState(false);
 
   const importMutation = useImportJSONResume();
 
-  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const isOpenRef = React.useRef(open);
   const prevOpenRef = React.useRef(open);
   const readGenRef = React.useRef(0);
-  const triggerRef = React.useRef<HTMLElement | null>(null);
-
-  React.useEffect(() => {
-    if (open) {
-      triggerRef.current = (document.activeElement as HTMLElement) || null;
-    }
-  }, [open]);
+  const importGenRef = React.useRef(0);
+  const handleCloseAutoFocus = useDialogTriggerFocusRestore(open);
 
   isOpenRef.current = open;
 
+  const isImporting = importMutation.isPending;
+  const isBusy = isImporting || isReadingFile;
+
   const resetState = React.useCallback(() => {
     readGenRef.current += 1;
+    importGenRef.current += 1;
     setStep("upload");
     setInputMode("file");
     setSelectedFile(null);
     setPastedJson("");
     setCandidateResume(null);
     setValidationError(null);
-    setIsDragOver(false);
     setIsReadingFile(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   }, []);
 
   React.useEffect(() => {
@@ -115,49 +114,18 @@ export const ImportJSONResumeDialog: React.FC<ImportJSONResumeDialogProps> = ({
     prevOpenRef.current = open;
   }, [open, resetState]);
 
-  const validateAndSetFile = (file: File) => {
-    const errorMsg = validateJSONResumeFile(file);
-    if (errorMsg) {
-      setValidationError(errorMsg);
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      onAnnouncement?.(errorMsg);
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && isBusy) {
       return;
     }
-
-    setValidationError(null);
-    setSelectedFile(file);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      validateAndSetFile(file);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      validateAndSetFile(file);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(false);
+    onOpenChange(nextOpen);
   };
 
   const handleModeSwitch = (mode: "file" | "paste") => {
+    if (isReadingFile) {
+      return;
+    }
+    readGenRef.current += 1;
     setInputMode(mode);
     setValidationError(null);
   };
@@ -204,9 +172,11 @@ export const ImportJSONResumeDialog: React.FC<ImportJSONResumeDialogProps> = ({
     setValidationError(null);
     setCandidateResume(data);
     setStep("review");
+    const candidateName =
+      typeof data.basics?.name === "string" ? data.basics.name.trim() : "";
     onAnnouncement?.(
       `JSON Resume validated for ${
-        data.basics?.name?.trim() || "candidate"
+        candidateName || "candidate"
       }. Review changes before replacing Main Profile.`
     );
   };
@@ -218,14 +188,22 @@ export const ImportJSONResumeDialog: React.FC<ImportJSONResumeDialogProps> = ({
   };
 
   const handleConfirmImport = async () => {
-    if (!candidateResume) return;
+    if (!candidateResume || isImporting) return;
+
+    const requestGen = ++importGenRef.current;
 
     try {
       const snapshot = await importMutation.mutateAsync(candidateResume);
+      if (!isOpenRef.current || requestGen !== importGenRef.current) {
+        return;
+      }
       onAnnouncement?.("JSON Resume successfully imported into Main Profile.");
       onSuccess?.(snapshot);
       onOpenChange(false);
     } catch (err) {
+      if (!isOpenRef.current || requestGen !== importGenRef.current) {
+        return;
+      }
       const msg =
         err instanceof Error
           ? err.message
@@ -235,31 +213,23 @@ export const ImportJSONResumeDialog: React.FC<ImportJSONResumeDialogProps> = ({
     }
   };
 
-  const isImporting = importMutation.isPending;
   const canProceedReview =
     inputMode === "file"
       ? Boolean(selectedFile) && !validationError && !isReadingFile
       : Boolean(pastedJson.trim()) && !validationError;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
 
       <DialogContent
         onEscapeKeyDown={(e) => {
-          if (isImporting || isReadingFile) e.preventDefault();
+          if (isBusy) e.preventDefault();
         }}
         onPointerDownOutside={(e) => {
-          if (isImporting || isReadingFile) e.preventDefault();
+          if (isBusy) e.preventDefault();
         }}
-        onCloseAutoFocus={(e) => {
-          if (triggerRef.current) {
-            e.preventDefault();
-            const el = triggerRef.current;
-            triggerRef.current = null;
-            el.focus();
-          }
-        }}
+        onCloseAutoFocus={handleCloseAutoFocus}
         className={cn(FORM_DIALOG_CONTENT_CLASS, "p-6 sm:p-8")}
       >
         {step === "upload" ? (
@@ -287,7 +257,7 @@ export const ImportJSONResumeDialog: React.FC<ImportJSONResumeDialogProps> = ({
             {/* Replace Semantics Caution Banner */}
             <div
               className="mt-2 flex items-start gap-3 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-4 text-amber-800 dark:text-amber-200 text-sm"
-              role="alert"
+              role="note"
             >
               <AlertTriangle
                 className="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5"
@@ -301,119 +271,47 @@ export const ImportJSONResumeDialog: React.FC<ImportJSONResumeDialogProps> = ({
               </div>
             </div>
 
-            {/* Input Mode Selector */}
-            <div
-              className="mt-3 flex items-center gap-2"
-              role="group"
-              aria-label="JSON Resume input mode"
+            {/* Radix Tabs Mode Selector */}
+            <Tabs
+              value={inputMode}
+              onValueChange={(value) => {
+                if (value === "file" || value === "paste") {
+                  handleModeSwitch(value);
+                }
+              }}
+              className="mt-3"
             >
-              <button
-                type="button"
-                aria-pressed={inputMode === "file"}
-                onClick={() => handleModeSwitch("file")}
-                className={cn(
-                  "rounded-md px-3 py-1.5 text-xs font-medium border transition-colors",
-                  inputMode === "file"
-                    ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300"
-                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                )}
-              >
-                Upload .json File
-              </button>
-              <button
-                type="button"
-                aria-pressed={inputMode === "paste"}
-                onClick={() => handleModeSwitch("paste")}
-                className={cn(
-                  "rounded-md px-3 py-1.5 text-xs font-medium border transition-colors",
-                  inputMode === "paste"
-                    ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300"
-                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                )}
-              >
-                Paste Raw JSON
-              </button>
-            </div>
+              <TabsList aria-label="JSON Resume input mode">
+                <TabsTrigger value="file" disabled={isReadingFile}>
+                  Upload .json File
+                </TabsTrigger>
+                <TabsTrigger value="paste" disabled={isReadingFile}>
+                  Paste Raw JSON
+                </TabsTrigger>
+              </TabsList>
 
-            {inputMode === "file" ? (
-              <div className="mt-3 space-y-3">
-                <label
-                  htmlFor="jsonresume-upload-input"
-                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-                >
-                  Select JSON Resume File (max 10MB)
-                </label>
-
-                <div
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={cn(
-                    "flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
-                    isDragOver
-                      ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30"
-                      : "border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 hover:border-slate-400 dark:hover:border-slate-600"
-                  )}
-                  tabIndex={0}
-                  role="button"
-                  aria-label="Upload JSON Resume file dropzone"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      fileInputRef.current?.click();
+              <TabsContent value="file" className="mt-3">
+                <ResumeFileDropzone
+                  inputId="jsonresume-upload-input"
+                  label="Select JSON Resume File (max 10MB)"
+                  accept=".json,application/json"
+                  dropzoneAriaLabel="Upload JSON Resume file dropzone"
+                  emptyPrompt="Click to select or drag and drop your .json resume"
+                  formatHint="JSON Resume format (.json), up to 10MB"
+                  selectedFile={selectedFile}
+                  validateFile={validateJSONResumeFile}
+                  disabled={isReadingFile}
+                  onFileValidated={(file, err) => {
+                    setSelectedFile(file);
+                    setValidationError(err);
+                    if (err) {
+                      onAnnouncement?.(err);
                     }
                   }}
-                >
-                  <FileText
-                    className="h-10 w-10 text-slate-400 dark:text-slate-500 mb-2"
-                    aria-hidden="true"
-                  />
-                  <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                    {selectedFile
-                      ? selectedFile.name
-                      : "Click to select or drag and drop your .json resume"}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    JSON Resume format (.json), up to 10MB
-                  </p>
-                </div>
-
-                <input
-                  ref={fileInputRef}
-                  id="jsonresume-upload-input"
-                  type="file"
-                  accept=".json,application/json"
-                  onChange={handleFileChange}
-                  className="sr-only"
-                  tabIndex={-1}
                 />
+              </TabsContent>
 
-                {selectedFile && (
-                  <div className="flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 p-2.5 text-xs text-slate-700 dark:text-slate-300">
-                    <span className="font-mono truncate">
-                      {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)}{" "}
-                      KB)
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedFile(null);
-                        setValidationError(null);
-                        if (fileInputRef.current) {
-                          fileInputRef.current.value = "";
-                        }
-                      }}
-                      className="p-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
-                      aria-label="Remove selected file"
-                    >
-                      <X className="h-4 w-4" aria-hidden="true" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="mt-3 space-y-2">
+              <TabsContent value="paste" className="mt-3 space-y-2">
                 <label
                   htmlFor="jsonresume-paste-input"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300"
@@ -431,10 +329,10 @@ export const ImportJSONResumeDialog: React.FC<ImportJSONResumeDialogProps> = ({
                     }
                   }}
                   placeholder='{"basics": {"name": "Jane Doe", "email": "jane@example.com"}, "work": []}'
-                  className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 font-mono text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 font-mono text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                 />
-              </div>
-            )}
+              </TabsContent>
+            </Tabs>
 
             {/* Inline Validation Error Alert */}
             {validationError && (
@@ -450,7 +348,7 @@ export const ImportJSONResumeDialog: React.FC<ImportJSONResumeDialogProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onOpenChange(false)}
+                onClick={() => handleDialogOpenChange(false)}
                 disabled={isReadingFile}
               >
                 Cancel

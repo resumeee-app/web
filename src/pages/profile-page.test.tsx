@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor, act, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -9,14 +9,18 @@ import { api } from "@/api/client";
 import { PROFILE_FULL_QUERY_KEY } from "@/api/profile-queries";
 import type { components } from "@/api/schema";
 
-vi.mock("@/api/client", () => ({
-  api: {
-    GET: vi.fn(),
-    PUT: vi.fn(),
-    POST: vi.fn(),
-    DELETE: vi.fn(),
-  },
-}));
+vi.mock("@/api/client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/api/client")>();
+  return {
+    ...actual,
+    api: {
+      GET: vi.fn(),
+      PUT: vi.fn(),
+      POST: vi.fn(),
+      DELETE: vi.fn(),
+    },
+  };
+});
 
 const mockFullSnapshot: components["schemas"]["MainProfileSnapshot"] = {
   profile: {
@@ -712,7 +716,7 @@ describe("ProfilePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders onboarding callout with Import from JSON Resume alongside Import from PDF Resume when career graph is empty", async () => {
+  it("renders onboarding callout with Import JSON Resume alongside Import from PDF Resume when career graph is empty", async () => {
     const user = userEvent.setup();
     const emptySnapshot: components["schemas"]["MainProfileSnapshot"] = {
       profile: {
@@ -734,17 +738,16 @@ describe("ProfilePage", () => {
 
     renderProfilePage(emptySnapshot);
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(/kickstart your main profile/i)
-      ).toBeInTheDocument();
+    const onboardingRegion = await screen.findByRole("region", {
+      name: /kickstart your main profile/i,
     });
-
     expect(
-      screen.getByRole("button", { name: /import from pdf resume/i })
+      within(onboardingRegion).getByRole("button", {
+        name: /import from pdf resume/i,
+      })
     ).toBeInTheDocument();
-    const onboardingJsonBtn = screen.getByRole("button", {
-      name: /import from json resume/i,
+    const onboardingJsonBtn = within(onboardingRegion).getByRole("button", {
+      name: /^import json resume$/i,
     });
     expect(onboardingJsonBtn).toBeInTheDocument();
 
@@ -755,7 +758,47 @@ describe("ProfilePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("reconciles dirty state and updates contact draft when JSON Resume is successfully imported", async () => {
+  it("hides onboarding callout when profile contains only certifications", async () => {
+    const certOnlySnapshot: components["schemas"]["MainProfileSnapshot"] = {
+      profile: {
+        id: "profile-cert",
+        user_id: "user-cert",
+        full_name: "",
+        headline: "",
+        main_revision: 1,
+      },
+      main_revision: 1,
+      skills: [],
+      experiences: [],
+      projects: [],
+      education: [],
+      certifications: [
+        {
+          id: "cert-11111111-2222-3333-4444-555555555555",
+          user_id: "user-cert",
+          name: "Certified Cryptanalyst",
+          issuer: "Bletchley Institute",
+        },
+      ],
+      facts: [],
+      exported_at: "2026-11-01T00:00:00Z",
+    };
+
+    renderProfilePage(certOnlySnapshot);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Full Name/i)).toBeInTheDocument();
+    });
+
+    expect(
+      screen.queryByRole("region", { name: /kickstart your main profile/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/kickstart your main profile/i)
+    ).not.toBeInTheDocument();
+  });
+
+  it("reconciles dirty state, validation state, contact draft, and career graph when JSON Resume is imported", async () => {
     const user = userEvent.setup();
     renderProfilePage();
 
@@ -765,8 +808,10 @@ describe("ProfilePage", () => {
 
     const nameInput = screen.getByLabelText(/Full Name/i);
     await user.clear(nameInput);
-    await user.type(nameInput, "Alan M. Turing (Draft)");
     expect(screen.getByText("Unsaved Changes")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /save changes/i })
+    ).toBeDisabled();
 
     const importedSnapshot: components["schemas"]["MainProfileSnapshot"] = {
       ...mockFullSnapshot,
@@ -778,6 +823,45 @@ describe("ProfilePage", () => {
         email: "grace@navy.mil",
         main_revision: 3,
       },
+      experiences: [
+        {
+          id: "exp-grace-1111-2222-3333-444444444444",
+          user_id: "user-1",
+          company: "US Navy",
+          role_title: "Rear Admiral",
+          start_date: "1943-12",
+          is_current: false,
+          facts: [],
+        },
+      ],
+      projects: [],
+      skills: [
+        {
+          id: "skill-grace-1111-2222-3333-444444444444",
+          user_id: "user-1",
+          name: "COBOL",
+          category: "Languages",
+        },
+      ],
+      education: [
+        {
+          id: "edu-grace-1111-2222-3333-444444444444",
+          user_id: "user-1",
+          institution: "Yale University",
+          degree: "PhD",
+          field: "Mathematics",
+          start_date: "1930-09",
+          end_date: "1934-06",
+        },
+      ],
+      certifications: [
+        {
+          id: "cert-grace-1111-2222-3333-444444444444",
+          user_id: "user-1",
+          name: "Naval Ordnance Award",
+          issuer: "US Navy",
+        },
+      ],
     };
 
     const jsonPayload = {
@@ -787,6 +871,9 @@ describe("ProfilePage", () => {
         email: "grace@navy.mil",
       },
       work: [{ name: "US Navy", position: "Mathematician" }],
+      skills: [{ name: "COBOL" }],
+      education: [{ institution: "Yale University", studyType: "PhD" }],
+      certificates: [{ name: "Naval Ordnance Award", issuer: "US Navy" }],
     };
 
     vi.mocked(api.POST).mockImplementation(async (path) => {
@@ -834,6 +921,9 @@ describe("ProfilePage", () => {
       expect(
         screen.queryByRole("heading", { name: /review json resume import/i })
       ).not.toBeInTheDocument();
+      expect(api.POST).toHaveBeenCalledWith("/profile/jsonresume/import", {
+        body: jsonPayload,
+      });
       expect(screen.queryByText("Unsaved Changes")).not.toBeInTheDocument();
       expect(screen.getByLabelText(/Full Name/i)).toHaveValue(
         "Grace Hopper"
@@ -842,6 +932,34 @@ describe("ProfilePage", () => {
         screen.getByText(/main profile replaced with imported json resume/i)
       ).toBeInTheDocument();
     });
+
+    // Verify contact validation state was reset on import by editing a valid draft field.
+    const headlineInput = screen.getByLabelText(/Headline/i);
+    await user.type(headlineInput, " (Ret.)");
+    expect(
+      screen.getByRole("button", { name: /save changes/i })
+    ).toBeEnabled();
+
+    await user.click(
+      screen.getByRole("tab", { name: /Experience & Projects/i })
+    );
+    expect(screen.getByText("US Navy")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Government Code & Cypher School")
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: /Skills/i }));
+    expect(screen.getByText("COBOL")).toBeInTheDocument();
+    expect(screen.queryByText("Cryptanalysis")).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("tab", { name: /Education & Certifications/i })
+    );
+    expect(screen.getByText("Yale University")).toBeInTheDocument();
+    expect(screen.getByText("Naval Ordnance Award")).toBeInTheDocument();
+    expect(
+      screen.queryByText("King's College, Cambridge")
+    ).not.toBeInTheDocument();
   });
 
   it("passes axe-core accessibility audit on full page render", async () => {

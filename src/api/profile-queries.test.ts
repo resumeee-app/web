@@ -10,6 +10,7 @@ import {
   useImportJSONResume,
   validatePDFFile,
   validateJSONResumeFile,
+  readFileAsText,
   parseJSONResumeText,
   pollPDFParseJobUntilFinished,
   fetchPDFParseJob,
@@ -27,14 +28,18 @@ import { branchKeys } from "./branch-queries";
 import { api } from "./client";
 import type { components } from "./schema";
 
-vi.mock("./client", () => ({
-  api: {
-    GET: vi.fn(),
-    PUT: vi.fn(),
-    POST: vi.fn(),
-    DELETE: vi.fn(),
-  },
-}));
+vi.mock("./client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./client")>();
+  return {
+    ...actual,
+    api: {
+      GET: vi.fn(),
+      PUT: vi.fn(),
+      POST: vi.fn(),
+      DELETE: vi.fn(),
+    },
+  };
+});
 
 const mockSnapshot: components["schemas"]["MainProfileSnapshot"] = {
   profile: {
@@ -211,7 +216,7 @@ describe("profile-queries", () => {
 
       const parsed = await result.current.mutateAsync({ file });
 
-      expect(parsed.basics.name).toBe("Ada Lovelace");
+      expect(parsed.basics?.name).toBe("Ada Lovelace");
       expect(api.POST).toHaveBeenCalledWith(
         "/profile/pdf/parse",
         expect.objectContaining({
@@ -295,7 +300,7 @@ describe("profile-queries", () => {
 
       const parsed = await result.current.mutateAsync({ file });
 
-      expect(parsed.basics.name).toBe("Ada Lovelace");
+      expect(parsed.basics?.name).toBe("Ada Lovelace");
       expect(api.GET).toHaveBeenCalledWith(
         "/profile/pdf/jobs/{id}",
         expect.objectContaining({
@@ -637,14 +642,12 @@ describe("profile-queries", () => {
 
       const result = parseJSONResumeText(raw);
       expect(result.error).toBeUndefined();
-      expect(result.data?.basics.name).toBe("Ada Lovelace");
+      expect(result.data?.basics?.name).toBe("Ada Lovelace");
       expect(result.data?.work?.[0]?.company).toBe("Analytical Engine Lab");
       expect(result.data?.education?.[0]?.highlights).toEqual([
         "Graduated with honors",
       ]);
-      expect(
-        (result.data as unknown as Record<string, unknown>).x_custom_key
-      ).toEqual({ flag: true });
+      expect(result.data?.x_custom_key).toEqual({ flag: true });
     });
 
     it("rejects empty or whitespace-only text", () => {
@@ -653,9 +656,11 @@ describe("profile-queries", () => {
       );
     });
 
-    it("rejects content exceeding 10MB UTF-8 bytes", () => {
-      const largeString = "a".repeat(MAX_JSON_RESUME_SIZE_BYTES + 1);
-      expect(parseJSONResumeText(largeString).error).toBe(
+    it("rejects content exceeding 10MB UTF-8 bytes even when character length is below threshold", () => {
+      const count = Math.floor(MAX_JSON_RESUME_SIZE_BYTES / 4) + 10;
+      const multiByteJson = `{"basics":{"name":"${"🚀".repeat(count)}"}}`;
+      expect(multiByteJson.length).toBeLessThan(MAX_JSON_RESUME_SIZE_BYTES);
+      expect(parseJSONResumeText(multiByteJson).error).toBe(
         "JSON content exceeds maximum allowed size (10MB)"
       );
     });
@@ -684,16 +689,43 @@ describe("profile-queries", () => {
       );
     });
 
-    it("rejects non-object basics or meta fields", () => {
+    it("rejects non-object basics or meta fields and non-string $schema", () => {
+      expect(parseJSONResumeText('{"$schema":123}').error).toBe(
+        'Invalid JSON Resume: "$schema" must be a string.'
+      );
       expect(parseJSONResumeText('{"basics":"invalid"}').error).toBe(
         'Invalid JSON Resume: "basics" must be an object.'
       );
       expect(parseJSONResumeText('{"meta":[]}').error).toBe(
         'Invalid JSON Resume: "meta" must be an object.'
       );
+      expect(parseJSONResumeText('{"meta":{"version":1}}').error).toBe(
+        'Invalid JSON Resume: "meta.version" must be a string.'
+      );
     });
 
-    it("rejects non-array standard list sections", () => {
+    it("rejects malformed nested fields inside basics", () => {
+      expect(parseJSONResumeText('{"basics":{"name":123}}').error).toBe(
+        'Invalid JSON Resume: "basics.name" must be a string.'
+      );
+      expect(parseJSONResumeText('{"basics":{"email":{"a":1}}}').error).toBe(
+        'Invalid JSON Resume: "basics.email" must be a string.'
+      );
+      expect(parseJSONResumeText('{"basics":{"location":"NYC"}}').error).toBe(
+        'Invalid JSON Resume: "basics.location" must be an object.'
+      );
+      expect(
+        parseJSONResumeText('{"basics":{"location":{"city":42}}}').error
+      ).toBe('Invalid JSON Resume: "basics.location.city" must be a string.');
+      expect(parseJSONResumeText('{"basics":{"profiles":{}}}').error).toBe(
+        'Invalid JSON Resume: "basics.profiles" must be an array.'
+      );
+      expect(parseJSONResumeText('{"basics":{"profiles":[null]}}').error).toBe(
+        'Invalid JSON Resume: each item in "basics.profiles" must be an object.'
+      );
+    });
+
+    it("rejects non-array standard list sections and malformed elements or nested arrays", () => {
       const arraySections = [
         "work",
         "volunteer",
@@ -715,6 +747,67 @@ describe("profile-queries", () => {
         expect(res.error).toBe(
           `Invalid JSON Resume: "${section}" must be an array.`
         );
+      }
+
+      expect(parseJSONResumeText('{"work":[null]}').error).toBe(
+        'Invalid JSON Resume: each item in "work" must be an object.'
+      );
+      expect(parseJSONResumeText('{"education":["Harvard"]}').error).toBe(
+        'Invalid JSON Resume: each item in "education" must be an object.'
+      );
+      expect(parseJSONResumeText('{"skills":[123]}').error).toBe(
+        'Invalid JSON Resume: each item in "skills" must be an object.'
+      );
+      expect(
+        parseJSONResumeText('{"work":[{"highlights":"led team"}]}').error
+      ).toBe('Invalid JSON Resume: "work[0].highlights" must be an array of strings.');
+      expect(
+        parseJSONResumeText('{"education":[{"courses":[123]}]}').error
+      ).toBe('Invalid JSON Resume: "education[0].courses" must be an array of strings.');
+    });
+  });
+
+  describe("readFileAsText", () => {
+    it("reads file text using native File.prototype.text when available", async () => {
+      const file = new File(['{"basics":{"name":"Ada"}}'], "ada.json", {
+        type: "application/json",
+      });
+      await expect(readFileAsText(file)).resolves.toBe(
+        '{"basics":{"name":"Ada"}}'
+      );
+    });
+
+    it("falls back to FileReader when file.text is unavailable and propagates read errors", async () => {
+      const file = new File(['{"skills":[{"name":"Go"}]}'], "skills.json", {
+        type: "application/json",
+      });
+      Object.defineProperty(file, "text", {
+        value: undefined,
+        configurable: true,
+      });
+
+      await expect(readFileAsText(file)).resolves.toBe(
+        '{"skills":[{"name":"Go"}]}'
+      );
+
+      class FailingFileReader {
+        result: string | ArrayBuffer | null = null;
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        readAsText() {
+          queueMicrotask(() => {
+            this.onerror?.();
+          });
+        }
+      }
+
+      vi.stubGlobal("FileReader", FailingFileReader);
+      try {
+        await expect(readFileAsText(file)).rejects.toThrow(
+          "Failed to read selected JSON file."
+        );
+      } finally {
+        vi.unstubAllGlobals();
       }
     });
   });
@@ -781,7 +874,7 @@ describe("profile-queries", () => {
       });
     });
 
-    it("propagates backend error messages and falls back to a default message when missing", async () => {
+    it("propagates backend error messages without invalidating caches and falls back when message is missing", async () => {
       vi.mocked(api.POST).mockResolvedValueOnce({
         data: undefined,
         error: {
@@ -792,12 +885,14 @@ describe("profile-queries", () => {
         response: new Response(null, { status: 413 }),
       } as unknown as Awaited<ReturnType<typeof api.POST>>);
 
-      const { wrapper } = createWrapper();
+      const { queryClient, wrapper } = createWrapper();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
       const { result } = renderHook(() => useImportJSONResume(), { wrapper });
 
       await expect(
         result.current.mutateAsync(candidateResume)
       ).rejects.toThrow("Payload exceeds 10MB limit");
+      expect(invalidateSpy).not.toHaveBeenCalled();
 
       vi.mocked(api.POST).mockResolvedValueOnce({
         data: undefined,
@@ -808,6 +903,7 @@ describe("profile-queries", () => {
       await expect(
         result.current.mutateAsync(candidateResume)
       ).rejects.toThrow("Failed to import JSON Resume into main profile");
+      expect(invalidateSpy).not.toHaveBeenCalled();
     });
   });
 

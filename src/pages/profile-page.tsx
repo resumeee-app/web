@@ -14,7 +14,11 @@ import { useBlocker, UNSAFE_DataRouterContext } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ContactForm, type ContactFormData } from "@/components/profile/contact-form";
+import {
+  ContactForm,
+  validateContact,
+  type ContactFormData,
+} from "@/components/profile/contact-form";
 import { ExperienceList } from "@/components/profile/experience-list";
 import { ProjectsList } from "@/components/profile/projects-list";
 import { SkillsManager } from "@/components/profile/skills-manager";
@@ -217,6 +221,15 @@ export const ProfilePage: React.FC = () => {
     setAnnouncement(message);
   }, []);
 
+  const syncDraftFromProfile = React.useCallback(
+    (profile: components["schemas"]["Profile"]) => {
+      const nextDraft = profileToContactDraft(profile);
+      setContactDraft(nextDraft);
+      setIsValid(Object.keys(validateContact(nextDraft)).length === 0);
+    },
+    []
+  );
+
   const handleImportedSnapshot = React.useCallback(
     (
       newSnapshot: components["schemas"]["MainProfileSnapshot"] | undefined,
@@ -224,19 +237,21 @@ export const ProfilePage: React.FC = () => {
     ) => {
       setIsDirty(false);
       if (newSnapshot?.profile) {
-        setContactDraft(profileToContactDraft(newSnapshot.profile));
+        syncDraftFromProfile(newSnapshot.profile);
+      } else {
+        setIsValid(true);
       }
       announce(message);
     },
-    [announce]
+    [announce, syncDraftFromProfile]
   );
 
   // Sync draft whenever server profile loads
   React.useEffect(() => {
     if (snapshot?.profile && !isDirty) {
-      setContactDraft(profileToContactDraft(snapshot.profile));
+      syncDraftFromProfile(snapshot.profile);
     }
-  }, [snapshot?.profile, isDirty]);
+  }, [snapshot?.profile, isDirty, syncDraftFromProfile]);
 
   // Window beforeunload guard to protect unsaved work on refresh or tab close
   React.useEffect(() => {
@@ -282,7 +297,7 @@ export const ProfilePage: React.FC = () => {
 
   const handleDiscardChanges = () => {
     if (snapshot?.profile) {
-      setContactDraft(profileToContactDraft(snapshot.profile));
+      syncDraftFromProfile(snapshot.profile);
     }
     setIsDirty(false);
     setDiscardDialogOpen(false);
@@ -411,9 +426,15 @@ export const ProfilePage: React.FC = () => {
 
       {/* Onboarding Callout for Empty Career Graph */}
       {isCareerGraphEmpty && (
-        <div className="rounded-lg border border-indigo-200 dark:border-indigo-900 bg-indigo-50/60 dark:bg-indigo-950/40 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <section
+          aria-labelledby="profile-onboarding-heading"
+          className="rounded-lg border border-indigo-200 dark:border-indigo-900 bg-indigo-50/60 dark:bg-indigo-950/40 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        >
           <div className="space-y-1">
-            <h2 className="text-base font-semibold text-indigo-900 dark:text-indigo-200">
+            <h2
+              id="profile-onboarding-heading"
+              className="text-base font-semibold text-indigo-900 dark:text-indigo-200"
+            >
               Kickstart Your Main Profile
             </h2>
             <p className="text-sm text-indigo-700 dark:text-indigo-300">
@@ -435,10 +456,10 @@ export const ProfilePage: React.FC = () => {
               className="gap-1.5"
             >
               <FileJson className="h-4 w-4" aria-hidden="true" />
-              <span>Import from JSON Resume</span>
+              <span>Import JSON Resume</span>
             </Button>
           </div>
-        </div>
+        </section>
       )}
 
       {/* Navigation Tabs */}

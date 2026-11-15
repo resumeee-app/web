@@ -3,11 +3,13 @@ import {
   FileUp,
   AlertTriangle,
   Loader2,
-  FileText,
   CheckCircle2,
-  X,
 } from "lucide-react";
 import { ResumeReviewSummary } from "./resume-review-summary";
+import {
+  ResumeFileDropzone,
+  useDialogTriggerFocusRestore,
+} from "./resume-file-dropzone";
 import {
   Dialog,
   DialogContent,
@@ -64,31 +66,22 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [candidateResume, setCandidateResume] = React.useState<JSONResume | null>(null);
   const [validationError, setValidationError] = React.useState<string | null>(null);
-  const [isDragOver, setIsDragOver] = React.useState(false);
 
   const parseMutation = useParsePDFResume();
   const commitMutation = useCommitPDFResume();
 
-  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const isOpenRef = React.useRef(open);
   const prevOpenRef = React.useRef(open);
   const parseGenRef = React.useRef(0);
   const abortControllerRef = React.useRef<AbortController | null>(null);
-  const triggerRef = React.useRef<HTMLElement | null>(null);
-
-  React.useEffect(() => {
-    if (open) {
-      triggerRef.current = (document.activeElement as HTMLElement) || null;
-    }
-  }, [open]);
+  const handleCloseAutoFocus = useDialogTriggerFocusRestore(open);
 
   // Synchronize open state ref
   isOpenRef.current = open;
 
   /**
    * Resets all internal dialog staging state, increments request generation counter to discard
-   * in-flight parse operations, cancels active network polling via AbortController,
-   * and clears the native DOM file input value.
+   * in-flight parse operations, and cancels active network polling via AbortController.
    */
   const resetState = React.useCallback(() => {
     parseGenRef.current += 1;
@@ -100,10 +93,6 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
     setSelectedFile(null);
     setCandidateResume(null);
     setValidationError(null);
-    setIsDragOver(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   }, []);
 
   // Cancel any active parse request when unmounting
@@ -123,47 +112,6 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
     }
     prevOpenRef.current = open;
   }, [open, resetState]);
-
-  const validateAndSetFile = (file: File) => {
-    const errorMsg = validatePDFFile(file);
-    if (errorMsg) {
-      setValidationError(errorMsg);
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      return;
-    }
-
-    setValidationError(null);
-    setSelectedFile(file);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      validateAndSetFile(file);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      validateAndSetFile(file);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
 
   const handleParse = async () => {
     if (!selectedFile) return;
@@ -251,14 +199,7 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
         onPointerDownOutside={(e) => {
           if (isParsing) e.preventDefault();
         }}
-        onCloseAutoFocus={(e) => {
-          if (triggerRef.current) {
-            e.preventDefault();
-            const el = triggerRef.current;
-            triggerRef.current = null;
-            el.focus();
-          }
-        }}
+        onCloseAutoFocus={handleCloseAutoFocus}
         className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 p-6 sm:p-8"
       >
         {step === "upload" ? (
@@ -296,70 +237,21 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
 
             {/* File Drag & Drop / Selector */}
             <div className="mt-4 space-y-3">
-              <label
-                htmlFor="pdf-upload-input"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-              >
-                Select PDF Resume File (max 10MB)
-              </label>
-
-              <div
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => fileInputRef.current?.click()}
-                className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-                  isDragOver
-                    ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30"
-                    : "border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 hover:border-slate-400 dark:hover:border-slate-600"
-                }`}
-                tabIndex={0}
-                role="button"
-                aria-label="Upload PDF file dropzone"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    fileInputRef.current?.click();
-                  }
+              <ResumeFileDropzone
+                inputId="pdf-upload-input"
+                label="Select PDF Resume File (max 10MB)"
+                accept=".pdf,application/pdf"
+                dropzoneAriaLabel="Upload PDF file dropzone"
+                emptyPrompt="Click to select or drag and drop your PDF resume"
+                formatHint="PDF format only, up to 10MB"
+                selectedFile={selectedFile}
+                validateFile={validatePDFFile}
+                disabled={isParsing}
+                onFileValidated={(file, err) => {
+                  setSelectedFile(file);
+                  setValidationError(err);
                 }}
-              >
-                <FileText className="h-10 w-10 text-slate-400 dark:text-slate-500 mb-2" aria-hidden="true" />
-                <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                  {selectedFile ? selectedFile.name : "Click to select or drag and drop your PDF resume"}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  PDF format only, up to 10MB
-                </p>
-
-                <input
-                  ref={fileInputRef}
-                  id="pdf-upload-input"
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  onChange={handleFileChange}
-                  className="sr-only"
-                  tabIndex={-1}
-                />
-              </div>
-
-              {selectedFile && (
-                <div className="flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 p-2.5 text-xs text-slate-700 dark:text-slate-300">
-                  <span className="font-mono truncate">{selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)</span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedFile(null);
-                      setValidationError(null);
-                      if (fileInputRef.current) fileInputRef.current.value = "";
-                    }}
-                    className="p-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
-                    aria-label="Remove selected file"
-                  >
-                    <X className="h-4 w-4" aria-hidden="true" />
-                  </button>
-                </div>
-              )}
+              />
 
               {/* Validation / API Error Feedback */}
               {validationError && (
