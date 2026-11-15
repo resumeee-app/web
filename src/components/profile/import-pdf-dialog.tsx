@@ -5,12 +5,9 @@ import {
   Loader2,
   FileText,
   CheckCircle2,
-  Briefcase,
-  Wrench,
-  GraduationCap,
-  FolderGit2,
   X,
 } from "lucide-react";
+import { ResumeReviewSummary } from "./resume-review-summary";
 import {
   Dialog,
   DialogContent,
@@ -243,46 +240,6 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
   const isParsing = parseMutation.isPending;
   const isCommitting = commitMutation.isPending;
 
-  // Metric card summary configuration for the review step
-  const summaryMetrics = [
-    {
-      key: "work",
-      label:
-        (candidateResume?.work?.length || 0) === 1
-          ? "1 Work Experience"
-          : `${candidateResume?.work?.length || 0} Work Experiences`,
-      count: candidateResume?.work?.length || 0,
-      icon: Briefcase,
-    },
-    {
-      key: "skills",
-      label:
-        (candidateResume?.skills?.length || 0) === 1
-          ? "1 Skill"
-          : `${candidateResume?.skills?.length || 0} Skills`,
-      count: candidateResume?.skills?.length || 0,
-      icon: Wrench,
-    },
-    {
-      key: "education",
-      label:
-        (candidateResume?.education?.length || 0) === 1
-          ? "1 Education"
-          : `${candidateResume?.education?.length || 0} Education`,
-      count: candidateResume?.education?.length || 0,
-      icon: GraduationCap,
-    },
-    {
-      key: "projects",
-      label:
-        (candidateResume?.projects?.length || 0) === 1
-          ? "1 Project"
-          : `${candidateResume?.projects?.length || 0} Projects`,
-      count: candidateResume?.projects?.length || 0,
-      icon: FolderGit2,
-    },
-  ];
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
@@ -480,57 +437,9 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
 
             {/* Extracted Details Preview Cards */}
             <div className="mt-4 space-y-4">
-              {/* Basics Card with Defensive Optional Chaining */}
-              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4 space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Personal Details
-                </h4>
-                <div className="text-base font-semibold text-slate-900 dark:text-slate-100">
-                  {candidateResume?.basics?.name || "Unnamed Candidate"}
-                </div>
-                {candidateResume?.basics?.label && (
-                  <div className="text-sm text-slate-700 dark:text-slate-300">
-                    {candidateResume.basics.label}
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400 pt-1">
-                  {candidateResume?.basics?.email && (
-                    <span>📧 {candidateResume.basics.email}</span>
-                  )}
-                  {candidateResume?.basics?.phone && (
-                    <span>📞 {candidateResume.basics.phone}</span>
-                  )}
-                  {candidateResume?.basics?.location?.city && (
-                    <span>
-                      📍 {candidateResume.basics.location.city}
-                      {candidateResume.basics.location.region ? `, ${candidateResume.basics.location.region}` : ""}
-                    </span>
-                  )}
-                </div>
-                {candidateResume?.basics?.summary && (
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 line-clamp-3">
-                    {candidateResume.basics.summary}
-                  </p>
-                )}
-              </div>
-
-              {/* DRY Summary Metric Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {summaryMetrics.map(({ key, label, count, icon: Icon }) => (
-                  <div
-                    key={key}
-                    className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 text-center"
-                  >
-                    <Icon className="h-4 w-4 mx-auto text-slate-400 dark:text-slate-500 mb-1" aria-hidden="true" />
-                    <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                      {count}
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                      {label}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {candidateResume && (
+                <ResumeReviewSummary resume={candidateResume} />
+              )}
 
               {/* Error Alert if commit fails */}
               {validationError && (

@@ -6,6 +6,7 @@ import {
   type UseMutationResult,
 } from "@tanstack/react-query";
 import { api } from "./client";
+import { branchKeys } from "./branch-queries";
 import type { components } from "./schema";
 
 /**
@@ -680,6 +681,7 @@ export interface JSONResume {
     endDate?: string;
     score?: string;
     courses?: string[];
+    highlights?: string[];
   }>;
   /** Awards and honors */
   awards?: Array<{
@@ -962,6 +964,174 @@ export function useCommitPDFResume(): UseMutationResult<
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
+    },
+  });
+}
+
+/** Maximum allowed upload/paste payload size for JSON Resume documents (10 megabytes). */
+export const MAX_JSON_RESUME_SIZE_BYTES = 10 * 1024 * 1024;
+
+const JSON_RESUME_ARRAY_SECTIONS = [
+  "work",
+  "volunteer",
+  "education",
+  "awards",
+  "certificates",
+  "publications",
+  "skills",
+  "languages",
+  "interests",
+  "references",
+  "projects",
+] as const;
+
+/**
+ * Validates candidate JSON Resume file metadata prior to reading or dispatching over the network.
+ * Accepts `.json` filenames (including OSes that report `text/plain` or empty MIME) or JSON MIME types,
+ * enforces non-empty payloads, and bounds size to the backend 10MB limit.
+ *
+ * @param file - Candidate File object to validate.
+ * @returns Human-readable validation error string if invalid, or null if valid.
+ */
+export function validateJSONResumeFile(file: File): string | null {
+  const isJsonExtension = file.name.toLowerCase().endsWith(".json");
+  const isJsonMime =
+    file.type === "application/json" ||
+    file.type === "application/schema+json" ||
+    file.type === "text/json";
+
+  if (!isJsonExtension && !isJsonMime) {
+    return "Only JSON (.json) files are supported";
+  }
+  if (file.size <= 0) {
+    return "The selected JSON file is empty.";
+  }
+  if (file.size > MAX_JSON_RESUME_SIZE_BYTES) {
+    return "File exceeds maximum allowed size (10MB)";
+  }
+  return null;
+}
+
+/**
+ * Reads a File instance as UTF-8 text, supporting both `File.prototype.text()` and `FileReader` fallback
+ * for older or constrained jsdom test environments.
+ *
+ * @param file - File to read as UTF-8 text.
+ * @returns Promise resolving to the raw UTF-8 text contents.
+ */
+export function readFileAsText(file: File): Promise<string> {
+  if (typeof file.text === "function") {
+    return file.text();
+  }
+
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve(typeof reader.result === "string" ? reader.result : "");
+    };
+    reader.onerror = () => {
+      reject(new Error("Failed to read selected JSON file."));
+    };
+    reader.readAsText(file);
+  });
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Parses and validates raw JSON Resume text before staging it for review or sending it to the API.
+ * Enforces UTF-8 byte ceiling (10MB), valid JSON syntax, a non-empty root JSON object, and structural
+ * types for core JSON Resume v1.0.0 sections (`basics`, `meta`, and array sections).
+ * Preserves unknown/extended keys cleanly for lossless round-trip export.
+ *
+ * @param raw - Raw UTF-8 JSON string uploaded or pasted by the user.
+ * @returns Object containing either parsed `data` or an actionable validation `error` message.
+ */
+export function parseJSONResumeText(raw: string): {
+  data?: JSONResume;
+  error?: string;
+} {
+  if (!raw.trim()) {
+    return { error: "JSON Resume content is empty." };
+  }
+
+  if (new TextEncoder().encode(raw).byteLength > MAX_JSON_RESUME_SIZE_BYTES) {
+    return { error: "JSON content exceeds maximum allowed size (10MB)" };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return {
+      error:
+        "Invalid JSON syntax. Please upload or paste a valid JSON Resume (.json) document.",
+    };
+  }
+
+  if (!isPlainObject(parsed)) {
+    return { error: "JSON Resume root must be a JSON object." };
+  }
+
+  if (Object.keys(parsed).length === 0) {
+    return { error: "JSON Resume object cannot be empty." };
+  }
+
+  for (const objKey of ["basics", "meta"] as const) {
+    const val = parsed[objKey];
+    if (val !== undefined && val !== null && !isPlainObject(val)) {
+      return { error: `Invalid JSON Resume: "${objKey}" must be an object.` };
+    }
+  }
+
+  for (const section of JSON_RESUME_ARRAY_SECTIONS) {
+    const val = parsed[section];
+    if (val !== undefined && val !== null && !Array.isArray(val)) {
+      return { error: `Invalid JSON Resume: "${section}" must be an array.` };
+    }
+  }
+
+  return { data: parsed as unknown as JSONResume };
+}
+
+/**
+ * Hook to import a validated JSON Resume payload directly into the Main Profile via POST /profile/jsonresume/import.
+ * Replaces existing Main Profile career entities on the backend, updates the snapshot cache, and invalidates
+ * profile, skills, and branch caches so stale revision status refreshes across views.
+ *
+ * @returns TanStack UseMutationResult for importing a JSON Resume payload.
+ */
+export function useImportJSONResume(): UseMutationResult<
+  components["schemas"]["MainProfileSnapshot"],
+  Error,
+  JSONResume
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (resume: JSONResume) => {
+      const { data, error } = await api.POST("/profile/jsonresume/import", {
+        body: resume as unknown as Record<string, never>,
+      });
+
+      if (error || !data) {
+        throw new Error(
+          (error as { error?: { message?: string } })?.error?.message ||
+            "Failed to import JSON Resume into main profile"
+        );
+      }
+
+      return data;
+    },
+    onSuccess: (snapshot) => {
+      queryClient.setQueryData(PROFILE_FULL_QUERY_KEY, snapshot);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: PROFILE_FULL_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SKILLS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: branchKeys.all });
     },
   });
 }

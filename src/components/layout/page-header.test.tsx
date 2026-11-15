@@ -89,4 +89,24 @@ describe("PageHeader", () => {
       "pb-5"
     );
   });
+
+  it("enables wrapping on the actions container when multiple action buttons are provided", () => {
+    render(
+      <PageHeader
+        title="Main Profile"
+        actions={
+          <>
+            <Button>Import PDF Resume</Button>
+            <Button>Import JSON Resume</Button>
+            <Button>Save Changes</Button>
+          </>
+        }
+      />
+    );
+
+    const actionContainer = screen.getByRole("button", {
+      name: "Import JSON Resume",
+    }).parentElement;
+    expect(actionContainer).toHaveClass("flex", "flex-wrap");
+  });
 });

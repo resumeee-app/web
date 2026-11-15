@@ -1,5 +1,14 @@
 import * as React from "react";
-import { User, Briefcase, GraduationCap, Wrench, Save, RotateCcw, FileUp } from "lucide-react";
+import {
+  User,
+  Briefcase,
+  GraduationCap,
+  Wrench,
+  Save,
+  RotateCcw,
+  FileUp,
+  FileJson,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useBlocker, UNSAFE_DataRouterContext } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,6 +22,7 @@ import { EducationList } from "@/components/profile/education-list";
 import { CertificationsList } from "@/components/profile/certifications-list";
 import { UnsavedChangesDialog } from "@/components/profile/unsaved-changes-dialog";
 import { ImportPDFDialog } from "@/components/profile/import-pdf-dialog";
+import { ImportJSONResumeDialog } from "@/components/profile/import-jsonresume-dialog";
 import {
   PROFILE_FULL_QUERY_KEY,
   useFullProfile,
@@ -37,6 +47,23 @@ import {
   useDeleteFact,
 } from "@/api/profile-queries";
 import type { components } from "@/api/schema";
+
+/**
+ * Converts an API Profile entity into editable ContactFormData state.
+ */
+function profileToContactDraft(
+  profile: components["schemas"]["Profile"]
+): ContactFormData {
+  return {
+    full_name: profile.full_name,
+    headline: profile.headline,
+    summary: profile.summary,
+    email: profile.email,
+    phone: profile.phone,
+    location: profile.location,
+    links: profile.profiles,
+  };
+}
 
 /**
  * Evaluates whether current contact draft values differ from authoritative server snapshot.
@@ -159,8 +186,9 @@ export const ProfilePage: React.FC = () => {
   // Active tab state
   const [activeTab, setActiveTab] = React.useState("contact");
 
-  // PDF import modal state
+  // Import modal states
   const [importDialogOpen, setImportDialogOpen] = React.useState(false);
+  const [importJsonDialogOpen, setImportJsonDialogOpen] = React.useState(false);
 
   // Dirty state tracking for contact form
   const [contactDraft, setContactDraft] = React.useState<ContactFormData | null>(null);
@@ -189,18 +217,24 @@ export const ProfilePage: React.FC = () => {
     setAnnouncement(message);
   }, []);
 
+  const handleImportedSnapshot = React.useCallback(
+    (
+      newSnapshot: components["schemas"]["MainProfileSnapshot"] | undefined,
+      message: string
+    ) => {
+      setIsDirty(false);
+      if (newSnapshot?.profile) {
+        setContactDraft(profileToContactDraft(newSnapshot.profile));
+      }
+      announce(message);
+    },
+    [announce]
+  );
+
   // Sync draft whenever server profile loads
   React.useEffect(() => {
     if (snapshot?.profile && !isDirty) {
-      setContactDraft({
-        full_name: snapshot.profile.full_name,
-        headline: snapshot.profile.headline,
-        summary: snapshot.profile.summary,
-        email: snapshot.profile.email,
-        phone: snapshot.profile.phone,
-        location: snapshot.profile.location,
-        links: snapshot.profile.profiles,
-      });
+      setContactDraft(profileToContactDraft(snapshot.profile));
     }
   }, [snapshot?.profile, isDirty]);
 
@@ -248,15 +282,7 @@ export const ProfilePage: React.FC = () => {
 
   const handleDiscardChanges = () => {
     if (snapshot?.profile) {
-      setContactDraft({
-        full_name: snapshot.profile.full_name,
-        headline: snapshot.profile.headline,
-        summary: snapshot.profile.summary,
-        email: snapshot.profile.email,
-        phone: snapshot.profile.phone,
-        location: snapshot.profile.location,
-        links: snapshot.profile.profiles,
-      });
+      setContactDraft(profileToContactDraft(snapshot.profile));
     }
     setIsDirty(false);
     setDiscardDialogOpen(false);
@@ -318,7 +344,8 @@ export const ProfilePage: React.FC = () => {
     (snapshot.experiences || []).length === 0 &&
     (snapshot.skills || []).length === 0 &&
     (snapshot.education || []).length === 0 &&
-    (snapshot.projects || []).length === 0;
+    (snapshot.projects || []).length === 0 &&
+    (snapshot.certifications || []).length === 0;
 
   return (
     <>
@@ -349,6 +376,14 @@ export const ProfilePage: React.FC = () => {
               >
                 <FileUp className="h-4 w-4" aria-hidden="true" />
                 <span>Import PDF Resume</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setImportJsonDialogOpen(true)}
+                className="gap-1.5"
+              >
+                <FileJson className="h-4 w-4" aria-hidden="true" />
+                <span>Import JSON Resume</span>
               </Button>
               {isDirty && (
                 <Button
@@ -382,17 +417,27 @@ export const ProfilePage: React.FC = () => {
               Kickstart Your Main Profile
             </h2>
             <p className="text-sm text-indigo-700 dark:text-indigo-300">
-              Upload an existing PDF resume to automatically populate your career history, skills,
-              and education via LLM extraction, or build it manually below.
+              Upload an existing PDF resume via LLM extraction, import a standard
+              JSON Resume (.json) file, or build your career history manually below.
             </p>
           </div>
-          <Button
-            onClick={() => setImportDialogOpen(true)}
-            className="flex-shrink-0 gap-1.5"
-          >
-            <FileUp className="h-4 w-4" aria-hidden="true" />
-            <span>Import from PDF Resume</span>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+            <Button
+              onClick={() => setImportDialogOpen(true)}
+              className="gap-1.5"
+            >
+              <FileUp className="h-4 w-4" aria-hidden="true" />
+              <span>Import from PDF Resume</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setImportJsonDialogOpen(true)}
+              className="gap-1.5"
+            >
+              <FileJson className="h-4 w-4" aria-hidden="true" />
+              <span>Import from JSON Resume</span>
+            </Button>
+          </div>
         </div>
       )}
 
@@ -574,21 +619,26 @@ export const ProfilePage: React.FC = () => {
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
         hasUnsavedChanges={isDirty}
-        onSuccess={(newSnapshot) => {
-          setIsDirty(false);
-          if (newSnapshot?.profile) {
-            setContactDraft({
-              full_name: newSnapshot.profile.full_name,
-              headline: newSnapshot.profile.headline,
-              summary: newSnapshot.profile.summary,
-              email: newSnapshot.profile.email,
-              phone: newSnapshot.profile.phone,
-              location: newSnapshot.profile.location,
-              links: newSnapshot.profile.profiles,
-            });
-          }
-          announce("Main profile updated with imported PDF resume.");
-        }}
+        onSuccess={(newSnapshot) =>
+          handleImportedSnapshot(
+            newSnapshot,
+            "Main profile updated with imported PDF resume."
+          )
+        }
+        onAnnouncement={announce}
+      />
+
+      {/* JSON Resume Import Dialog */}
+      <ImportJSONResumeDialog
+        open={importJsonDialogOpen}
+        onOpenChange={setImportJsonDialogOpen}
+        hasUnsavedChanges={isDirty}
+        onSuccess={(newSnapshot) =>
+          handleImportedSnapshot(
+            newSnapshot,
+            "Main profile replaced with imported JSON Resume."
+          )
+        }
         onAnnouncement={announce}
       />
     </div>

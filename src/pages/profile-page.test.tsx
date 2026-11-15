@@ -686,6 +686,164 @@ describe("ProfilePage", () => {
     });
   });
 
+  it("renders Import JSON Resume button in header actions alongside Import PDF Resume and opens JSON import dialog", async () => {
+    const user = userEvent.setup();
+    renderProfilePage();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Full Name/i)).toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByRole("button", { name: /import pdf resume/i })
+    ).toBeInTheDocument();
+    const importJsonBtn = screen.getByRole("button", {
+      name: /import json resume/i,
+    });
+    expect(importJsonBtn).toBeInTheDocument();
+
+    await user.click(importJsonBtn);
+
+    expect(
+      screen.getByRole("heading", { name: /import json resume/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/select json resume file/i)
+    ).toBeInTheDocument();
+  });
+
+  it("renders onboarding callout with Import from JSON Resume alongside Import from PDF Resume when career graph is empty", async () => {
+    const user = userEvent.setup();
+    const emptySnapshot: components["schemas"]["MainProfileSnapshot"] = {
+      profile: {
+        id: "profile-new",
+        user_id: "user-new",
+        full_name: "",
+        headline: "",
+        main_revision: 0,
+      },
+      main_revision: 0,
+      skills: [],
+      experiences: [],
+      projects: [],
+      education: [],
+      certifications: [],
+      facts: [],
+      exported_at: "2026-11-01T00:00:00Z",
+    };
+
+    renderProfilePage(emptySnapshot);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/kickstart your main profile/i)
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByRole("button", { name: /import from pdf resume/i })
+    ).toBeInTheDocument();
+    const onboardingJsonBtn = screen.getByRole("button", {
+      name: /import from json resume/i,
+    });
+    expect(onboardingJsonBtn).toBeInTheDocument();
+
+    await user.click(onboardingJsonBtn);
+
+    expect(
+      screen.getByRole("heading", { name: /import json resume/i })
+    ).toBeInTheDocument();
+  });
+
+  it("reconciles dirty state and updates contact draft when JSON Resume is successfully imported", async () => {
+    const user = userEvent.setup();
+    renderProfilePage();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Full Name/i)).toBeInTheDocument();
+    });
+
+    const nameInput = screen.getByLabelText(/Full Name/i);
+    await user.clear(nameInput);
+    await user.type(nameInput, "Alan M. Turing (Draft)");
+    expect(screen.getByText("Unsaved Changes")).toBeInTheDocument();
+
+    const importedSnapshot: components["schemas"]["MainProfileSnapshot"] = {
+      ...mockFullSnapshot,
+      main_revision: 3,
+      profile: {
+        ...mockFullSnapshot.profile,
+        full_name: "Grace Hopper",
+        headline: "Rear Admiral & Compiler Pioneer",
+        email: "grace@navy.mil",
+        main_revision: 3,
+      },
+    };
+
+    const jsonPayload = {
+      basics: {
+        name: "Grace Hopper",
+        label: "Rear Admiral & Compiler Pioneer",
+        email: "grace@navy.mil",
+      },
+      work: [{ name: "US Navy", position: "Mathematician" }],
+    };
+
+    vi.mocked(api.POST).mockImplementation(async (path) => {
+      if (path === "/profile/jsonresume/import") {
+        vi.mocked(api.GET).mockResolvedValue({
+          data: importedSnapshot,
+          error: undefined,
+          response: new Response(),
+        } as unknown as Awaited<ReturnType<typeof api.GET>>);
+
+        return {
+          data: importedSnapshot as unknown as Record<string, never>,
+          error: undefined,
+          response: new Response(),
+        };
+      }
+      return { data: undefined, error: undefined, response: new Response() };
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: /import json resume/i })
+    );
+
+    const fileInput = screen.getByLabelText(/select json resume file/i);
+    const jsonFile = new File([JSON.stringify(jsonPayload)], "grace.json", {
+      type: "application/json",
+    });
+    await user.upload(fileInput, jsonFile);
+
+    await user.click(
+      screen.getByRole("button", { name: /review json resume/i })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: /review json resume import/i })
+      ).toBeInTheDocument();
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: /replace main profile/i })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("heading", { name: /review json resume import/i })
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText("Unsaved Changes")).not.toBeInTheDocument();
+      expect(screen.getByLabelText(/Full Name/i)).toHaveValue(
+        "Grace Hopper"
+      );
+      expect(
+        screen.getByText(/main profile replaced with imported json resume/i)
+      ).toBeInTheDocument();
+    });
+  });
+
   it("passes axe-core accessibility audit on full page render", async () => {
     const { container } = renderProfilePage();
 
