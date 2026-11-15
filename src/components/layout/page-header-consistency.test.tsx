@@ -137,7 +137,7 @@ describe("Page Header Cross-Route Consistency", () => {
 
         const actions = await screen.findByTestId("page-header-actions");
         expect(actions).toBeInTheDocument();
-        expect(actions).toHaveClass("flex", "items-center", "gap-3", "shrink-0");
+        expect(actions).toHaveClass("flex", "flex-wrap", "items-center", "gap-3");
       });
     });
   });

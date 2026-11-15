@@ -90,8 +90,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
       {actionContent && (
         <div
+          role="group"
+          aria-label="Page actions"
           data-testid="page-header-actions"
-          className="flex items-center gap-3 shrink-0 sm:mt-0.5"
+          className="flex flex-wrap items-center sm:justify-end gap-3 sm:mt-0.5"
         >
           {actionContent}
         </div>

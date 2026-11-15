@@ -1,11 +1,24 @@
 import * as React from "react";
-import { User, Briefcase, GraduationCap, Wrench, Save, RotateCcw, FileUp } from "lucide-react";
+import {
+  User,
+  Briefcase,
+  GraduationCap,
+  Wrench,
+  Save,
+  RotateCcw,
+  FileUp,
+  FileJson,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useBlocker, UNSAFE_DataRouterContext } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ContactForm, type ContactFormData } from "@/components/profile/contact-form";
+import {
+  ContactForm,
+  validateContact,
+  type ContactFormData,
+} from "@/components/profile/contact-form";
 import { ExperienceList } from "@/components/profile/experience-list";
 import { ProjectsList } from "@/components/profile/projects-list";
 import { SkillsManager } from "@/components/profile/skills-manager";
@@ -13,6 +26,7 @@ import { EducationList } from "@/components/profile/education-list";
 import { CertificationsList } from "@/components/profile/certifications-list";
 import { UnsavedChangesDialog } from "@/components/profile/unsaved-changes-dialog";
 import { ImportPDFDialog } from "@/components/profile/import-pdf-dialog";
+import { ImportJSONResumeDialog } from "@/components/profile/import-jsonresume-dialog";
 import {
   PROFILE_FULL_QUERY_KEY,
   useFullProfile,
@@ -37,6 +51,23 @@ import {
   useDeleteFact,
 } from "@/api/profile-queries";
 import type { components } from "@/api/schema";
+
+/**
+ * Converts an API Profile entity into editable ContactFormData state.
+ */
+function profileToContactDraft(
+  profile: components["schemas"]["Profile"]
+): ContactFormData {
+  return {
+    full_name: profile.full_name,
+    headline: profile.headline,
+    summary: profile.summary,
+    email: profile.email,
+    phone: profile.phone,
+    location: profile.location,
+    links: profile.profiles,
+  };
+}
 
 /**
  * Evaluates whether current contact draft values differ from authoritative server snapshot.
@@ -159,8 +190,9 @@ export const ProfilePage: React.FC = () => {
   // Active tab state
   const [activeTab, setActiveTab] = React.useState("contact");
 
-  // PDF import modal state
+  // Import modal states
   const [importDialogOpen, setImportDialogOpen] = React.useState(false);
+  const [importJsonDialogOpen, setImportJsonDialogOpen] = React.useState(false);
 
   // Dirty state tracking for contact form
   const [contactDraft, setContactDraft] = React.useState<ContactFormData | null>(null);
@@ -189,20 +221,37 @@ export const ProfilePage: React.FC = () => {
     setAnnouncement(message);
   }, []);
 
+  const syncDraftFromProfile = React.useCallback(
+    (profile: components["schemas"]["Profile"]) => {
+      const nextDraft = profileToContactDraft(profile);
+      setContactDraft(nextDraft);
+      setIsValid(Object.keys(validateContact(nextDraft)).length === 0);
+    },
+    []
+  );
+
+  const handleImportedSnapshot = React.useCallback(
+    (
+      newSnapshot: components["schemas"]["MainProfileSnapshot"] | undefined,
+      message: string
+    ) => {
+      setIsDirty(false);
+      if (newSnapshot?.profile) {
+        syncDraftFromProfile(newSnapshot.profile);
+      } else {
+        setIsValid(true);
+      }
+      announce(message);
+    },
+    [announce, syncDraftFromProfile]
+  );
+
   // Sync draft whenever server profile loads
   React.useEffect(() => {
     if (snapshot?.profile && !isDirty) {
-      setContactDraft({
-        full_name: snapshot.profile.full_name,
-        headline: snapshot.profile.headline,
-        summary: snapshot.profile.summary,
-        email: snapshot.profile.email,
-        phone: snapshot.profile.phone,
-        location: snapshot.profile.location,
-        links: snapshot.profile.profiles,
-      });
+      syncDraftFromProfile(snapshot.profile);
     }
-  }, [snapshot?.profile, isDirty]);
+  }, [snapshot?.profile, isDirty, syncDraftFromProfile]);
 
   // Window beforeunload guard to protect unsaved work on refresh or tab close
   React.useEffect(() => {
@@ -248,15 +297,7 @@ export const ProfilePage: React.FC = () => {
 
   const handleDiscardChanges = () => {
     if (snapshot?.profile) {
-      setContactDraft({
-        full_name: snapshot.profile.full_name,
-        headline: snapshot.profile.headline,
-        summary: snapshot.profile.summary,
-        email: snapshot.profile.email,
-        phone: snapshot.profile.phone,
-        location: snapshot.profile.location,
-        links: snapshot.profile.profiles,
-      });
+      syncDraftFromProfile(snapshot.profile);
     }
     setIsDirty(false);
     setDiscardDialogOpen(false);
@@ -318,7 +359,8 @@ export const ProfilePage: React.FC = () => {
     (snapshot.experiences || []).length === 0 &&
     (snapshot.skills || []).length === 0 &&
     (snapshot.education || []).length === 0 &&
-    (snapshot.projects || []).length === 0;
+    (snapshot.projects || []).length === 0 &&
+    (snapshot.certifications || []).length === 0;
 
   return (
     <>
@@ -350,6 +392,14 @@ export const ProfilePage: React.FC = () => {
                 <FileUp className="h-4 w-4" aria-hidden="true" />
                 <span>Import PDF Resume</span>
               </Button>
+              <Button
+                variant="outline"
+                onClick={() => setImportJsonDialogOpen(true)}
+                className="gap-1.5"
+              >
+                <FileJson className="h-4 w-4" aria-hidden="true" />
+                <span>Import JSON Resume</span>
+              </Button>
               {isDirty && (
                 <Button
                   variant="outline"
@@ -376,24 +426,40 @@ export const ProfilePage: React.FC = () => {
 
       {/* Onboarding Callout for Empty Career Graph */}
       {isCareerGraphEmpty && (
-        <div className="rounded-lg border border-indigo-200 dark:border-indigo-900 bg-indigo-50/60 dark:bg-indigo-950/40 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <section
+          aria-labelledby="profile-onboarding-heading"
+          className="rounded-lg border border-indigo-200 dark:border-indigo-900 bg-indigo-50/60 dark:bg-indigo-950/40 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        >
           <div className="space-y-1">
-            <h2 className="text-base font-semibold text-indigo-900 dark:text-indigo-200">
+            <h2
+              id="profile-onboarding-heading"
+              className="text-base font-semibold text-indigo-900 dark:text-indigo-200"
+            >
               Kickstart Your Main Profile
             </h2>
             <p className="text-sm text-indigo-700 dark:text-indigo-300">
-              Upload an existing PDF resume to automatically populate your career history, skills,
-              and education via LLM extraction, or build it manually below.
+              Upload an existing PDF resume via LLM extraction, import a standard
+              JSON Resume (.json) file, or build your career history manually below.
             </p>
           </div>
-          <Button
-            onClick={() => setImportDialogOpen(true)}
-            className="flex-shrink-0 gap-1.5"
-          >
-            <FileUp className="h-4 w-4" aria-hidden="true" />
-            <span>Import from PDF Resume</span>
-          </Button>
-        </div>
+          <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+            <Button
+              onClick={() => setImportDialogOpen(true)}
+              className="gap-1.5"
+            >
+              <FileUp className="h-4 w-4" aria-hidden="true" />
+              <span>Import from PDF Resume</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setImportJsonDialogOpen(true)}
+              className="gap-1.5"
+            >
+              <FileJson className="h-4 w-4" aria-hidden="true" />
+              <span>Import JSON Resume</span>
+            </Button>
+          </div>
+        </section>
       )}
 
       {/* Navigation Tabs */}
@@ -574,21 +640,26 @@ export const ProfilePage: React.FC = () => {
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
         hasUnsavedChanges={isDirty}
-        onSuccess={(newSnapshot) => {
-          setIsDirty(false);
-          if (newSnapshot?.profile) {
-            setContactDraft({
-              full_name: newSnapshot.profile.full_name,
-              headline: newSnapshot.profile.headline,
-              summary: newSnapshot.profile.summary,
-              email: newSnapshot.profile.email,
-              phone: newSnapshot.profile.phone,
-              location: newSnapshot.profile.location,
-              links: newSnapshot.profile.profiles,
-            });
-          }
-          announce("Main profile updated with imported PDF resume.");
-        }}
+        onSuccess={(newSnapshot) =>
+          handleImportedSnapshot(
+            newSnapshot,
+            "Main profile updated with imported PDF resume."
+          )
+        }
+        onAnnouncement={announce}
+      />
+
+      {/* JSON Resume Import Dialog */}
+      <ImportJSONResumeDialog
+        open={importJsonDialogOpen}
+        onOpenChange={setImportJsonDialogOpen}
+        hasUnsavedChanges={isDirty}
+        onSuccess={(newSnapshot) =>
+          handleImportedSnapshot(
+            newSnapshot,
+            "Main profile replaced with imported JSON Resume."
+          )
+        }
         onAnnouncement={announce}
       />
     </div>
