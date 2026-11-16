@@ -52,9 +52,9 @@ describe("RootLayout Landmark Structure", () => {
     const footer = screen.getByRole("contentinfo");
     expect(footer).toBeInTheDocument();
     expect(footer).toHaveTextContent(/One Resume to rule them all\./i);
-    expect(footer).toHaveTextContent(/MIT License/i);
+    expect(footer).toHaveTextContent(/AGPL-3\.0 License/i);
     const githubLink = within(footer).getByRole("link", { name: /github repository/i });
-    expect(githubLink).toHaveAttribute("href", "https://github.com/rrivera/resumeee");
+    expect(githubLink).toHaveAttribute("href", "https://github.com/resumeee-app/resumeee");
     expect(footer).not.toHaveTextContent(/Pure Client-Side SPA Architecture/i);
   });
 

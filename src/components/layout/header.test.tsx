@@ -296,7 +296,7 @@ describe("Header and Navigation", () => {
       expect(within(publicNav).getByRole("link", { name: /open source/i })).toHaveAttribute("href", "#open-source");
       expect(within(publicNav).getByRole("link", { name: /pricing/i })).toHaveAttribute("href", "#pricing");
       expect(within(publicNav).getByRole("link", { name: /faq/i })).toHaveAttribute("href", "#faq");
-      expect(within(publicNav).getByRole("link", { name: /github/i })).toHaveAttribute("href", "https://github.com/rrivera/resumeee");
+      expect(within(publicNav).getByRole("link", { name: /github/i })).toHaveAttribute("href", "https://github.com/resumeee-app/resumeee");
 
       const signInLink = screen.getByRole("link", { name: /sign in/i });
       expect(signInLink).toBeInTheDocument();

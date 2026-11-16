@@ -11,7 +11,7 @@ const mockProjects: components["schemas"]["Project"][] = [
     user_id: "user-1",
     name: "Resumeee Open Source",
     role: "Lead Maintainer",
-    url: "https://github.com/rrivera/resumeee",
+    url: "https://github.com/resumeee-app/resumeee",
     start_date: "2023-01-01",
     end_date: null,
     summary: "AI-native resume builder with Git-like branch versioning.",

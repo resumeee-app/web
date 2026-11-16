@@ -60,7 +60,7 @@ describe("LandingPage Component", () => {
       // Secondary CTA: Run it Locally
       const githubBtn = within(heroSection).getByRole("link", { name: /run it locally/i });
       expect(githubBtn).toBeInTheDocument();
-      expect(githubBtn).toHaveAttribute("href", "https://github.com/rrivera/resumeee");
+      expect(githubBtn).toHaveAttribute("href", "https://github.com/resumeee-app/resumeee");
       expect(githubBtn).toHaveAttribute("target", "_blank");
       expect(githubBtn).toHaveAttribute("rel", "noreferrer noopener");
 
@@ -241,7 +241,7 @@ describe("LandingPage Component", () => {
       expect(within(openSourceCard).getByText(/Export to JSON Resume, ATS PDF, & Markdown/i)).toBeInTheDocument();
       expect(within(openSourceCard).getByRole("link", { name: /run it locally/i })).toHaveAttribute(
         "href",
-        "https://github.com/rrivera/resumeee"
+        "https://github.com/resumeee-app/resumeee"
       );
 
       // Tier 2: Cloud Hosted (Pro)

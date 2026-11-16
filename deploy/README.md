@@ -9,7 +9,7 @@ This directory provides deployment recipes and infrastructure configurations for
 The Resumeee Web UI is a pure client-side SPA with **zero server-side rendering (SSR)**.
 
 ### Architectural Principles:
-1. **Static Distribution**: Build outputs in `web/dist/` consist solely of static files (`index.html`, JavaScript chunks, CSS stylesheets, images, and fonts).
+1. **Static Distribution**: Build outputs in `dist/` consist solely of static files (`index.html`, JavaScript chunks, CSS stylesheets, images, and fonts).
 2. **Client-Side Routing Fallback**: In HTML5 history mode (`createBrowserRouter`), URLs like `/resumes/123` or `/profile` do not correspond to physical files on disk. The storage or CDN layer **MUST** rewrite or serve `index.html` with an HTTP status of `200` for all non-file route requests.
 3. **Asset Immutability & Cache Invalidation**:
    - `assets/*.js`, `assets/*.css`: Hashed filenames can be aggressively cached for 1 year (`Cache-Control: public, max-age=31536000, immutable`).
