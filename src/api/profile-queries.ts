@@ -825,6 +825,30 @@ export async function fetchPDFParseJob(
 }
 
 /**
+ * Resolves a terminal PDFParseJob payload into a parsed JSONResume, returning `null`
+ * if the job is still pending or processing.
+ */
+function resolveTerminalPDFParseJob(
+  job: components["schemas"]["PDFParseJob"]
+): JSONResume | null {
+  if (job.status === "completed") {
+    if (!job.result) {
+      throw new Error("PDF parse job completed without candidate resume data");
+    }
+    return job.result as unknown as JSONResume;
+  }
+  if (job.status === "failed" || job.status === "cancelled") {
+    throw new Error(
+      job.error_message ||
+        (job.status === "cancelled"
+          ? "PDF parsing was cancelled"
+          : "PDF parsing failed")
+    );
+  }
+  return null;
+}
+
+/**
  * Polls an asynchronous PDF parse job until completion or failure.
  *
  * @param jobId - Job ID to poll
@@ -844,19 +868,9 @@ export async function pollPDFParseJobUntilFinished(
     }
 
     const job = await fetchPDFParseJob(jobId, signal);
-    if (job.status === "completed") {
-      if (!job.result) {
-        throw new Error("PDF parse job completed without candidate resume data");
-      }
-      return job.result as unknown as JSONResume;
-    }
-    if (job.status === "failed" || job.status === "cancelled") {
-      throw new Error(
-        job.error_message ||
-          (job.status === "cancelled"
-            ? "PDF parsing was cancelled"
-            : "PDF parsing failed")
-      );
+    const resolved = resolveTerminalPDFParseJob(job);
+    if (resolved) {
+      return resolved;
     }
 
     if (signal?.aborted) {
@@ -938,24 +952,17 @@ export function useParsePDFResume(): UseMutationResult<
         return data as unknown as JSONResume;
       }
 
-      // If asynchronous job was queued, poll until completed or terminal failure
+      // If asynchronous job was queued, resolve terminal states or poll until completion
       const jobResponse = data as unknown as components["schemas"]["PDFParseJob"];
-      if (jobResponse.status === "completed" && jobResponse.result) {
-        return jobResponse.result as unknown as JSONResume;
-      }
-      if (jobResponse.status === "failed" || jobResponse.status === "cancelled") {
-        throw new Error(
-          jobResponse.error_message ||
-            (jobResponse.status === "cancelled"
-              ? "PDF parsing was cancelled"
-              : "PDF parsing failed")
-        );
+      const resolved = resolveTerminalPDFParseJob(jobResponse);
+      if (resolved) {
+        return resolved;
       }
       if (jobResponse.id) {
         return await pollPDFParseJobUntilFinished(jobResponse.id, 1000, signal);
       }
 
-      return data as unknown as JSONResume;
+      throw new Error("Unexpected response from PDF parse endpoint");
     },
   });
 }

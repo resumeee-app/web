@@ -389,6 +389,25 @@ describe("profile-queries", () => {
       );
     });
 
+    it("throws error on unexpected response without candidate resume or job id", async () => {
+      vi.mocked(api.POST).mockResolvedValueOnce({
+        data: { status: "completed", result: null } as unknown as Record<string, never>,
+        error: undefined,
+        response: new Response(null, { status: 202 }),
+      } as unknown as Awaited<ReturnType<typeof api.POST>>);
+
+      const { wrapper } = createWrapper();
+      const { result } = renderHook(() => useParsePDFResume(), { wrapper });
+
+      const file = new File(["pdf bytes"], "resume.pdf", {
+        type: "application/pdf",
+      });
+
+      await expect(result.current.mutateAsync({ file })).rejects.toThrow(
+        "PDF parse job completed without candidate resume data"
+      );
+    });
+
     it("aborts parsing immediately if AbortSignal is already cancelled", async () => {
       const { wrapper } = createWrapper();
       const { result } = renderHook(() => useParsePDFResume(), { wrapper });

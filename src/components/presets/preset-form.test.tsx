@@ -256,4 +256,48 @@ describe("PresetForm Component", () => {
       })
     );
   });
+
+  it("submits suggested_theme_id as null when no theme is selected and allows clearing an existing theme", async () => {
+    const user = userEvent.setup();
+    const handleCreate = vi.fn();
+
+    const { rerender } = render(
+      <PresetForm templateSets={[]} onSubmit={handleCreate} />
+    );
+
+    await user.type(screen.getByLabelText(/strategy name/i), "Theme-less Preset");
+    await user.type(screen.getByLabelText(/system instructions/i), "Minimal instructions.");
+    await user.click(screen.getByRole("button", { name: /save tailoring strategy/i }));
+
+    expect(handleCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Theme-less Preset",
+        suggested_theme_id: null,
+        system_instructions: "Minimal instructions.",
+      })
+    );
+
+    const handleClear = vi.fn();
+    rerender(
+      <PresetForm
+        initialValues={{
+          id: "preset-custom-002",
+          name: "Preset With Theme",
+          suggested_theme_id: "builtin-standard-clean",
+          system_instructions: "Focus on metrics.",
+        }}
+        templateSets={mockTemplates}
+        onSubmit={handleClear}
+      />
+    );
+
+    await user.selectOptions(screen.getByLabelText(/template set/i), "");
+    await user.click(screen.getByRole("button", { name: /save tailoring strategy/i }));
+
+    expect(handleClear).toHaveBeenCalledWith(
+      expect.objectContaining({
+        suggested_theme_id: null,
+      })
+    );
+  });
 });

@@ -39,20 +39,7 @@ export type TemplateSet = components["schemas"]["TemplateSet"];
 /**
  * Input payload for creating a new tailored resume branch / target resume.
  */
-export type CreateBranchInput = {
-  name: string;
-  target_role?: string;
-  target_company?: string;
-  target_requirements?: string;
-  branch_instructions?: string;
-  preset_id?: string;
-  template_set_id: string;
-  provider_override?: string;
-  model_override?: string;
-  reasoning_level?: components["schemas"]["CreateBranchRequest"]["reasoning_level"];
-  pinned_entity_ids?: string[];
-  excluded_entity_ids?: string[];
-};
+export type CreateBranchInput = components["schemas"]["CreateBranchRequest"];
 
 /**
  * Lifecycle status indicator for a resume branch.

@@ -130,6 +130,33 @@ describe("VersionTimeline", () => {
     expect(screen.getByText(/no versions generated yet/i)).toBeInTheDocument();
   });
 
+  it("renders Cancelled badge for cancelled versions", () => {
+    const withCancelled: BranchVersion[] = [
+      ...mockVersions,
+      {
+        id: "ver-cancelled",
+        branch_id: "b-1",
+        version_number: 3,
+        status: "cancelled",
+        created_at: "2026-11-01T14:00:00Z",
+      },
+    ];
+
+    render(
+      <VersionTimeline
+        versions={withCancelled}
+        activeVersionId="ver-1"
+        selectedVersionId="ver-1"
+        onSelectVersion={vi.fn()}
+        onSetActiveVersion={vi.fn()}
+        isSettingActive={false}
+      />
+    );
+
+    expect(screen.getByText("Version v3")).toBeInTheDocument();
+    expect(screen.getByText("Cancelled")).toBeInTheDocument();
+  });
+
   it("passes accessibility audit with 0 violations", async () => {
     const { container } = render(
       <VersionTimeline

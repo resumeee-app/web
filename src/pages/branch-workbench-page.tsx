@@ -212,6 +212,15 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
             "The AI tailoring worker encountered an unrecoverable failure.",
           variant: "destructive",
         });
+      } else if (polledVersion.status === "cancelled") {
+        setToast({
+          open: true,
+          title: "Generation Cancelled",
+          description:
+            polledVersion.error_message ||
+            `Resume version v${polledVersion.version_number} generation was cancelled.`,
+          variant: "default",
+        });
       }
     }
   }, [polledVersion, refetchVersions, refetchBranch, queryClient, branchId]);

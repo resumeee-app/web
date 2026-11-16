@@ -136,6 +136,9 @@ export const VersionTimeline: React.FC<VersionTimelineProps> = ({
                   {v.status === "failed" && (
                     <Badge variant="destructive">Failed</Badge>
                   )}
+                  {v.status === "cancelled" && (
+                    <Badge variant="default">Cancelled</Badge>
+                  )}
                   {(v.status === "pending" || v.status === "processing") && (
                     <Badge variant="default">{v.status}</Badge>
                   )}

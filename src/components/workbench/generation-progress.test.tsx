@@ -100,6 +100,29 @@ describe("GenerationProgress", () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it("renders cancelled state cleanly with axe compliance and optional retry", async () => {
+    const version: Partial<BranchVersion> = {
+      id: "v-cancel",
+      version_number: 3,
+      status: "cancelled",
+    };
+
+    const { container } = render(
+      <GenerationProgress version={version as BranchVersion} onRetry={vi.fn()} />
+    );
+
+    expect(screen.getByText(/Generation Cancelled/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/cancelled before completion/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /retry generation/i })
+    ).toBeInTheDocument();
+
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+
   it("has no accessibility violations across different status states", async () => {
     const version: Partial<BranchVersion> = {
       id: "v-123",
