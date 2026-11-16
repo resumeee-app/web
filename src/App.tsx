@@ -3,7 +3,7 @@ import { RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-provider";
-import { AuthProvider, type AuthUser } from "@/context/auth-context";
+import { AuthProvider, type AuthAdapter, type AuthUser } from "@/context/auth-context";
 import { router as defaultRouter, type createAppRouter } from "./router";
 
 /**
@@ -36,6 +36,10 @@ export interface AppProps {
    */
   router?: ReturnType<typeof createAppRouter>;
   /**
+   * Optional injected authentication vendor adapter for multi-tenant deployments.
+   */
+  authAdapter?: AuthAdapter;
+  /**
    * Optional initial user for multi-tenant testing scenarios.
    */
   initialUser?: AuthUser | null;
@@ -58,6 +62,7 @@ export interface AppProps {
 export const App: React.FC<AppProps> = ({
   queryClient: propQueryClient,
   router: propRouter,
+  authAdapter,
   initialUser,
   initialAdminMode,
 }) => {
@@ -69,7 +74,11 @@ export const App: React.FC<AppProps> = ({
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider initialUser={initialUser} initialAdminMode={initialAdminMode}>
+        <AuthProvider
+          authAdapter={authAdapter}
+          initialUser={initialUser}
+          initialAdminMode={initialAdminMode}
+        >
           <TooltipProvider>
             <RouterProvider router={activeRouter} />
           </TooltipProvider>

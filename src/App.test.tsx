@@ -79,7 +79,7 @@ describe("Application Root Component", () => {
       render(<App router={testRouter} />);
 
       expect(await screen.findByRole("heading", { name: /sign in to resumeee/i })).toBeInTheDocument();
-      expect(screen.getByText(/multi-tenant resume tailoring powered by firebase/i)).toBeInTheDocument();
+      expect(screen.getByText(/multi-tenant resume tailoring/i)).toBeInTheDocument();
     });
 
     it("passes axe-core accessibility audit on unauthenticated landing page render", async () => {

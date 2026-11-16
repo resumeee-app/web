@@ -1,6 +1,4 @@
 import * as React from "react";
-import { onIdTokenChanged, signOut as firebaseSignOut } from "firebase/auth";
-import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase";
 import { setAuthToken, isAdminMode } from "@/api/client";
 
 /**
@@ -13,6 +11,26 @@ export interface AuthUser {
 }
 
 /**
+ * Pluggable authentication vendor adapter injected into {@link AuthProvider}.
+ */
+export interface AuthAdapter {
+  /**
+   * Subscribes to identity and bearer-token changes from an external auth vendor.
+   */
+  subscribe?: (
+    onAuthStateChange: (user: AuthUser | null, token: string | null) => void
+  ) => () => void;
+  /**
+   * Signs out of the external auth vendor session.
+   */
+  signOut?: () => Promise<void>;
+  /**
+   * Optional login UI widget rendered inside {@link LoginPage} when multi-tenant mode is active.
+   */
+  LoginWidget?: React.ComponentType;
+}
+
+/**
  * Public authentication context interface.
  */
 export interface AuthContextType {
@@ -22,6 +40,7 @@ export interface AuthContextType {
   signOut: () => Promise<void>;
   quotaExceededWarning: boolean;
   dismissQuotaWarning: () => void;
+  loginWidget?: React.ComponentType;
 }
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
@@ -40,6 +59,7 @@ const DEFAULT_AUTH_STATE: AuthContextType = {
   signOut: async () => {},
   quotaExceededWarning: false,
   dismissQuotaWarning: () => {},
+  loginWidget: undefined,
 };
 
 /**
@@ -47,6 +67,10 @@ const DEFAULT_AUTH_STATE: AuthContextType = {
  */
 export interface AuthProviderProps {
   children: React.ReactNode;
+  /**
+   * Optional authentication vendor adapter for multi-tenant deployments.
+   */
+  authAdapter?: AuthAdapter;
   /**
    * Optional mock user for testing scenarios.
    */
@@ -62,6 +86,7 @@ export interface AuthProviderProps {
  */
 export const AuthProvider: React.FC<AuthProviderProps> = ({
   children,
+  authAdapter,
   initialUser,
   initialAdminMode,
 }) => {
@@ -93,30 +118,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       return;
     }
 
-    if (initialUser !== undefined || !isFirebaseConfigured()) {
+    if (initialUser !== undefined || !authAdapter?.subscribe) {
       setLoading(false);
       return;
     }
 
     try {
-      const auth = getFirebaseAuth();
-      const unsubscribe = onIdTokenChanged(auth, async (fbUser) => {
-        if (fbUser) {
-          try {
-            const token = await fbUser.getIdToken();
-            setAuthToken(token);
-          } catch {
-            setAuthToken(null);
-          }
-          setUser({
-            uid: fbUser.uid,
-            email: fbUser.email,
-            displayName: fbUser.displayName,
-          });
-        } else {
-          setAuthToken(null);
-          setUser(null);
-        }
+      const unsubscribe = authAdapter.subscribe((nextUser, token) => {
+        setAuthToken(token);
+        setUser(nextUser);
         setLoading(false);
       });
 
@@ -126,7 +136,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     } catch {
       setLoading(false);
     }
-  }, [admin, initialUser]);
+  }, [admin, authAdapter, initialUser]);
 
   React.useEffect(() => {
     const handleUnauthorized = () => {
@@ -150,17 +160,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   }, [admin]);
 
   const signOut = React.useCallback(async () => {
-    if (!admin && isFirebaseConfigured()) {
+    if (!admin && authAdapter?.signOut) {
       try {
-        const auth = getFirebaseAuth();
-        await firebaseSignOut(auth);
+        await authAdapter.signOut();
       } catch {
         // Safe fallback
       }
     }
     setAuthToken(null);
     setUser(null);
-  }, [admin]);
+  }, [admin, authAdapter]);
 
   const dismissQuotaWarning = React.useCallback(() => {
     setQuotaExceededWarning(false);
@@ -174,8 +183,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       signOut,
       quotaExceededWarning,
       dismissQuotaWarning,
+      loginWidget: authAdapter?.LoginWidget,
     }),
-    [user, loading, admin, signOut, quotaExceededWarning, dismissQuotaWarning]
+    [user, loading, admin, signOut, quotaExceededWarning, dismissQuotaWarning, authAdapter]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
