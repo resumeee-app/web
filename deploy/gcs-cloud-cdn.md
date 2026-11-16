@@ -31,7 +31,7 @@ gcloud storage buckets add-iam-policy-binding gs://resumeee-web-spa \
 1. Create a backend bucket pointing to `gs://resumeee-web-spa` with Cloud CDN enabled.
 2. In the URL Map, configure:
    - Default service: `backend-bucket-spa`
-   - Path matcher for `/api/v1/*`: Forward to Go server backend service (`resumeee-api-service`).
+   - Path matcher for `/api/v1/*`: Forward to Go server backend service (`resumeee-server-service`).
 3. Configure Custom Response Headers on the HTTPS Load Balancer:
    - `X-Content-Type-Options`: `nosniff`
    - `X-Frame-Options`: `SAMEORIGIN`

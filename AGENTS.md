@@ -1,6 +1,6 @@
 # AGENTS.md — Autonomous Engineering Guidelines for Resumeee Web
 
-`resumeee-web` is the pure client-side React SPA of the Resumeee ecosystem (`github.com/resumeee-app`). It talks to `resumeee-api` only over HTTP, using the OpenAPI contract mirrored in `openapi/openapi.yaml`.
+`resumeee-web` is the pure client-side React SPA of the Resumeee ecosystem (`github.com/resumeee-app`). It talks to `server` only over HTTP, using the OpenAPI contract mirrored in `openapi/openapi.yaml`.
 
 Any AI agent, developer subagent, or human engineer modifying this repository must follow the protocols, standards, and invariants in this document.
 
@@ -10,7 +10,7 @@ Any AI agent, developer subagent, or human engineer modifying this repository mu
 
 ```
 resumeee-web/
-├── openapi/              # Snapshot of the resumeee-api OpenAPI contract (see openapi/README.md)
+├── openapi/              # Snapshot of the server OpenAPI contract (see openapi/README.md)
 ├── deploy/               # Object storage & CDN deployment recipes (R2, S3, GCS, Nginx, Caddy)
 ├── public/               # Static assets
 ├── src/
@@ -44,7 +44,7 @@ resumeee-web/
 - **Automated Axe Testing**: Every component test suite must run `await axe(container)` and assert `expect(results).toHaveNoViolations()`.
 
 ### 2.3 Contract-First OpenAPI Integration
-- **Canonical Schema**: `resumeee-api` owns the API contract. `openapi/openapi.yaml` is the in-repo copy and the only source for API types here.
+- **Canonical Schema**: `server` owns the API contract. `openapi/openapi.yaml` is the in-repo copy and the only source for API types here.
 - **Generated Types**: Never manually write TypeScript interfaces for backend API entities. Run `npm run generate:api` to produce `src/api/schema.d.ts`, and commit the spec and generated types together.
 - **Type-Safe Client**: All network communication must use `openapi-fetch` typed with `paths` from `schema.d.ts`.
 - **Query & Cache Layer**: Use `@tanstack/react-query` for asynchronous state management, caching, deduplication, and optimistic updates.
