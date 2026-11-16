@@ -6,7 +6,7 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   envDir: __dirname,
-  envPrefix: ['VITE_', 'ADMIN_MODE', 'FIREBASE_'],
+  envPrefix: ['VITE_', 'ADMIN_MODE'],
   plugins: [react()],
   resolve: {
     alias: {

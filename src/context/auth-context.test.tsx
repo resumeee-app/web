@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { AuthProvider, useAuth, type AuthUser } from "./auth-context";
+import { AuthProvider, useAuth, type AuthAdapter, type AuthUser } from "./auth-context";
 import { getAuthToken, setAuthToken } from "@/api/client";
 
 function TestConsumer() {
@@ -134,5 +134,43 @@ describe("AuthContext and AuthProvider", () => {
 
     expect(screen.getByTestId("user-email")).toHaveTextContent("anonymous");
     expect(getAuthToken()).toBeNull();
+  });
+
+  it("subscribes to injected authAdapter and delegates signOut", async () => {
+    const user = userEvent.setup();
+    const unsubscribeMock = vi.fn();
+    const signOutMock = vi.fn().mockResolvedValue(undefined);
+    const adapter: AuthAdapter = {
+      subscribe: (onChange) => {
+        onChange(
+          {
+            uid: "adapter-user-1",
+            email: "sso@example.com",
+            displayName: "SSO User",
+          },
+          "adapter-jwt-token"
+        );
+        return unsubscribeMock;
+      },
+      signOut: signOutMock,
+    };
+
+    const { unmount } = render(
+      <AuthProvider initialAdminMode={false} authAdapter={adapter}>
+        <TestConsumer />
+      </AuthProvider>
+    );
+
+    expect(screen.getByTestId("loading")).toHaveTextContent("idle");
+    expect(screen.getByTestId("user-email")).toHaveTextContent("sso@example.com");
+    expect(getAuthToken()).toBe("adapter-jwt-token");
+
+    await user.click(screen.getByRole("button", { name: /sign out/i }));
+    expect(signOutMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("user-email")).toHaveTextContent("anonymous");
+    expect(getAuthToken()).toBeNull();
+
+    unmount();
+    expect(unsubscribeMock).toHaveBeenCalledTimes(1);
   });
 });
