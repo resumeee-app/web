@@ -98,9 +98,9 @@ export const RootLayout: React.FC = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-1.5">
           <p>© {new Date().getFullYear()} Resumeee — One Resume to rule them all.</p>
           <p className="text-xs text-slate-400 dark:text-slate-500">
-            Open source under the MIT License •{" "}
+            Open source under the AGPL-3.0 License •{" "}
             <a
-              href="https://github.com/rrivera/resumeee"
+              href="https://github.com/resumeee-app/resumeee"
               target="_blank"
               rel="noreferrer noopener"
               className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline underline-offset-2"

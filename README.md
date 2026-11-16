@@ -29,7 +29,7 @@ npm -v    # Expected >= v10.0.0
 
 ## 2. Environment Configuration
 
-Create a `.env.local` file in the `web/` directory for local environment overrides:
+Create a `.env.local` file in the repository root for local environment overrides:
 
 ```bash
 # Relative path or absolute URL pointing to the Resumeee REST API
@@ -105,24 +105,30 @@ All interactive elements (dialogs, dropdowns, tooltips, popovers, tabs) must use
 ### Production Container (Unprivileged NGINX)
 Build the optimized multi-stage production Docker image:
 ```bash
-# Build production image from the repository root or web directory
-docker build -t resumeee-web ./web
+# Build production image from the repository root
+docker build -t resumeee-web .
 
 # Run production container listening on host port 3000 (container port 8080)
 docker run -d -p 3000:8080 --name resumeee-web resumeee-web
 ```
 
-### Full-Stack Docker Compose (Production)
-Run both the Go backend API and the React Web SPA together:
+### Full-Stack Docker Compose (Umbrella Workspace)
+Run both the Go backend API and the React Web SPA together from the [resumeee](https://github.com/resumeee-app/resumeee) workspace repository:
 ```bash
 docker compose up --build
 # Web SPA available at: http://localhost:3000
 # Backend API available at: http://localhost:8080
 ```
 
-### Development with Live Reload (Docker Compose Dev)
+### Development with Live Reload (Umbrella Workspace)
 Run both backend (`air` hot-reload) and frontend (`vite` HMR) with volume mounts:
 ```bash
 DEV_UID=$(id -u) DEV_GID=$(id -g) docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 # Web SPA with HMR at: http://localhost:5173
 ```
+
+---
+
+## 7. License
+
+GNU Affero General Public License v3.0 (AGPL-3.0). See [LICENSE](./LICENSE).

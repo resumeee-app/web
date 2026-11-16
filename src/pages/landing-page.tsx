@@ -191,7 +191,7 @@ export const PRICING_TIERS: PricingTier[] = [
       "Community support via GitHub",
     ],
     ctaLabel: "Run it Locally",
-    ctaHref: "https://github.com/rrivera/resumeee",
+    ctaHref: "https://github.com/resumeee-app/resumeee",
     isExternalCta: true,
     buttonVariant: "outline",
   },
@@ -525,7 +525,7 @@ export const LandingPage: React.FC = () => {
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dockerCommand =
-    "docker run -d -p 8080:8080 -v ~/.resumeee:/data ghcr.io/rrivera/resumeee:latest";
+    "docker run -d -p 8080:8080 -v ~/.resumeee:/data ghcr.io/resumeee-app/resumeee:latest";
 
   useEffect(() => {
     return () => {
@@ -599,7 +599,7 @@ export const LandingPage: React.FC = () => {
             className="w-full sm:w-auto h-12 px-7 text-base font-semibold"
           >
             <a
-              href="https://github.com/rrivera/resumeee"
+              href="https://github.com/resumeee-app/resumeee"
               target="_blank"
               rel="noreferrer noopener"
               className="flex items-center justify-center gap-2"
@@ -613,7 +613,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Trust & Guarantee Subtitle */}
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Zero telemetry • 100% MIT Licensed
+          Zero telemetry • 100% AGPL-3.0 Licensed
         </p>
 
         {/* Hero Visualizer: Authentic Resumeee Branch Workflow */}
@@ -945,7 +945,7 @@ export const LandingPage: React.FC = () => {
             className="w-full sm:w-auto h-12 px-7 text-base font-semibold border-indigo-400 text-white hover:bg-indigo-700/50"
           >
             <a
-              href="https://github.com/rrivera/resumeee"
+              href="https://github.com/resumeee-app/resumeee"
               target="_blank"
               rel="noreferrer noopener"
               className="flex items-center justify-center gap-2"

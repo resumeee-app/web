@@ -103,9 +103,6 @@ Agents must follow strict TDD: Red -> Green -> Refactor.
 ## 5. Agent Command Reference
 
 ```bash
-# Workspace root
-cd web
-
 # 1. Regenerate types after OpenAPI updates
 npm run generate:api
 

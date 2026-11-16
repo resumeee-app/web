@@ -12,17 +12,17 @@ Cloudflare Pages provides automated git deployments, preview environments, and n
 - **Framework Preset**: `Vite`
 - **Build command**: `npm run build`
 - **Build output directory**: `dist`
-- **Root directory**: `web`
+- **Root directory**: `/`
 
 ### 2. Client-Side Routing Fallback
-Cloudflare Pages automatically processes the `web/deploy/_redirects` file when copied or placed into `web/public/_redirects`:
+Cloudflare Pages automatically processes the `deploy/_redirects` file when copied or placed into `public/_redirects`:
 ```
 /*    /index.html   200
 ```
 Alternatively, configure the Cloudflare Pages custom 404 handler to serve `index.html`.
 
 ### 3. Security Headers via `_headers` File
-Place a `_headers` file in `web/public/_headers` (or build output `dist/_headers`) to enforce security headers across all edge responses:
+Place a `_headers` file in `public/_headers` (or build output `dist/_headers`) to enforce security headers across all edge responses:
 ```
 /*
   X-Frame-Options: SAMEORIGIN

@@ -10,7 +10,7 @@ describe("Theme Initialization & CSP Anti-FOUC Architecture", () => {
   const readIndexHtml = () => fs.readFileSync(indexHtmlPath, "utf-8");
   const readThemeInitScript = () => fs.readFileSync(themeInitScriptPath, "utf-8");
 
-  describe("web/index.html CSP Compliance", () => {
+  describe("index.html CSP Compliance", () => {
     it("references external /theme-init.js in <head>", () => {
       const html = readIndexHtml();
       expect(html).toContain('<script src="/theme-init.js"></script>');
@@ -37,7 +37,7 @@ describe("Theme Initialization & CSP Anti-FOUC Architecture", () => {
     });
   });
 
-  describe("web/public/theme-init.js behavior", () => {
+  describe("public/theme-init.js behavior", () => {
     let scriptCode: string;
 
     const executeThemeInit = () => {
