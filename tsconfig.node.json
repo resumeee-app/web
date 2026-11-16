@@ -6,7 +6,8 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "strict": true,
+    "allowJs": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "tailwind.config.js", "postcss.config.js"]
+  "include": ["vite.config.ts", "vite.landing.config.ts", "tailwind.config.js", "postcss.config.js"]
 }

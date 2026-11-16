@@ -5,7 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
 import { SkipLink } from "./skip-link";
 import { ThemeToggle } from "./theme-toggle";
-import { ResumeeeLogo } from "./resumeee-logo";
+import { BrandWordmark, PublicNav } from "./public-shell-parts";
 import { QuotaMeter } from "@/components/quota/quota-meter";
 import { mainNavItems } from "./nav-config";
 import { Button } from "@/components/ui/button";
@@ -53,13 +53,7 @@ export const Header: React.FC = () => {
               className="flex items-center space-x-1.5 sm:space-x-2 lg:space-x-2.5 text-lg lg:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md"
               aria-label="Resumeee Home"
             >
-              <ResumeeeLogo className="h-6 w-6 lg:h-7 lg:w-7" />
-              <span>
-                Resum
-                <span className="bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600 dark:from-sky-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-                  eee
-                </span>
-              </span>
+              <BrandWordmark />
             </Link>
           </div>
 
@@ -97,54 +91,10 @@ export const Header: React.FC = () => {
           )}
 
           {/* Desktop Public Navigation (Unauthenticated visitor on public landing routes) */}
-          {!showNav && isPublicLanding && (
-            <div className="hidden md:flex flex-1 items-center justify-center min-[1600px]:justify-start min-w-0 px-1 sm:px-2 lg:px-4">
-              <nav
-                aria-label="Public Navigation"
-                className="flex items-center space-x-1 lg:space-x-3 text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400 min-[1600px]:ml-[calc((100vw-80rem)/2-137px)]"
-              >
-                <a
-                  href="#features"
-                  className="px-2 py-1.5 rounded-md hover:text-slate-900 hover:bg-slate-50 dark:hover:text-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-                >
-                  Features
-                </a>
-                <a
-                  href="#open-source"
-                  className="px-2 py-1.5 rounded-md hover:text-slate-900 hover:bg-slate-50 dark:hover:text-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-                >
-                  Open Source
-                </a>
-                <a
-                  href="#faq"
-                  className="px-2 py-1.5 rounded-md hover:text-slate-900 hover:bg-slate-50 dark:hover:text-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-                >
-                  FAQ
-                </a>
-                <a
-                  href="https://github.com/resumeee-app/resumeee"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="px-2 py-1.5 rounded-md hover:text-slate-900 hover:bg-slate-50 dark:hover:text-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-                >
-                  GitHub
-                </a>
-              </nav>
-            </div>
-          )}
+          {!showNav && isPublicLanding && <PublicNav />}
 
           {/* Right Utilities & Actions - Far Right */}
           <div className="flex items-center space-x-1 sm:space-x-1.5 lg:space-x-3 shrink-0">
-            {!showNav && isPublicLanding && (
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="text-xs px-2 sm:px-3 h-8 text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-slate-100"
-              >
-                <Link to="/login">Sign In</Link>
-              </Button>
-            )}
             {showNav && <QuotaMeter />}
             <ThemeToggle />
 

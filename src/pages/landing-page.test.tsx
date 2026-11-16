@@ -1,17 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
 import { axe } from "vitest-axe";
 import { LandingPage } from "./landing-page";
 import { ThemeProvider } from "@/lib/theme-provider";
 
-function renderLandingPage(initialRoute = "/") {
+function renderLandingPage() {
   return render(
     <ThemeProvider>
-      <MemoryRouter initialEntries={[initialRoute]}>
-        <LandingPage />
-      </MemoryRouter>
+      <LandingPage />
     </ThemeProvider>
   );
 }
@@ -52,10 +49,11 @@ describe("LandingPage Component", () => {
         within(heroSection).getByText(/powered by the AI of your choosing/i)
       ).toBeInTheDocument();
 
-      // Primary CTA: Get Started Free
-      const getStartedBtn = within(heroSection).getByRole("link", { name: /get started free/i });
+      // Primary CTA: Get Started
+      const getStartedBtn = within(heroSection).getByRole("link", { name: /^get started$/i });
       expect(getStartedBtn).toBeInTheDocument();
-      expect(getStartedBtn).toHaveAttribute("href", "/login");
+      expect(getStartedBtn).toHaveAttribute("href", "#open-source");
+      expect(within(heroSection).queryByRole("link", { name: /get started free/i })).not.toBeInTheDocument();
 
       // Secondary CTA: Run it Locally
       const githubBtn = within(heroSection).getByRole("link", { name: /run it locally/i });
@@ -223,9 +221,18 @@ describe("LandingPage Component", () => {
       expect(within(openSourceSection).getByText(/Integrated MCP Server/i)).toBeInTheDocument();
     });
 
-    it("does not render pricing tiers section", () => {
+    it("does not render pricing, login, sign-in, or monetization copy", () => {
       renderLandingPage();
       expect(screen.queryByRole("region", { name: /pricing/i })).not.toBeInTheDocument();
+      expect(screen.queryByText(/sign in|log in/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/get started free/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Free,\s*privacy-first/i)).not.toBeInTheDocument();
+
+      const getStartedLinks = screen.getAllByRole("link", { name: /^get started$/i });
+      expect(getStartedLinks).toHaveLength(2);
+      getStartedLinks.forEach((link) => {
+        expect(link).toHaveAttribute("href", "#open-source");
+      });
     });
   });
 

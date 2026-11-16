@@ -284,7 +284,7 @@ describe("Header and Navigation", () => {
       expect(screen.queryByRole("button", { name: /sign out/i })).not.toBeInTheDocument();
     });
 
-    it("renders public navigation links and Sign In button on public routes when logged off and not admin", () => {
+    it("renders public navigation links without Sign In on public routes when logged off and not admin", () => {
       renderHeader("/", {
         initialUser: null,
         initialAdminMode: false,
@@ -298,9 +298,8 @@ describe("Header and Navigation", () => {
       expect(within(publicNav).getByRole("link", { name: /faq/i })).toHaveAttribute("href", "#faq");
       expect(within(publicNav).getByRole("link", { name: /github/i })).toHaveAttribute("href", "https://github.com/resumeee-app/resumeee");
 
-      const signInLink = screen.getByRole("link", { name: /sign in/i });
-      expect(signInLink).toBeInTheDocument();
-      expect(signInLink).toHaveAttribute("href", "/login");
+      expect(screen.queryByRole("link", { name: /sign in/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: /log in/i })).not.toBeInTheDocument();
     });
 
     it("passes accessibility check when logged off and not admin", async () => {
