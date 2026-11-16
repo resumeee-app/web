@@ -1,6 +1,6 @@
 # AGENTS.md — Autonomous Engineering Guidelines for Resumeee Web
 
-`resumeee-web` is the pure client-side React SPA of the Resumeee ecosystem (`github.com/resumeee-app`). It talks to `server` only over HTTP, using the OpenAPI contract mirrored in `openapi/openapi.yaml`.
+`web` is the pure client-side React SPA of the Resumeee ecosystem (`github.com/resumeee-app`). It talks to `server` only over HTTP, using the OpenAPI contract mirrored in `openapi/openapi.yaml`.
 
 Any AI agent, developer subagent, or human engineer modifying this repository must follow the protocols, standards, and invariants in this document.
 
@@ -9,7 +9,7 @@ Any AI agent, developer subagent, or human engineer modifying this repository mu
 ## 1. Repository Layout
 
 ```
-resumeee-web/
+web/
 ├── openapi/              # Snapshot of the server OpenAPI contract (see openapi/README.md)
 ├── deploy/               # Object storage & CDN deployment recipes (R2, S3, GCS, Nginx, Caddy)
 ├── public/               # Static assets
