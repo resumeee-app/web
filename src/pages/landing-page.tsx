@@ -150,96 +150,6 @@ export const PRIVACY_HIGHLIGHTS: PrivacyHighlight[] = [
 ];
 
 /**
- * Data model for monetization tiers.
- */
-export interface PricingTier {
-  id: string;
-  testId: string;
-  name: string;
-  badge: string;
-  badgeClass?: string;
-  price: string;
-  period: string;
-  description: string;
-  features: string[];
-  ctaLabel: string;
-  ctaHref: string;
-  isExternalCta?: boolean;
-  isPopular?: boolean;
-  buttonVariant?: "default" | "outline" | "secondary";
-}
-
-/**
- * Transparent pricing options offered to users.
- */
-export const PRICING_TIERS: PricingTier[] = [
-  {
-    id: "open-source",
-    testId: "tier-open-source",
-    name: "Open Source",
-    badge: "Self-Hosted",
-    price: "$0",
-    period: "free forever",
-    description: "Everything you need to own your career locally.",
-    features: [
-      "Unlimited local resume branches",
-      "Storage agnostic (SQLite connector included)",
-      "Integrated MCP server & REST API",
-      "Export to JSON Resume, ATS PDF, & Markdown",
-      "BYOK freedom (Gemini, OpenAI, Claude, Ollama)",
-      "WCAG 2.1 AA accessible interface",
-      "Community support via GitHub",
-    ],
-    ctaLabel: "Run it Locally",
-    ctaHref: "https://github.com/resumeee-app/resumeee",
-    isExternalCta: true,
-    buttonVariant: "outline",
-  },
-  {
-    id: "cloud-hosted",
-    testId: "tier-cloud-hosted",
-    name: "Cloud Hosted",
-    badge: "Managed Cloud",
-    badgeClass: "bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300",
-    price: "$12",
-    period: "/ month",
-    description: "Turn-key syncing with premium managed AI quotas.",
-    features: [
-      "Everything in Open Source",
-      "Managed cloud sync & multi-device backup",
-      "Included monthly Gemini & Claude generation quotas",
-      "Serverless high-fidelity PDF rendering engine",
-      "Automated target match analysis & keyword gap check",
-      "Priority email & ticket support",
-    ],
-    ctaLabel: "Start 14-Day Trial",
-    ctaHref: "/login",
-    isPopular: true,
-    buttonVariant: "default",
-  },
-  {
-    id: "enterprise",
-    testId: "tier-enterprise",
-    name: "Enterprise",
-    badge: "Organizations",
-    price: "Custom",
-    period: "tailored quote",
-    description: "For university career centers and recruiting teams.",
-    features: [
-      "Everything in Cloud Hosted",
-      "SAML SSO (Okta, Azure AD, Google)",
-      "Custom LLM guardrails & compliance policies",
-      "Multi-seat applicant review workflows",
-      "Dedicated custom ATS templates & SLA",
-    ],
-    ctaLabel: "Contact Sales",
-    ctaHref: "mailto:sales@resumeee.local?subject=Enterprise%20Inquiry",
-    isExternalCta: true,
-    buttonVariant: "outline",
-  },
-];
-
-/**
  * Data model for FAQ questions and answers.
  */
 export interface FaqItem {
@@ -307,80 +217,6 @@ export const FeatureCard: React.FC<{ feature: FeatureItem }> = ({ feature }) => 
         <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
           {feature.description}
         </p>
-      </div>
-    </div>
-  );
-};
-
-/**
- * Subcomponent rendering an individual pricing tier card.
- */
-export const PricingCard: React.FC<{ tier: PricingTier }> = ({ tier }) => {
-  return (
-    <div
-      data-testid={tier.testId}
-      className={`rounded-2xl bg-white dark:bg-slate-900 p-8 shadow-sm flex flex-col justify-between relative ${
-        tier.isPopular
-          ? "border-2 border-indigo-600 dark:border-indigo-500 shadow-md"
-          : "border border-slate-200 dark:border-slate-800"
-      }`}
-    >
-      {tier.isPopular && (
-        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-          <span className="rounded-full bg-indigo-600 px-3.5 py-1 text-xs font-semibold text-white shadow-sm">
-            Most Popular
-          </span>
-        </div>
-      )}
-
-      <div className="space-y-6">
-        <div>
-          <span
-            className={`inline-block rounded-md px-2.5 py-1 text-xs font-semibold ${
-              tier.badgeClass || "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-            }`}
-          >
-            {tier.badge}
-          </span>
-          <h3 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {tier.name}
-          </h3>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            {tier.description}
-          </p>
-        </div>
-
-        <div className="flex items-baseline gap-1">
-          <span className="text-4xl font-extrabold text-slate-900 dark:text-slate-100">
-            {tier.price}
-          </span>
-          <span className="text-sm text-slate-500 dark:text-slate-400">
-            {tier.period}
-          </span>
-        </div>
-
-        <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-          {tier.features.map((item, idx) => (
-            <li key={idx} className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" aria-hidden="true" />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mt-8">
-        {tier.isExternalCta ? (
-          <Button variant={tier.buttonVariant || "outline"} className="w-full font-semibold" asChild>
-            <a href={tier.ctaHref} target={tier.ctaHref.startsWith("http") ? "_blank" : undefined} rel={tier.ctaHref.startsWith("http") ? "noreferrer noopener" : undefined}>
-              {tier.ctaLabel}
-            </a>
-          </Button>
-        ) : (
-          <Button variant={tier.buttonVariant || "default"} className="w-full font-semibold shadow" asChild>
-            <Link to={tier.ctaHref}>{tier.ctaLabel}</Link>
-          </Button>
-        )}
       </div>
     </div>
   );
@@ -824,32 +660,7 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. PRICING & MONETIZATION TIERS */}
-      <section
-        id="pricing"
-        aria-label="Pricing"
-        className="space-y-12"
-      >
-        <div className="text-center max-w-2xl mx-auto space-y-3">
-          <h2
-            id="pricing-heading"
-            className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl"
-          >
-            Simple, Transparent Options
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg">
-            Start self-hosting for free forever, or upgrade to managed cloud hosting for effortless sync and priority AI quotas.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {PRICING_TIERS.map((tier) => (
-            <PricingCard key={tier.id} tier={tier} />
-          ))}
-        </div>
-      </section>
-
-      {/* 5. FREQUENTLY ASKED QUESTIONS */}
+      {/* 4. FREQUENTLY ASKED QUESTIONS */}
       <section
         id="faq"
         aria-label="Frequently Asked Questions"

@@ -222,46 +222,10 @@ describe("LandingPage Component", () => {
       expect(within(openSourceSection).getByText(/Bring Your Own Key \(BYOK\)/i)).toBeInTheDocument();
       expect(within(openSourceSection).getByText(/Integrated MCP Server/i)).toBeInTheDocument();
     });
-  });
 
-  describe("Monetization & Pricing Tiers", () => {
-    it("renders all three pricing tiers (Open Source, Cloud Hosted, Enterprise) with transparent details", () => {
+    it("does not render pricing tiers section", () => {
       renderLandingPage();
-
-      const pricingSection = screen.getByRole("region", { name: /pricing/i });
-      expect(pricingSection).toBeInTheDocument();
-
-      // Tier 1: Open Source
-      const openSourceCard = screen.getByTestId("tier-open-source");
-      expect(within(openSourceCard).getByRole("heading", { level: 3, name: /open source/i })).toBeInTheDocument();
-      expect(within(openSourceCard).getByText(/\$0/)).toBeInTheDocument();
-      expect(within(openSourceCard).getByText(/free forever/i)).toBeInTheDocument();
-      expect(within(openSourceCard).getByText(/Storage agnostic \(SQLite connector included\)/i)).toBeInTheDocument();
-      expect(within(openSourceCard).getByText(/Integrated MCP server & REST API/i)).toBeInTheDocument();
-      expect(within(openSourceCard).getByText(/Export to JSON Resume, ATS PDF, & Markdown/i)).toBeInTheDocument();
-      expect(within(openSourceCard).getByRole("link", { name: /run it locally/i })).toHaveAttribute(
-        "href",
-        "https://github.com/resumeee-app/resumeee"
-      );
-
-      // Tier 2: Cloud Hosted (Pro)
-      const cloudCard = screen.getByTestId("tier-cloud-hosted");
-      expect(within(cloudCard).getByRole("heading", { level: 3, name: /cloud hosted/i })).toBeInTheDocument();
-      expect(within(cloudCard).getByText(/\$12/)).toBeInTheDocument();
-      expect(within(cloudCard).getByText(/most popular/i)).toBeInTheDocument();
-      expect(within(cloudCard).getByText(/Automated target match analysis & keyword gap check/i)).toBeInTheDocument();
-      expect(within(cloudCard).queryByText(/Automated ATS score scanner/i)).not.toBeInTheDocument();
-      expect(within(cloudCard).getByRole("link", { name: /start 14-day trial/i })).toHaveAttribute(
-        "href",
-        "/login"
-      );
-
-      // Tier 3: Enterprise
-      const enterpriseCard = screen.getByTestId("tier-enterprise");
-      expect(within(enterpriseCard).getByRole("heading", { level: 3, name: /enterprise/i })).toBeInTheDocument();
-      expect(within(enterpriseCard).getByText(/^custom$/i)).toBeInTheDocument();
-      expect(within(enterpriseCard).getByText(/tailored quote/i)).toBeInTheDocument();
-      expect(within(enterpriseCard).getByRole("link", { name: /contact sales/i })).toBeInTheDocument();
+      expect(screen.queryByRole("region", { name: /pricing/i })).not.toBeInTheDocument();
     });
   });
 

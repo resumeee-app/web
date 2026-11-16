@@ -294,7 +294,7 @@ describe("Header and Navigation", () => {
       expect(publicNav).toBeInTheDocument();
       expect(within(publicNav).getByRole("link", { name: /features/i })).toHaveAttribute("href", "#features");
       expect(within(publicNav).getByRole("link", { name: /open source/i })).toHaveAttribute("href", "#open-source");
-      expect(within(publicNav).getByRole("link", { name: /pricing/i })).toHaveAttribute("href", "#pricing");
+      expect(within(publicNav).queryByRole("link", { name: /pricing/i })).not.toBeInTheDocument();
       expect(within(publicNav).getByRole("link", { name: /faq/i })).toHaveAttribute("href", "#faq");
       expect(within(publicNav).getByRole("link", { name: /github/i })).toHaveAttribute("href", "https://github.com/resumeee-app/resumeee");
 

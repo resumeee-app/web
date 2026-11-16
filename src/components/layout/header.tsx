@@ -116,12 +116,6 @@ export const Header: React.FC = () => {
                   Open Source
                 </a>
                 <a
-                  href="#pricing"
-                  className="px-2 py-1.5 rounded-md hover:text-slate-900 hover:bg-slate-50 dark:hover:text-slate-100 dark:hover:bg-slate-800/60 transition-colors"
-                >
-                  Pricing
-                </a>
-                <a
                   href="#faq"
                   className="px-2 py-1.5 rounded-md hover:text-slate-900 hover:bg-slate-50 dark:hover:text-slate-100 dark:hover:bg-slate-800/60 transition-colors"
                 >
