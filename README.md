@@ -129,6 +129,17 @@ DEV_UID=$(id -u) DEV_GID=$(id -g) docker compose -f docker-compose.yml -f docker
 
 ---
 
-## 7. License
+## 7. License & Trademarks
 
-GNU Affero General Public License v3.0 (AGPL-3.0). See [LICENSE](./LICENSE).
+### License
+Resumeee is licensed under the **GNU Affero General Public License v3.0 or later** ([AGPL-3.0-or-later](LICENSE)).
+
+You are free to use, modify, and host this software. Under the AGPL, any modified versions distributed or hosted over a network must make their complete source code freely available under the same license terms.
+
+For commercial inquiries or custom closed-source licensing arrangements, contact Ruben Rivera.
+
+### Contributor Agreement
+All external contributions are welcomed under the terms of our [Contributor License Agreement (CLA)](CLA.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+### Trademark Notice
+"Resumeee" and the Resumeee branding and logo are trademarks of Ruben Rivera. The AGPLv3 license gives you rights to the software code, but does not grant rights to use the official name, logo, or trademarks for derivative products or publicity without prior written permission.
