@@ -722,7 +722,7 @@ export interface paths {
         put?: never;
         /**
          * Enqueue asynchronous resume generation
-         * @description Creates a new immutable BranchVersion (vN) in pending status and enqueues it into the in-memory worker pool. Returns immediately with 202 Accepted.
+         * @description Creates a new immutable BranchVersion (vN) in pending status and enqueues it into the durable job queue. Returns immediately with 202 Accepted.
          */
         post: operations["generateBranchVersion"];
         delete?: never;
@@ -1154,7 +1154,7 @@ export interface components {
         /** @enum {string} */
         ContactType: "Email" | "Phone";
         /** @enum {string} */
-        VersionStatus: "pending" | "processing" | "completed" | "completed_with_warnings" | "failed";
+        VersionStatus: "pending" | "processing" | "completed" | "completed_with_warnings" | "failed" | "cancelled";
         /** @enum {string} */
         SourceType: "llm_generation" | "manual_edit";
         /** @enum {string} */
@@ -1459,7 +1459,6 @@ export interface components {
             description?: string;
             system_instructions: string;
             suggested_theme_id?: string | null;
-            template_set_id: string;
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
             /** @description Whether this is a system-provided built-in preset */
@@ -1474,7 +1473,6 @@ export interface components {
             description?: string;
             system_instructions: string;
             suggested_theme_id?: string | null;
-            template_set_id: string;
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
         };
@@ -1483,7 +1481,6 @@ export interface components {
             description?: string;
             system_instructions?: string;
             suggested_theme_id?: string | null;
-            template_set_id?: string;
             /** @description Target language for contextual translation */
             language?: string;
         };
@@ -1494,7 +1491,6 @@ export interface components {
             description?: string;
             system_instructions: string;
             suggested_theme_id?: string | null;
-            template_set_id?: string;
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
             /** @description Whether this is a system-provided built-in tailoring strategy */
@@ -1509,7 +1505,6 @@ export interface components {
             description?: string;
             system_instructions: string;
             suggested_theme_id?: string | null;
-            template_set_id?: string;
             /** @description Target language for contextual translation (defaults to English) */
             language?: string;
         };
@@ -1518,7 +1513,6 @@ export interface components {
             description?: string;
             system_instructions?: string;
             suggested_theme_id?: string | null;
-            template_set_id?: string;
             /** @description Target language for contextual translation */
             language?: string;
         };
@@ -1562,9 +1556,7 @@ export interface components {
             target_company?: string;
             target_requirements?: string;
             branch_instructions?: string;
-            custom_directives?: string;
             preset_id?: string | null;
-            tailoring_strategy_id?: string | null;
             template_set_id: string;
             provider_override?: string;
             model_override?: string;
@@ -1578,6 +1570,11 @@ export interface components {
             active_version_id?: string | null;
             gap_report?: components["schemas"]["GapReport"];
             ats_score?: components["schemas"]["ATSScore"];
+            /**
+             * Format: int64
+             * @description Monotonic branch configuration epoch incremented on generation-defining changes
+             */
+            epoch?: number;
             /** Format: int64 */
             last_synced_main_revision?: number;
             /** @description Computed flag indicating whether main profile has advanced past last_synced_main_revision */
@@ -1593,9 +1590,7 @@ export interface components {
             target_company?: string;
             target_requirements?: string;
             branch_instructions?: string;
-            custom_directives?: string;
             preset_id?: string | null;
-            tailoring_strategy_id?: string | null;
             template_set_id: string;
             provider_override?: string;
             model_override?: string;
@@ -1613,9 +1608,7 @@ export interface components {
             target_company?: string;
             target_requirements?: string;
             branch_instructions?: string;
-            custom_directives?: string;
             preset_id?: string | null;
-            tailoring_strategy_id?: string | null;
             template_set_id?: string;
             provider_override?: string;
             model_override?: string;
@@ -1643,12 +1636,8 @@ export interface components {
             target_requirements?: string;
             /** @description Optional override for custom branch instructions. */
             branch_instructions?: string;
-            /** @description Optional override for custom branch instructions. */
-            custom_directives?: string;
             /** @description Optional override for formatting preset ID. */
             preset_id?: string | null;
-            /** @description Optional override for tailoring strategy ID. */
-            tailoring_strategy_id?: string | null;
             /** @description Optional override for pinned entity IDs. */
             pinned_entity_ids?: string[];
             /** @description Optional override for excluded entity IDs. */
@@ -1793,7 +1782,14 @@ export interface components {
         BranchVersion: {
             id: string;
             branch_id: string;
+            /** @description Persistent job ID associated with async generation, when job-backed */
+            job_id?: string;
             version_number: number;
+            /**
+             * Format: int64
+             * @description Branch configuration epoch fenced at generation time, when set
+             */
+            branch_epoch?: number;
             status: components["schemas"]["VersionStatus"];
             /** Format: int64 */
             main_revision_used?: number;
@@ -1821,18 +1817,11 @@ export interface components {
             /** @example Resume generation job queued */
             message: string;
         };
-        AsyncPDFJobResponse: {
-            /** @example pdf-job-7a3b8c4d-1234-5678-90ab-cdef12345678 */
-            job_id: string;
-            status: components["schemas"]["PDFParseJobStatus"];
-            /** @example PDF parsing job queued */
-            message: string;
-        };
         /**
          * @example pending
          * @enum {string}
          */
-        PDFParseJobStatus: "pending" | "processing" | "completed" | "failed";
+        PDFParseJobStatus: "pending" | "processing" | "completed" | "failed" | "cancelled";
         PDFParseJob: {
             /** @example pdf-job-7a3b8c4d-1234-5678-90ab-cdef12345678 */
             id: string;
@@ -2016,7 +2005,7 @@ export interface components {
                 "application/json": components["schemas"]["ErrorResponse"];
             };
         };
-        /** @description In-memory worker queue channel is at maximum capacity */
+        /** @description Tenant pending-job admission limit reached or worker queue unavailable */
         QueueFull: {
             headers: {
                 [name: string]: unknown;
@@ -2336,7 +2325,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AsyncPDFJobResponse"];
+                    "application/json": components["schemas"]["PDFParseJob"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -3484,6 +3473,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+            403: components["responses"]["Forbidden"];
             422: components["responses"]["TemplateValidationError"];
             500: components["responses"]["InternalError"];
         };

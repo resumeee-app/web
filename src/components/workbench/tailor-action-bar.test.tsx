@@ -28,7 +28,7 @@ const mockPresets: Preset[] = [
     user_id: "user-1",
     name: "ATS Optimized",
     system_instructions: "Emphasize metrics",
-    template_set_id: "tpl-executive",
+    suggested_theme_id: "tpl-executive",
   },
 ];
 

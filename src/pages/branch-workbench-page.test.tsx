@@ -59,14 +59,14 @@ const mockPresets: Preset[] = [
     user_id: "u-1",
     name: "ATS Standard",
     system_instructions: "Focus on keywords",
-    template_set_id: "tpl-default",
+    suggested_theme_id: "tpl-default",
   },
   {
     id: "preset-custom",
     user_id: "u-1",
     name: "Executive Tone",
     system_instructions: "Focus on leadership",
-    template_set_id: "tpl-default",
+    suggested_theme_id: "tpl-default",
   },
 ];
 

@@ -51,7 +51,7 @@ describe("Preset Queries & Mutations", () => {
         user_id: "user-1",
         name: "Builtin Tech",
         system_instructions: "Instructions",
-        template_set_id: "t-1",
+        suggested_theme_id: "t-1",
         is_built_in: true,
       },
     ];
@@ -76,7 +76,7 @@ describe("Preset Queries & Mutations", () => {
       user_id: "user-1",
       name: "Custom Preset",
       system_instructions: "Custom Instructions",
-      template_set_id: "t-2",
+      suggested_theme_id: "t-2",
       is_built_in: false,
     };
 
@@ -98,7 +98,7 @@ describe("Preset Queries & Mutations", () => {
     const newPreset = {
       name: "Brand New Preset",
       system_instructions: "Focus on metrics",
-      template_set_id: "t-1",
+      suggested_theme_id: "t-1",
     };
     const createdPreset = {
       id: "new-id",
@@ -127,7 +127,7 @@ describe("Preset Queries & Mutations", () => {
       user_id: "user-1",
       name: "Updated Name",
       system_instructions: "Updated Instructions",
-      template_set_id: "t-1",
+      suggested_theme_id: "t-1",
       is_built_in: false,
     };
 
@@ -276,7 +276,7 @@ describe("Preset Queries & Mutations", () => {
         result.current.mutateAsync({
           name: "Invalid",
           system_instructions: "None",
-          template_set_id: "t-1",
+          suggested_theme_id: "t-1",
         })
       ).rejects.toThrow("Validation error: invalid preset name");
     });
@@ -296,7 +296,7 @@ describe("Preset Queries & Mutations", () => {
         result.current.mutateAsync({
           name: "Valid",
           system_instructions: "Instructions",
-          template_set_id: "t-1",
+          suggested_theme_id: "t-1",
         })
       ).rejects.toThrow("No data returned from preset creation");
     });

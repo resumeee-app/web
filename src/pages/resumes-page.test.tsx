@@ -30,7 +30,6 @@ describe("RFC-005 ResumesPage & 3-Step Creation Wizard", () => {
       user_id: "system",
       name: "1-Page SWE High Density",
       system_instructions: "Concise, metrics-first bullets focusing on distributed systems.",
-      template_set_id: "builtin-standard-clean",
       suggested_theme_id: "builtin-standard-clean",
       is_built_in: true,
     },
@@ -39,7 +38,6 @@ describe("RFC-005 ResumesPage & 3-Step Creation Wizard", () => {
       user_id: "system",
       name: "Academic Researcher Full CV",
       system_instructions: "Comprehensive publication history and research grants.",
-      template_set_id: "builtin-classic-serif",
       suggested_theme_id: "builtin-classic-serif",
       is_built_in: true,
     },
@@ -244,7 +242,7 @@ describe("RFC-005 ResumesPage & 3-Step Creation Wizard", () => {
       target_company: "Stripe",
       target_role: "Staff Backend Engineer",
       target_requirements: "Distributed systems, Raft consensus, Go microservices.",
-      tailoring_strategy_id: "builtin-swe-1page",
+      preset_id: "builtin-swe-1page",
       template_set_id: "builtin-standard-clean",
     });
   });

@@ -141,7 +141,7 @@ describe("HomePage Dashboard Integration & Views", () => {
       user_id: "system",
       name: "Platform Engineer",
       system_instructions: "Emphasize high throughput and distributed consensus",
-      template_set_id: "tmpl-clean",
+      suggested_theme_id: "tmpl-clean",
       is_built_in: true,
     },
   ];

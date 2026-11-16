@@ -12,7 +12,7 @@ const systemPreset: Preset = {
   name: "1-Page Tech Resume",
   description: "Strict 1-page max format for engineering roles.",
   system_instructions: "Focus on high-impact quantitative engineering accomplishments.",
-  template_set_id: "builtin-standard-clean",
+  suggested_theme_id: "builtin-standard-clean",
   language: "English",
   is_built_in: true,
 };
@@ -23,7 +23,7 @@ const customPreset: Preset = {
   name: "Custom Staff SWE Preset",
   description: "Leadership and system architecture focus.",
   system_instructions: "Highlight technical strategy and cross-functional leadership.",
-  template_set_id: "builtin-standard-clean",
+  suggested_theme_id: "builtin-standard-clean",
   language: "Spanish",
   is_built_in: false,
 };

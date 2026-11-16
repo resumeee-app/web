@@ -122,9 +122,9 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
       const initialPresetId = defaultPreset ? defaultPreset.id : "";
       setPresetId(initialPresetId);
 
-      // Default template to preset's suggested theme or template, or first available template
+      // Default template to preset's suggested theme, or first available template
       const initialTemplateId =
-        (defaultPreset && (defaultPreset.suggested_theme_id || defaultPreset.template_set_id)) ||
+        defaultPreset?.suggested_theme_id ||
         (templates[0] && templates[0].id) ||
         "standard";
       setTemplateSetId(initialTemplateId);
@@ -160,7 +160,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
     setPresetId(newPresetId);
     if (newPresetId && !hasManuallySelectedTheme) {
       const selected = presets.find((p) => p.id === newPresetId);
-      const suggested = selected?.suggested_theme_id || selected?.template_set_id;
+      const suggested = selected?.suggested_theme_id;
       if (suggested && templates.some((t) => t.id === suggested)) {
         setTemplateSetId(suggested);
       }
@@ -213,11 +213,9 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
       target_company: targetCompany.trim(),
       target_role: targetRole.trim(),
       preset_id: presetId || undefined,
-      tailoring_strategy_id: presetId || undefined,
       template_set_id: templateSetId,
       target_requirements: targetRequirements.trim(),
       branch_instructions: branchInstructions.trim(),
-      custom_directives: branchInstructions.trim(),
     });
 
     onOpenChange(false);

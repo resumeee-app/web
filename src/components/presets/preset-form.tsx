@@ -64,7 +64,7 @@ export type FormErrors = Partial<
 
 /**
  * PresetForm manages the creation, editing, and read-only inspection of presets:
- * - Maps strictly to the canonical OpenAPI Preset schema (`name`, `description`, `template_set_id`,
+ * - Maps strictly to the canonical OpenAPI Preset schema (`name`, `description`, `suggested_theme_id`,
  *   `system_instructions`, `language`)
  * - Integrates the interactive ConstraintControls builder to synthesize length, bullet counts, tone,
  *   and section priorities into prompt instructions
@@ -85,7 +85,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
     initialValues?.description || ""
   );
   const [templateSetId, setTemplateSetId] = useState(
-    initialValues?.template_set_id ||
+    initialValues?.suggested_theme_id ||
       (templateSets.length > 0 && templateSets[0] ? templateSets[0].id : "")
   );
   const [systemInstructions, setSystemInstructions] = useState(
@@ -142,7 +142,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
     await onSubmit({
       name: name.trim(),
       description: description.trim() || undefined,
-      template_set_id: templateSetId,
+      suggested_theme_id: templateSetId,
       system_instructions: systemInstructions.trim(),
       language: language.trim() || "English",
     });

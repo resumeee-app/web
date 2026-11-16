@@ -86,7 +86,7 @@ describe("WorkflowGuide Component", () => {
       user_id: "system",
       name: "Executive Strategy",
       system_instructions: "Highlight executive leadership and scale",
-      template_set_id: "tmpl-clean",
+      suggested_theme_id: "tmpl-clean",
     },
   ];
 

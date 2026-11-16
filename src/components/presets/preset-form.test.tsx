@@ -114,7 +114,7 @@ describe("PresetForm Component", () => {
     expect(handleSubmit).toHaveBeenCalledWith({
       name: "My Custom Tech Preset",
       description: "Optimized for high-growth tech start-ups.",
-      template_set_id: "builtin-standard-clean",
+      suggested_theme_id: "builtin-standard-clean",
       system_instructions: "Focus on impact and distributed systems.",
       language: "English",
     });
@@ -154,7 +154,7 @@ describe("PresetForm Component", () => {
           name: "1-Page Tech Resume",
           description: "Strict 1-page max format",
           system_instructions: "Focus on impact",
-          template_set_id: "builtin-standard-clean",
+          suggested_theme_id: "builtin-standard-clean",
           is_built_in: true,
         }}
         templateSets={mockTemplates}
@@ -193,7 +193,7 @@ describe("PresetForm Component", () => {
         initialValues={{
           id: "preset-custom-001",
           name: "Existing Custom Preset",
-          template_set_id: "builtin-standard-clean",
+          suggested_theme_id: "builtin-standard-clean",
           system_instructions: "Existing instructions.",
         }}
         templateSets={mockTemplates}

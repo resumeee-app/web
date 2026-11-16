@@ -22,7 +22,7 @@ describe("CreateBranchModal Component", () => {
       user_id: "system",
       name: "Staff Engineer (System Default)",
       system_instructions: "Emphasize leadership",
-      template_set_id: "tmpl-clean",
+      suggested_theme_id: "tmpl-clean",
       is_built_in: true,
     },
   ];
@@ -168,11 +168,9 @@ describe("CreateBranchModal Component", () => {
       target_company: "Google",
       target_role: "Staff Software Engineer",
       preset_id: "preset-staff",
-      tailoring_strategy_id: "preset-staff",
       template_set_id: "tmpl-clean",
       target_requirements: "",
       branch_instructions: "",
-      custom_directives: "",
     });
   });
 
@@ -202,7 +200,6 @@ describe("CreateBranchModal Component", () => {
         user_id: "system",
         name: "Staff Engineer",
         system_instructions: "Emphasize leadership",
-        template_set_id: "tmpl-clean",
         suggested_theme_id: "tmpl-clean",
         is_built_in: true,
       },
@@ -211,7 +208,6 @@ describe("CreateBranchModal Component", () => {
         user_id: "system",
         name: "Academic Researcher",
         system_instructions: "Emphasize publications",
-        template_set_id: "tmpl-academic",
         suggested_theme_id: "tmpl-academic",
         is_built_in: false,
       },
@@ -282,11 +278,9 @@ describe("CreateBranchModal Component", () => {
       target_company: "Meta",
       target_role: "Research Scientist",
       preset_id: "preset-staff",
-      tailoring_strategy_id: "preset-staff",
       template_set_id: "tmpl-clean",
       target_requirements: "",
       branch_instructions: "",
-      custom_directives: "",
     });
   });
 
@@ -357,7 +351,7 @@ describe("CreateBranchModal Component", () => {
         user_id: "user-1",
         name: "Spanish Tech Lead",
         system_instructions: "Emphasize leadership in Spanish",
-        template_set_id: "tmpl-clean",
+        suggested_theme_id: "tmpl-clean",
         language: "Spanish",
       },
     ];
