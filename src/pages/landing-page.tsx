@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
 import {
   GitBranch,
   ShieldCheck,
@@ -422,10 +421,10 @@ export const LandingPage: React.FC = () => {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-center">
           <Button size="lg" asChild className="w-full sm:w-auto h-12 px-7 text-base font-semibold shadow-sm">
-            <Link to="/login" className="flex items-center justify-center gap-2">
-              <span>Get Started Free</span>
+            <a href="#open-source" className="flex items-center justify-center gap-2">
+              <span>Get Started</span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+            </a>
           </Button>
 
           <Button
@@ -732,7 +731,7 @@ export const LandingPage: React.FC = () => {
             Ready to branch your career?
           </h2>
           <p className="text-indigo-100 text-base">
-            Create your main career graph today. Free, privacy-first, and open source forever.
+            Create your main career graph today. Privacy-first and open source forever.
           </p>
         </div>
 
@@ -743,10 +742,10 @@ export const LandingPage: React.FC = () => {
             asChild
             className="w-full sm:w-auto h-12 px-7 text-base font-semibold bg-white text-indigo-900 hover:bg-slate-100 dark:bg-slate-100 dark:text-indigo-950"
           >
-            <Link to="/login" className="flex items-center justify-center gap-2">
-              <span>Get Started Free</span>
+            <a href="#open-source" className="flex items-center justify-center gap-2">
+              <span>Get Started</span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+            </a>
           </Button>
 
           <Button

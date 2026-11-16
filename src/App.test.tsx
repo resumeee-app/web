@@ -61,10 +61,10 @@ describe("Application Root Component", () => {
       expect(await screen.findByRole("heading", { level: 1, name: /branch your career/i })).toBeInTheDocument();
       expect(screen.getAllByText(/one resume to rule them all/i).length).toBeGreaterThan(0);
 
-      // CTA into login
-      const getStartedLinks = screen.getAllByRole("link", { name: /get started free/i });
+      // Primary CTA targets self-hosting quickstart
+      const getStartedLinks = screen.getAllByRole("link", { name: /^get started$/i });
       expect(getStartedLinks.length).toBeGreaterThan(0);
-      expect(getStartedLinks[0]).toHaveAttribute("href", "/login");
+      expect(getStartedLinks[0]).toHaveAttribute("href", "#open-source");
 
       const banner = screen.getByRole("banner");
       expect(banner).toBeInTheDocument();
