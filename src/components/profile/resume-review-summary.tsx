@@ -56,7 +56,7 @@ function asStringList(value: unknown): string[] {
 
 /**
  * Inspects a parsed JSON Resume object and returns the names of extended standard sections,
- * schema/metadata blocks, and custom top-level keys that `resumeee-core` preserves in profile
+ * schema/metadata blocks, and custom top-level keys that `core` preserves in profile
  * metadata for lossless round-trip export.
  *
  * @param resume - Parsed JSON Resume payload.
