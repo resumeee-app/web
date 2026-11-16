@@ -13,7 +13,7 @@
 
     # Reverse proxy for API calls
     handle /api/* {
-        reverse_proxy resumeee-api:8080
+        reverse_proxy server:8080
     }
 
     # Hashed static assets caching

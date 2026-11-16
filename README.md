@@ -2,7 +2,7 @@
 
 Welcome to the frontend workspace for Resumeee. This is a Single-Page Application (SPA) built with React 18, React Router v6/v7, Radix UI unstyled primitives, Tailwind CSS, and TypeScript.
 
-The frontend is strictly decoupled from server-side rendering (SSR), allowing it to be deployed into any cloud object storage (Cloudflare R2, AWS S3, Google Cloud Storage) and served via CDN, communicating with the Resumeee REST API (`resumeee-api`) whose contract is mirrored in `openapi/openapi.yaml`.
+The frontend is strictly decoupled from server-side rendering (SSR), allowing it to be deployed into any cloud object storage (Cloudflare R2, AWS S3, Google Cloud Storage) and served via CDN, communicating with the Resumeee REST API (`server`) whose contract is mirrored in `openapi/openapi.yaml`.
 
 ---
 
@@ -39,7 +39,7 @@ VITE_API_BASE_URL=/api/v1
 VITE_API_PROXY_TARGET=http://localhost:8080
 ```
 
-When `VITE_API_BASE_URL` is set to `/api/v1`, requests in the browser go to `/api/v1/*`. During local development, the Vite dev server transparently proxies `/api` to `http://localhost:8080` (where the `resumeee-api` server runs), completely avoiding CORS configuration issues.
+When `VITE_API_BASE_URL` is set to `/api/v1`, requests in the browser go to `/api/v1/*`. During local development, the Vite dev server transparently proxies `/api` to `http://localhost:8080` (where `server` runs), completely avoiding CORS configuration issues.
 
 ---
 
@@ -57,7 +57,7 @@ npm run dev
 ```
 
 ### Synchronize OpenAPI TypeScript Definitions
-`openapi/openapi.yaml` is a copy of the authoritative contract published by `resumeee-api`. Whenever the API contract changes, refresh that file and regenerate the strongly typed TypeScript interfaces:
+`openapi/openapi.yaml` is a copy of the authoritative contract published by `server`. Whenever the API contract changes, refresh that file and regenerate the strongly typed TypeScript interfaces:
 ```bash
 npm run generate:api
 ```
