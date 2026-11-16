@@ -168,7 +168,11 @@ export const PresetsPage: React.FC = () => {
             <PresetCard
               key={preset.id}
               preset={preset}
-              templateName={templateMap.get(preset.template_set_id)}
+              templateName={
+                preset.suggested_theme_id
+                  ? templateMap.get(preset.suggested_theme_id)
+                  : undefined
+              }
               onDuplicate={handleDuplicate}
               onDelete={handleDelete}
             />

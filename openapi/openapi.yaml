@@ -235,7 +235,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AsyncPDFJobResponse'
+                $ref: '#/components/schemas/PDFParseJob'
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
@@ -1189,6 +1189,8 @@ paths:
                 type: string
         '400':
           $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/TemplateValidationError'
         '500':
@@ -1408,7 +1410,7 @@ paths:
       summary: Enqueue asynchronous resume generation
       description: >-
         Creates a new immutable BranchVersion (vN) in pending status and enqueues
-        it into the in-memory worker pool. Returns immediately with 202 Accepted.
+        it into the durable job queue. Returns immediately with 202 Accepted.
       operationId: generateBranchVersion
       responses:
         '202':
@@ -2046,7 +2048,7 @@ components:
               details: "invalid source_fact_id: fact-999"
 
     QueueFull:
-      description: In-memory worker queue channel is at maximum capacity
+      description: Tenant pending-job admission limit reached or worker queue unavailable
       content:
         application/json:
           schema:
@@ -2211,6 +2213,7 @@ components:
         - completed
         - completed_with_warnings
         - failed
+        - cancelled
 
     SourceType:
       type: string
@@ -2873,7 +2876,6 @@ components:
         - user_id
         - name
         - system_instructions
-        - template_set_id
       properties:
         id:
           type: string
@@ -2888,8 +2890,6 @@ components:
         suggested_theme_id:
           type: string
           nullable: true
-        template_set_id:
-          type: string
         language:
           type: string
           description: Target language for contextual translation (defaults to English)
@@ -2909,7 +2909,6 @@ components:
       required:
         - name
         - system_instructions
-        - template_set_id
       properties:
         name:
           type: string
@@ -2920,8 +2919,6 @@ components:
         suggested_theme_id:
           type: string
           nullable: true
-        template_set_id:
-          type: string
         language:
           type: string
           description: Target language for contextual translation (defaults to English)
@@ -2938,8 +2935,6 @@ components:
         suggested_theme_id:
           type: string
           nullable: true
-        template_set_id:
-          type: string
         language:
           type: string
           description: Target language for contextual translation
@@ -2965,8 +2960,6 @@ components:
         suggested_theme_id:
           type: string
           nullable: true
-        template_set_id:
-          type: string
         language:
           type: string
           description: Target language for contextual translation (defaults to English)
@@ -2996,8 +2989,6 @@ components:
         suggested_theme_id:
           type: string
           nullable: true
-        template_set_id:
-          type: string
         language:
           type: string
           description: Target language for contextual translation (defaults to English)
@@ -3014,8 +3005,6 @@ components:
         suggested_theme_id:
           type: string
           nullable: true
-        template_set_id:
-          type: string
         language:
           type: string
           description: Target language for contextual translation
@@ -3115,12 +3104,7 @@ components:
           type: string
         branch_instructions:
           type: string
-        custom_directives:
-          type: string
         preset_id:
-          type: string
-          nullable: true
-        tailoring_strategy_id:
           type: string
           nullable: true
         template_set_id:
@@ -3153,6 +3137,10 @@ components:
           $ref: '#/components/schemas/GapReport'
         ats_score:
           $ref: '#/components/schemas/ATSScore'
+        epoch:
+          type: integer
+          format: int64
+          description: Monotonic branch configuration epoch incremented on generation-defining changes
         last_synced_main_revision:
           type: integer
           format: int64
@@ -3182,12 +3170,7 @@ components:
           type: string
         branch_instructions:
           type: string
-        custom_directives:
-          type: string
         preset_id:
-          type: string
-          nullable: true
-        tailoring_strategy_id:
           type: string
           nullable: true
         template_set_id:
@@ -3227,12 +3210,7 @@ components:
           type: string
         branch_instructions:
           type: string
-        custom_directives:
-          type: string
         preset_id:
-          type: string
-          nullable: true
-        tailoring_strategy_id:
           type: string
           nullable: true
         template_set_id:
@@ -3289,17 +3267,10 @@ components:
         branch_instructions:
           type: string
           description: Optional override for custom branch instructions.
-        custom_directives:
-          type: string
-          description: Optional override for custom branch instructions.
         preset_id:
           type: string
           nullable: true
           description: Optional override for formatting preset ID.
-        tailoring_strategy_id:
-          type: string
-          nullable: true
-          description: Optional override for tailoring strategy ID.
         pinned_entity_ids:
           type: array
           items:
@@ -3660,8 +3631,15 @@ components:
           type: string
         branch_id:
           type: string
+        job_id:
+          type: string
+          description: Persistent job ID associated with async generation, when job-backed
         version_number:
           type: integer
+        branch_epoch:
+          type: integer
+          format: int64
+          description: Branch configuration epoch fenced at generation time, when set
         status:
           $ref: '#/components/schemas/VersionStatus'
         main_revision_used:
@@ -3719,22 +3697,6 @@ components:
           type: string
           example: "Resume generation job queued"
 
-    AsyncPDFJobResponse:
-      type: object
-      required:
-        - job_id
-        - status
-        - message
-      properties:
-        job_id:
-          type: string
-          example: "pdf-job-7a3b8c4d-1234-5678-90ab-cdef12345678"
-        status:
-          $ref: '#/components/schemas/PDFParseJobStatus'
-        message:
-          type: string
-          example: "PDF parsing job queued"
-
     PDFParseJobStatus:
       type: string
       enum:
@@ -3742,6 +3704,7 @@ components:
         - processing
         - completed
         - failed
+        - cancelled
       example: "pending"
 
     PDFParseJob:

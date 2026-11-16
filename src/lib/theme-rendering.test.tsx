@@ -74,7 +74,7 @@ describe("Dark Theme Rendering & Accessibility Verification", () => {
       name: "FAANG Engineering Lead",
       description: "Tailored for senior leadership and scalable systems",
       system_instructions: "Emphasize leadership and scalability metrics.",
-      template_set_id: "tmpl-1",
+      suggested_theme_id: "tmpl-1",
       is_built_in: false,
       created_at: "2026-10-20T12:00:00Z",
       updated_at: "2026-10-25T14:30:00Z",
@@ -188,7 +188,7 @@ describe("Dark Theme Rendering & Accessibility Verification", () => {
             name: "1-Page Tech Resume",
             description: "Strict 1-page max format",
             system_instructions: "Focus on impact",
-            template_set_id: "builtin-standard",
+            suggested_theme_id: "builtin-standard",
             is_built_in: true,
           }}
           templateSets={mockTemplates}

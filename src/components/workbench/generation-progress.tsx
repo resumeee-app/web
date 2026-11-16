@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   AlertCircle,
+  XCircle,
   RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const STATUS_CONTAINER_STYLES: Record<string, string> = {
   completed: "border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30",
   completed_with_warnings: "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30",
   failed: "border-rose-200 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/30",
+  cancelled: "border-border bg-muted/50",
   pending: "border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/30",
   processing: "border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/30",
 };
@@ -95,6 +97,12 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
                 aria-hidden="true"
               />
             )}
+            {status === "cancelled" && (
+              <XCircle
+                className="h-5 w-5 text-slate-600 dark:text-slate-400"
+                aria-hidden="true"
+              />
+            )}
 
             <div>
               <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -104,6 +112,7 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
                 {status === "completed_with_warnings" &&
                   "Completed with Validation Warnings"}
                 {status === "failed" && "Generation Failed"}
+                {status === "cancelled" && "Generation Cancelled"}
               </h2>
               <p className="text-xs text-slate-600 dark:text-slate-300">
                 {status === "pending" &&
@@ -117,11 +126,14 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
                 {status === "failed" &&
                   (error_message ||
                     "An unexpected error occurred during generation.")}
+                {status === "cancelled" &&
+                  (error_message ||
+                    "This generation job was cancelled before completion.")}
               </p>
             </div>
           </div>
 
-          {status === "failed" && onRetry && (
+          {(status === "failed" || status === "cancelled") && onRetry && (
             <Button
               variant="destructive"
               size="sm"

@@ -25,13 +25,14 @@ export const TERMINAL_STATUSES: readonly VersionStatus[] = [
   "completed",
   "completed_with_warnings",
   "failed",
+  "cancelled",
 ] as const;
 
 /**
  * Checks whether a given version status is in a terminal state.
  *
  * @param status - The candidate version status to evaluate.
- * @returns `true` if status is completed, completed_with_warnings, or failed; otherwise `false`.
+ * @returns `true` if status is completed, completed_with_warnings, failed, or cancelled; otherwise `false`.
  */
 export function isTerminalStatus(status?: string | null): boolean {
   if (!status) return false;

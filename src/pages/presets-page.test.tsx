@@ -41,7 +41,7 @@ const mockPresets: apiHooks.Preset[] = [
     name: "1-Page Tech Resume",
     description: "Strict 1-page max format for engineering roles.",
     system_instructions: "Focus on impact.",
-    template_set_id: "builtin-standard-clean",
+    suggested_theme_id: "builtin-standard-clean",
     is_built_in: true,
   },
   {
@@ -50,7 +50,7 @@ const mockPresets: apiHooks.Preset[] = [
     name: "Custom Staff Preset",
     description: "Tailored for senior staff roles.",
     system_instructions: "Focus on technical leadership.",
-    template_set_id: "builtin-standard-clean",
+    suggested_theme_id: "builtin-standard-clean",
     is_built_in: false,
   },
 ];

@@ -256,9 +256,12 @@ describe("profile-queries", () => {
     it("polls asynchronous job until completed and returns extracted candidate resume", async () => {
       vi.mocked(api.POST).mockResolvedValueOnce({
         data: {
-          job_id: "pdf-job-abc-123",
+          id: "pdf-job-abc-123",
+          user_id: "default",
+          filename: "resume.pdf",
           status: "pending",
-          message: "PDF parsing job queued",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         } as unknown as Record<string, never>,
         error: undefined,
         response: new Response(null, { status: 202 }),
@@ -312,9 +315,12 @@ describe("profile-queries", () => {
     it("throws error when asynchronous job status is failed", async () => {
       vi.mocked(api.POST).mockResolvedValueOnce({
         data: {
-          job_id: "pdf-job-fail-456",
+          id: "pdf-job-fail-456",
+          user_id: "default",
+          filename: "resume.pdf",
           status: "pending",
-          message: "PDF parsing job queued",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         } as unknown as Record<string, never>,
         error: undefined,
         response: new Response(null, { status: 202 }),
@@ -345,6 +351,63 @@ describe("profile-queries", () => {
       );
     });
 
+    it("throws error immediately when asynchronous job status transitions to cancelled", async () => {
+      vi.mocked(api.POST).mockResolvedValueOnce({
+        data: {
+          id: "pdf-job-cancel-111",
+          user_id: "default",
+          filename: "resume.pdf",
+          status: "pending",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as unknown as Record<string, never>,
+        error: undefined,
+        response: new Response(null, { status: 202 }),
+      } as unknown as Awaited<ReturnType<typeof api.POST>>);
+
+      vi.mocked(api.GET).mockResolvedValueOnce({
+        data: {
+          id: "pdf-job-cancel-111",
+          user_id: "default",
+          status: "cancelled",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        error: undefined,
+        response: new Response(),
+      } as unknown as Awaited<ReturnType<typeof api.GET>>);
+
+      const { wrapper } = createWrapper();
+      const { result } = renderHook(() => useParsePDFResume(), { wrapper });
+
+      const file = new File(["pdf bytes"], "resume.pdf", {
+        type: "application/pdf",
+      });
+
+      await expect(result.current.mutateAsync({ file })).rejects.toThrow(
+        "PDF parsing was cancelled"
+      );
+    });
+
+    it("throws error on unexpected response without candidate resume or job id", async () => {
+      vi.mocked(api.POST).mockResolvedValueOnce({
+        data: { status: "completed", result: null } as unknown as Record<string, never>,
+        error: undefined,
+        response: new Response(null, { status: 202 }),
+      } as unknown as Awaited<ReturnType<typeof api.POST>>);
+
+      const { wrapper } = createWrapper();
+      const { result } = renderHook(() => useParsePDFResume(), { wrapper });
+
+      const file = new File(["pdf bytes"], "resume.pdf", {
+        type: "application/pdf",
+      });
+
+      await expect(result.current.mutateAsync({ file })).rejects.toThrow(
+        "PDF parse job completed without candidate resume data"
+      );
+    });
+
     it("aborts parsing immediately if AbortSignal is already cancelled", async () => {
       const { wrapper } = createWrapper();
       const { result } = renderHook(() => useParsePDFResume(), { wrapper });
@@ -366,9 +429,12 @@ describe("profile-queries", () => {
     it("aborts polling loop when AbortSignal fires during interval", async () => {
       vi.mocked(api.POST).mockResolvedValueOnce({
         data: {
-          job_id: "pdf-job-abort-789",
+          id: "pdf-job-abort-789",
+          user_id: "default",
+          filename: "resume.pdf",
           status: "pending",
-          message: "PDF parsing job queued",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         } as unknown as Record<string, never>,
         error: undefined,
         response: new Response(null, { status: 202 }),

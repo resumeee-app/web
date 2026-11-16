@@ -49,6 +49,7 @@ describe("generation-queries", () => {
       expect(isTerminalStatus("completed")).toBe(true);
       expect(isTerminalStatus("completed_with_warnings")).toBe(true);
       expect(isTerminalStatus("failed")).toBe(true);
+      expect(isTerminalStatus("cancelled")).toBe(true);
     });
   });
 

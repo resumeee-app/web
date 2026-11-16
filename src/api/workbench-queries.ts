@@ -34,10 +34,7 @@ export type SyncBranchesResponse =
 /**
  * UpdateBranchRequest payload for updating branch metadata or active version pointer.
  */
-export type UpdateBranchRequest = components["schemas"]["UpdateBranchRequest"] & {
-  tailoring_strategy_id?: string | null;
-  custom_directives?: string;
-};
+export type UpdateBranchRequest = components["schemas"]["UpdateBranchRequest"];
 
 /**
  * TanStack Query key factory for branch workbench server state.

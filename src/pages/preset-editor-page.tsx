@@ -96,7 +96,7 @@ export const PresetEditorPage: React.FC = () => {
       return {
         name: `Copy of ${clonedPreset.name}`,
         description: clonedPreset.description,
-        template_set_id: clonedPreset.template_set_id,
+        suggested_theme_id: clonedPreset.suggested_theme_id,
         system_instructions: clonedPreset.system_instructions,
         language: clonedPreset.language,
         is_built_in: false,

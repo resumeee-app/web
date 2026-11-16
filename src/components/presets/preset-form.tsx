@@ -59,12 +59,12 @@ export interface PresetFormProps {
  * Validation error dictionary keyed by form field name.
  */
 export type FormErrors = Partial<
-  Record<"name" | "templateSetId" | "systemInstructions", string>
+  Record<"name" | "systemInstructions", string>
 >;
 
 /**
  * PresetForm manages the creation, editing, and read-only inspection of presets:
- * - Maps strictly to the canonical OpenAPI Preset schema (`name`, `description`, `template_set_id`,
+ * - Maps strictly to the canonical OpenAPI Preset schema (`name`, `description`, `suggested_theme_id`,
  *   `system_instructions`, `language`)
  * - Integrates the interactive ConstraintControls builder to synthesize length, bullet counts, tone,
  *   and section priorities into prompt instructions
@@ -84,9 +84,8 @@ export const PresetForm: React.FC<PresetFormProps> = ({
   const [description, setDescription] = useState(
     initialValues?.description || ""
   );
-  const [templateSetId, setTemplateSetId] = useState(
-    initialValues?.template_set_id ||
-      (templateSets.length > 0 && templateSets[0] ? templateSets[0].id : "")
+  const [suggestedThemeId, setSuggestedThemeId] = useState(
+    initialValues?.suggested_theme_id ?? ""
   );
   const [systemInstructions, setSystemInstructions] = useState(
     initialValues?.system_instructions || ""
@@ -120,9 +119,6 @@ export const PresetForm: React.FC<PresetFormProps> = ({
     if (!name.trim()) {
       newErrors.name = "Strategy name is required";
     }
-    if (!templateSetId) {
-      newErrors.templateSetId = "Template set is required";
-    }
     if (!systemInstructions.trim()) {
       newErrors.systemInstructions = "System instructions are required";
     }
@@ -142,7 +138,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
     await onSubmit({
       name: name.trim(),
       description: description.trim() || undefined,
-      template_set_id: templateSetId,
+      suggested_theme_id: suggestedThemeId || null,
       system_instructions: systemInstructions.trim(),
       language: language.trim() || "English",
     });
@@ -259,48 +255,34 @@ export const PresetForm: React.FC<PresetFormProps> = ({
           />
         </div>
 
-        {/* Template Set selection */}
+        {/* Optional Suggested Template Set selection */}
         <div>
           <label
             htmlFor="preset-template"
             className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
-            Template Set <span className="text-red-500">*</span>
+            Suggested Template Set{" "}
+            <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+              (Optional)
+            </span>
           </label>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
             Visual Go template layout suggested when this tailoring strategy is selected.
           </p>
           <select
             id="preset-template"
-            value={templateSetId}
+            value={suggestedThemeId}
             disabled={isBuiltIn}
-            onChange={(e) => {
-              setTemplateSetId(e.target.value);
-              clearFieldError("templateSetId");
-            }}
+            onChange={(e) => setSuggestedThemeId(e.target.value)}
             className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400"
-            aria-invalid={Boolean(errors.templateSetId)}
-            aria-describedby={
-              errors.templateSetId ? "preset-template-error" : undefined
-            }
           >
-            <option value="">Select a template set...</option>
+            <option value="">None (no suggested theme)</option>
             {templateSets.map((tmpl) => (
               <option key={tmpl.id} value={tmpl.id}>
                 {tmpl.name} {tmpl.is_built_in ? "(Built-in)" : ""}
               </option>
             ))}
           </select>
-          {errors.templateSetId && (
-            <p
-              id="preset-template-error"
-              role="alert"
-              className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1"
-            >
-              <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>{errors.templateSetId}</span>
-            </p>
-          )}
         </div>
 
         {/* Target Language selection */}

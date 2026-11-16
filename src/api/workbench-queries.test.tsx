@@ -119,7 +119,7 @@ describe("workbench-queries", () => {
           user_id: "u-1",
           name: "Standard ATS",
           system_instructions: "ATS focus",
-          template_set_id: "tpl-1",
+          suggested_theme_id: "tpl-1",
         },
       ];
 
