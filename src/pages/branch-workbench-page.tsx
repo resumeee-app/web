@@ -575,7 +575,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
           className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400"
           aria-hidden="true"
         />
-        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
           Loading branch workbench...
         </p>
       </div>
@@ -611,7 +611,7 @@ export const BranchWorkbenchPage: React.FC<BranchWorkbenchPageProps> = ({
         <nav aria-label="Breadcrumb">
           <Link
             to="/branches"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             <span>Back to Branches</span>

@@ -214,7 +214,7 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
                   LLM Powered
                 </span>
               </div>
-              <DialogDescription className="text-sm text-slate-600 dark:text-slate-400">
+              <DialogDescription className="text-sm text-slate-700 dark:text-slate-300">
                 Upload an existing PDF resume to automatically parse and extract your career history
                 using an LLM. You can review and approve the details before loading them into your
                 Main Profile.
@@ -321,7 +321,7 @@ export const ImportPDFDialog: React.FC<ImportPDFDialogProps> = ({
                   LLM Parsed
                 </span>
               </div>
-              <DialogDescription className="text-sm text-slate-600 dark:text-slate-400">
+              <DialogDescription className="text-sm text-slate-700 dark:text-slate-300">
                 Verify the extracted career graph fields below before committing them into your
                 Main Profile.
               </DialogDescription>

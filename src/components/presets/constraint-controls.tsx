@@ -128,7 +128,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
         <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           Tailoring Constraints Builder
         </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
           Configure prompt constraints and section priorities. These synthesize
           directly into the tailoring strategy instructions.
         </p>
@@ -230,7 +230,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
                 className="flex items-center justify-between px-3 py-2 text-sm"
               >
                 <div className="flex items-center space-x-2">
-                  <span className="w-5 text-xs font-semibold text-slate-400 dark:text-slate-400">
+                  <span className="w-5 text-xs font-semibold text-slate-400 dark:text-slate-300">
                     {index + 1}.
                   </span>
                   <span className="font-medium text-slate-800 dark:text-slate-200">
@@ -245,7 +245,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
                     disabled={disabled || isFirst}
                     onClick={() => moveSection(index, "up")}
                     aria-label={`Move ${section.name} up`}
-                    className="h-7 w-7 p-0 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="h-7 w-7 p-0 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500"
                   >
                     <ArrowUp className="h-4 w-4" aria-hidden="true" />
                   </Button>
@@ -256,7 +256,7 @@ export const ConstraintControls: React.FC<ConstraintControlsProps> = ({
                     disabled={disabled || isLast}
                     onClick={() => moveSection(index, "down")}
                     aria-label={`Move ${section.name} down`}
-                    className="h-7 w-7 p-0 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="h-7 w-7 p-0 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500"
                   >
                     <ArrowDown className="h-4 w-4" aria-hidden="true" />
                   </Button>

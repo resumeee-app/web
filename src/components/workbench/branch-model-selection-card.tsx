@@ -215,7 +215,7 @@ export const BranchModelSelectionCard: React.FC<BranchModelSelectionCardProps> =
             >
               LLM Model & Reasoning
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-300">
               Configure AI provider, model override, and reasoning depth for tailoring this branch.
             </p>
           </div>
@@ -245,7 +245,7 @@ export const BranchModelSelectionCard: React.FC<BranchModelSelectionCardProps> =
             onClick={() => setIsExpanded((prev) => !prev)}
             aria-expanded={isExpanded}
             aria-controls={panelId}
-            className="flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300"
+            className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300"
           >
             <span>
               {isExpanded ? "Hide Model Settings" : "Configure Model & Reasoning"}

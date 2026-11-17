@@ -145,7 +145,7 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
             <h2 id={headingId} className="text-lg font-bold text-slate-900 dark:text-slate-100">
               Job Description & Context
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-300">
               Target requirements and custom tailoring instructions for this branch.
             </p>
           </div>
@@ -157,7 +157,7 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
           onClick={() => setIsExpanded((prev) => !prev)}
           aria-expanded={isExpanded}
           aria-controls={panelId}
-          className="flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300"
+          className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300"
         >
           <span>
             {isExpanded ? "Hide Editor" : "Edit Job Description & Context"}
@@ -223,7 +223,7 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
             >
               Job Description & Target Requirements
             </label>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300">
               Paste the target job description or requirements to guide LLM ATS
               alignment and qualification gap analysis.
             </p>
@@ -245,7 +245,7 @@ export const BranchContextEditor: React.FC<BranchContextEditorProps> = ({
             >
               Custom Branch Instructions
             </label>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300">
               Add custom instructions or prompts specific to this resume branch
               (e.g., tone, emphasis, special constraints).
             </p>

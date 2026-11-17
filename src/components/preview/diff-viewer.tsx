@@ -86,7 +86,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       <div
         role="region"
         aria-label="Tailored resume diff viewer"
-        className={`flex flex-col items-center justify-center p-12 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 dark:text-slate-400 ${className}`}
+        className={`flex flex-col items-center justify-center p-12 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 dark:text-slate-300 ${className}`}
       >
         <GitCompare className="h-10 w-10 text-slate-400 dark:text-slate-500 mb-3" aria-hidden="true" />
         <p className="text-base font-medium text-slate-700 dark:text-slate-300">
@@ -180,20 +180,20 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
 
       {/* Headline & Summary Diff Card */}
       <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-3">
           Headline & Professional Summary
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Baseline Column */}
           <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-md">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase block mb-1">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase block mb-1">
               Baseline ({isComparingMain ? "Main Profile" : `v${baselineVersion?.version_number}`})
             </span>
             <p className="text-sm font-medium text-slate-800 dark:text-slate-200 mb-2">
               {baselineHeadline || "No headline set"}
             </p>
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
               {baselineSummary || "No summary set"}
             </p>
           </div>
@@ -216,12 +216,12 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
 
       {/* Targeted Skills Diff Card */}
       <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-3">
           Targeted & Highlighted Skills
         </h3>
 
         {skillGroups.length === 0 ? (
-          <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+          <p className="text-xs text-slate-500 dark:text-slate-300 italic">
             No targeted skills recorded for this version.
           </p>
         ) : (
@@ -245,12 +245,12 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
 
       {/* Experience Bullet Points Diff */}
       <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-4">
           Experience Bullet Points & Impact Comparison
         </h3>
 
         {experiences.length === 0 ? (
-          <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+          <p className="text-xs text-slate-500 dark:text-slate-300 italic">
             No experiences recorded for this version.
           </p>
         ) : (
@@ -298,13 +298,13 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
                 >
                   <div className="flex items-baseline justify-between mb-2">
                     <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                      {exp.role_title} <span className="font-normal text-slate-500 dark:text-slate-400">at</span> {exp.company}
+                      {exp.role_title} <span className="font-normal text-slate-500 dark:text-slate-300">at</span> {exp.company}
                     </h4>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{exp.start_date}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-300 font-mono">{exp.start_date}</span>
                   </div>
 
                   {hasNoBullets ? (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 italic py-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-300 italic py-1">
                       No bullet points recorded for this experience.
                     </p>
                   ) : (

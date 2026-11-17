@@ -127,7 +127,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-300">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-700 dark:text-slate-300">
               {branch.target_role && (
                 <div className="flex items-center gap-1.5">
                   <Briefcase className="h-4 w-4 text-slate-400 dark:text-slate-500" aria-hidden="true" />
@@ -155,7 +155,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                   Content & AI Strategy
                 </h2>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-300">
                 Choose the tailoring strategy (AI prompt directives and density constraints) for this target opportunity.
               </p>
 
@@ -234,7 +234,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                   Document Appearance
                 </h2>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-300">
                 Choose the template set (visual Go template layout and ATS styling) without modifying resume content.
               </p>
 
@@ -276,7 +276,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                   <span>{templateFeedback}</span>
                 </div>
               ) : (
-                <div className="text-xs text-slate-500 dark:text-slate-400">
+                <div className="text-xs text-slate-500 dark:text-slate-300">
                   Active layout:{" "}
                   <span className="font-medium text-slate-700 dark:text-slate-300">
                     {currentTemplate?.name || branch.template_set_id || "Standard Template"}
@@ -336,7 +336,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                       <p>Tailor resume first to preview</p>
                     </TooltipContent>
                   </Tooltip>
-                  <p className="mt-1.5 text-center text-xs text-slate-500 dark:text-slate-400">
+                  <p className="mt-1.5 text-center text-xs text-slate-500 dark:text-slate-300">
                     Tailor resume first to preview.
                   </p>
                 </TooltipProvider>

@@ -247,7 +247,7 @@ export const ImportJSONResumeDialog: React.FC<ImportJSONResumeDialogProps> = ({
                   JSON Resume v1.0.0
                 </span>
               </div>
-              <DialogDescription className="text-sm text-slate-600 dark:text-slate-400">
+              <DialogDescription className="text-sm text-slate-700 dark:text-slate-300">
                 Upload a standard JSON Resume (.json) file or paste raw JSON to
                 populate your Main Profile career graph. You will inspect all
                 parsed sections before committing.
@@ -392,7 +392,7 @@ export const ImportJSONResumeDialog: React.FC<ImportJSONResumeDialogProps> = ({
                   Validated JSON
                 </span>
               </div>
-              <DialogDescription className="text-sm text-slate-600 dark:text-slate-400">
+              <DialogDescription className="text-sm text-slate-700 dark:text-slate-300">
                 Verify the parsed JSON Resume sections below before replacing your
                 Main Profile career graph.
               </DialogDescription>

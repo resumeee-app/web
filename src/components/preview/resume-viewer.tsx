@@ -98,7 +98,7 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
   if (!hasContent) {
     return (
       <div
-        className={`flex flex-col items-center justify-center p-12 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 dark:text-slate-400 ${className}`}
+        className={`flex flex-col items-center justify-center p-12 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 dark:text-slate-300 ${className}`}
       >
         <FileText className="h-10 w-10 text-slate-400 dark:text-slate-500 mb-3" aria-hidden="true" />
         <p className="text-base font-medium text-slate-700 dark:text-slate-300">
@@ -139,7 +139,7 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
                 className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                   isChecked
                     ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                    : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" aria-hidden="true" />

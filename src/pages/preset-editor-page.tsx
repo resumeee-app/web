@@ -132,7 +132,7 @@ export const PresetEditorPage: React.FC = () => {
       <div>
         <Link
           to="/presets"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-1 -ml-1"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-1 -ml-1"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           <span>Back to Tailoring Strategies</span>
@@ -144,7 +144,7 @@ export const PresetEditorPage: React.FC = () => {
             {pageTitle}
           </h1>
         </div>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{pageSubtitle}</p>
+        <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{pageSubtitle}</p>
       </div>
 
       {/* Loading state */}
@@ -158,7 +158,7 @@ export const PresetEditorPage: React.FC = () => {
             className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400"
             aria-hidden="true"
           />
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading tailoring strategy details...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-300">Loading tailoring strategy details...</p>
         </div>
       )}
 

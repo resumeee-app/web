@@ -251,11 +251,11 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 className={`w-full py-1.5 px-2.5 rounded-md text-left font-medium transition-colors ${
                   step === 1
                     ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
                 aria-current={step === 1 ? "step" : undefined}
               >
-                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-400">Step 1</span>
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-300">Step 1</span>
                 <span>The Opportunity</span>
               </button>
             </li>
@@ -268,11 +268,11 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 className={`w-full py-1.5 px-2.5 rounded-md text-left font-medium transition-colors ${
                   step === 2
                     ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
                 aria-current={step === 2 ? "step" : undefined}
               >
-                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-400">Step 2</span>
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-300">Step 2</span>
                 <span>AI Tailoring</span>
               </button>
             </li>
@@ -285,11 +285,11 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 className={`w-full py-1.5 px-2.5 rounded-md text-left font-medium transition-colors ${
                   step === 3
                     ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
                 aria-current={step === 3 ? "step" : undefined}
               >
-                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-400">Step 3</span>
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-300">Step 3</span>
                 <span>Visual Design</span>
               </button>
             </li>
@@ -389,7 +389,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
               <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Step 2: AI Tailoring Strategy
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-300">
                 Choose how AI analyzes and presents your career achievements (prompt directives and density guidelines):
               </p>
             </div>
@@ -451,7 +451,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                         />
                       </div>
                       {preset.system_instructions && (
-                        <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2">
+                        <p className="mt-1 text-[11px] text-slate-700 dark:text-slate-300 line-clamp-2">
                           {preset.system_instructions}
                         </p>
                       )}
@@ -462,12 +462,12 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                           </span>
                         )}
                         {preset.language && (
-                          <span className="inline-flex items-center rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-600 dark:text-slate-400">
+                          <span className="inline-flex items-center rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-700 dark:text-slate-300">
                             {preset.language}
                           </span>
                         )}
                         {preset.suggested_theme_id && (
-                          <span className="inline-flex items-center rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-600 dark:text-slate-400">
+                          <span className="inline-flex items-center rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-700 dark:text-slate-300">
                             Suggests: {preset.suggested_theme_id}
                           </span>
                         )}
@@ -503,7 +503,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
               <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Step 3: Visual Layout & Design
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-300">
                 Choose visual appearance and ATS formatting (visual Go template layout, independent of AI strategy):
               </p>
             </div>
@@ -566,7 +566,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                         />
                       </div>
                       {template.description && (
-                        <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2">
+                        <p className="mt-1 text-[11px] text-slate-700 dark:text-slate-300 line-clamp-2">
                           {template.description}
                         </p>
                       )}

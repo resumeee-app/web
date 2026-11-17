@@ -83,7 +83,7 @@ export const RootLayout: React.FC = () => {
         className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 focus:outline-none"
       >
         {loading ? (
-          <div className="flex min-h-[50vh] items-center justify-center text-slate-500 dark:text-slate-400">
+          <div className="flex min-h-[50vh] items-center justify-center text-slate-500 dark:text-slate-300">
             <p>Loading session...</p>
           </div>
         ) : showLogin ? (

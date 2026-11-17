@@ -87,7 +87,7 @@ export const PresetsPage: React.FC = () => {
             className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400"
             aria-hidden="true"
           />
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading tailoring strategies gallery...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-300">Loading tailoring strategies gallery...</p>
         </div>
       )}
 
@@ -141,7 +141,7 @@ export const PresetsPage: React.FC = () => {
           <h2 className="mt-3 text-lg font-semibold text-slate-900 dark:text-slate-100">
             No tailoring strategies found
           </h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-300 max-w-sm mx-auto">
             You do not have any tailoring strategies yet. Create a custom
             strategy to guide LLM resume tailoring.
           </p>

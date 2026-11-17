@@ -292,7 +292,7 @@ export const SkillSelector: React.FC<SkillSelectorProps> = ({
           "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed",
           isSelected
             ? "bg-indigo-50 border-indigo-200 text-indigo-800 dark:bg-indigo-950/60 dark:border-indigo-800 dark:text-indigo-300"
-            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
+            : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
         )}
       >
         <span aria-hidden="true">{isSelected ? "✓ " : "+ "}</span>
@@ -320,7 +320,7 @@ export const SkillSelector: React.FC<SkillSelectorProps> = ({
     return (
       <div>
         {title && (
-          <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+          <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
             {title}
           </h4>
         )}
@@ -347,7 +347,7 @@ export const SkillSelector: React.FC<SkillSelectorProps> = ({
       {helperText && (
         <p
           id={`${id}-helper`}
-          className="text-xs text-slate-500 dark:text-slate-400"
+          className="text-xs text-slate-500 dark:text-slate-300"
         >
           {helperText}
         </p>
@@ -370,7 +370,7 @@ export const SkillSelector: React.FC<SkillSelectorProps> = ({
       {availableSkills && availableSkills.length > 0 && (
         <div className="mt-2 space-y-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-300">
               Quick add:
             </span>
             <div className="relative">

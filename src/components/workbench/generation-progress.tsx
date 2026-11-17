@@ -99,7 +99,7 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
             )}
             {status === "cancelled" && (
               <XCircle
-                className="h-5 w-5 text-slate-600 dark:text-slate-400"
+                className="h-5 w-5 text-slate-700 dark:text-slate-300"
                 aria-hidden="true"
               />
             )}
@@ -114,7 +114,7 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
                 {status === "failed" && "Generation Failed"}
                 {status === "cancelled" && "Generation Cancelled"}
               </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-300">
+              <p className="text-xs text-slate-700 dark:text-slate-300">
                 {status === "pending" &&
                   "Job accepted and queued for worker pool allocation."}
                 {status === "processing" &&

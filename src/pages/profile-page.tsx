@@ -331,7 +331,7 @@ export const ProfilePage: React.FC = () => {
         role="status"
         aria-live="polite"
       >
-        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+        <span className="text-sm font-medium text-slate-500 dark:text-slate-300">
           Loading main profile career graph...
         </span>
       </div>

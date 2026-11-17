@@ -80,7 +80,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({
         </div>
 
         {/* Description */}
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
+        <p className="mt-2 text-sm text-slate-700 dark:text-slate-300 line-clamp-2">
           {preset.description || "No description provided."}
         </p>
 
@@ -95,7 +95,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({
         </div>
 
         {/* Metadata footer badges */}
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-300">
           <span className="inline-flex items-center gap-1">
             <Layers className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
             <span>{templateName || preset.suggested_theme_id || "No default theme"}</span>
@@ -120,7 +120,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({
                 className: "gap-1.5 text-xs text-slate-700 dark:text-slate-300",
               })}
             >
-              <Eye className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+              <Eye className="h-3.5 w-3.5 text-slate-500 dark:text-slate-300" aria-hidden="true" />
               <span>View Details</span>
             </Link>
           ) : (
@@ -132,7 +132,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({
                 className: "gap-1.5 text-xs text-slate-700 dark:text-slate-300",
               })}
             >
-              <Edit3 className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+              <Edit3 className="h-3.5 w-3.5 text-slate-500 dark:text-slate-300" aria-hidden="true" />
               <span>Edit</span>
             </Link>
           )}
@@ -142,7 +142,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => onDuplicate(preset)}
-            className="gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            className="gap-1.5 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
             aria-label={`Duplicate ${preset.name} to Custom Strategy`}
           >
             <Copy className="h-3.5 w-3.5" aria-hidden="true" />

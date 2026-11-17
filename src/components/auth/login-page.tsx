@@ -17,7 +17,7 @@ export const LoginPage: React.FC = () => {
           <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Sign in to Resumeee
           </h1>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
             Multi-tenant resume tailoring
           </p>
         </div>

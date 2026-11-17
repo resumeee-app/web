@@ -139,7 +139,7 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Certifications</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-300">
             Professional licenses, accreditations, and verifiable credentials.
           </p>
         </div>
@@ -151,7 +151,7 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
 
       {certifications.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-300">
             No certifications added yet. Click &ldquo;Add Certification&rdquo; to begin.
           </p>
         </div>
@@ -177,7 +177,7 @@ export const CertificationsList: React.FC<CertificationsListProps> = ({
                     {cert.issuer}
                   </div>
                 )}
-                <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-300">
                   {cert.date && <span>Issued: {formatDateDisplay(cert.date)}</span>}
                   {cert.url && isValidHttpUrl(cert.url) && (
                     <>

@@ -209,7 +209,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
         <div
           role="status"
           aria-label="Loading resume preview"
-          className="flex flex-col items-center gap-3 text-slate-600 dark:text-slate-400"
+          className="flex flex-col items-center gap-3 text-slate-700 dark:text-slate-300"
         >
           <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
           <p className="text-sm font-medium">Loading resume preview and tailoring data...</p>
@@ -267,7 +267,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
     <main className={`container mx-auto px-4 py-6 max-w-7xl ${className}`}>
       {/* Navigation Breadcrumb / Return Link */}
       <nav aria-label="Breadcrumb" className="mb-4">
-        <ol className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+        <ol className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-300">
           <li>
             <Link
               to="/branches"
@@ -303,7 +303,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             {branch.name}
           </h1>
-          <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-600 dark:text-slate-400">
+          <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-700 dark:text-slate-300">
             {branch.target_role && (
               <span className="font-medium text-slate-900 dark:text-slate-100">{branch.target_role}</span>
             )}
@@ -316,7 +316,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
             {(selectedTemplateId || branch.template_set_id) && (
               <>
                 <span className="text-slate-300 dark:text-slate-600">•</span>
-                <span className="font-mono text-slate-500 dark:text-slate-400">
+                <span className="font-mono text-slate-500 dark:text-slate-300">
                   Template: {templateName}
                 </span>
               </>
@@ -347,7 +347,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
                 htmlFor="resume-template-select"
                 className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 whitespace-nowrap"
               >
-                <LayoutTemplate className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                <LayoutTemplate className="h-3.5 w-3.5 text-slate-500 dark:text-slate-300" aria-hidden="true" />
                 <span>Template:</span>
               </label>
               <select
@@ -382,7 +382,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
                 htmlFor="resume-version-select"
                 className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 whitespace-nowrap"
               >
-                <History className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                <History className="h-3.5 w-3.5 text-slate-500 dark:text-slate-300" aria-hidden="true" />
                 <span>Version:</span>
               </label>
               <select
@@ -437,7 +437,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
             <div
               role="status"
               aria-label="Loading version outputs"
-              className="flex justify-center p-12 text-slate-500 dark:text-slate-400 text-sm"
+              className="flex justify-center p-12 text-slate-500 dark:text-slate-300 text-sm"
             >
               <Loader2 className="h-6 w-6 animate-spin text-indigo-600 dark:text-indigo-400 mr-2" />
               Loading rendered resume...
@@ -457,7 +457,7 @@ export const ResumePreviewPage: React.FC<ResumePreviewPageProps> = ({
             <div
               role="status"
               aria-label="Loading diff data"
-              className="flex justify-center p-12 text-slate-500 dark:text-slate-400 text-sm"
+              className="flex justify-center p-12 text-slate-500 dark:text-slate-300 text-sm"
             >
               <Loader2 className="h-6 w-6 animate-spin text-indigo-600 dark:text-indigo-400 mr-2" />
               Loading tailoring diff...

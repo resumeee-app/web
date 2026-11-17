@@ -242,7 +242,7 @@ export const TemplateEditorPage: React.FC = () => {
   if (!isNew && isTemplateLoading) {
     return (
       <main id="main-content" className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6">
-        <div className="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+        <div className="flex flex-col items-center justify-center text-slate-500 dark:text-slate-300">
           <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
           <p className="mt-3 text-sm">Loading template details...</p>
         </div>
@@ -276,7 +276,7 @@ export const TemplateEditorPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div className="flex items-center space-x-3">
             <Button asChild variant="ghost" size="sm" className="h-8 px-2">
-              <Link to="/templates" className="flex items-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+              <Link to="/templates" className="flex items-center text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">
                 <ArrowLeft className="h-4 w-4 mr-1" aria-hidden="true" />
                 <span>Back to Templates</span>
               </Link>

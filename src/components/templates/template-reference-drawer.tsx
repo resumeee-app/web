@@ -170,7 +170,7 @@ export const TemplateReferenceDrawer: React.FC<TemplateReferenceDrawerProps> = (
                 <DialogPrimitive.Title className="text-base font-semibold text-slate-900 dark:text-slate-100">
                   Go Template Placeholder Reference
                 </DialogPrimitive.Title>
-                <DialogPrimitive.Description className="text-xs text-slate-500 dark:text-slate-400">
+                <DialogPrimitive.Description className="text-xs text-slate-500 dark:text-slate-300">
                   Available application domain fields, collections, and properties for resume templates.
                 </DialogPrimitive.Description>
               </div>
@@ -181,7 +181,7 @@ export const TemplateReferenceDrawer: React.FC<TemplateReferenceDrawerProps> = (
                 variant="ghost"
                 size="icon"
                 aria-label="Close reference drawer"
-                className="h-8 w-8 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                className="h-8 w-8 text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
                 <span className="sr-only">Close reference drawer</span>
@@ -225,7 +225,7 @@ export const TemplateReferenceDrawer: React.FC<TemplateReferenceDrawerProps> = (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                   aria-label="Clear search query"
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
@@ -252,7 +252,7 @@ export const TemplateReferenceDrawer: React.FC<TemplateReferenceDrawerProps> = (
                       "flex items-center space-x-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                       isSelected
                         ? "bg-indigo-600 text-white shadow-xs dark:bg-indigo-500"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-200"
                     )}
                   >
                     <span>{cat.label}</span>
@@ -261,7 +261,7 @@ export const TemplateReferenceDrawer: React.FC<TemplateReferenceDrawerProps> = (
                         "rounded-full px-1.5 py-0.5 text-[10px]",
                         isSelected
                           ? "bg-indigo-700/60 text-white dark:bg-indigo-600/70"
-                          : "bg-slate-200/70 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
+                          : "bg-slate-200/70 text-slate-500 dark:bg-slate-700 dark:text-slate-300"
                       )}
                     >
                       {count}
@@ -275,7 +275,7 @@ export const TemplateReferenceDrawer: React.FC<TemplateReferenceDrawerProps> = (
           {/* Results List */}
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
             {filteredItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500 dark:text-slate-400">
+              <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500 dark:text-slate-300">
                 <Code2 className="h-10 w-10 text-slate-400 dark:text-slate-600 mb-2" aria-hidden="true" />
                 <p className="text-sm font-medium">No matching placeholders found</p>
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
@@ -296,7 +296,7 @@ export const TemplateReferenceDrawer: React.FC<TemplateReferenceDrawerProps> = (
                         <span className="font-mono text-xs font-semibold text-indigo-700 dark:text-indigo-400">
                           {item.name}
                         </span>
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                           {item.type}
                         </span>
                       </div>
@@ -311,7 +311,7 @@ export const TemplateReferenceDrawer: React.FC<TemplateReferenceDrawerProps> = (
                           "h-7 px-2 text-xs font-medium transition-colors",
                           isCopied
                             ? "border-emerald-500 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-                            : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                            : "text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
                         )}
                       >
                         {isCopied ? (
@@ -328,13 +328,13 @@ export const TemplateReferenceDrawer: React.FC<TemplateReferenceDrawerProps> = (
                       </Button>
                     </div>
 
-                    <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <p className="mt-1.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                       {item.description}
                     </p>
 
                     {item.example && (
                       <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                        <span className="font-semibold text-slate-500 dark:text-slate-400">Example: </span>
+                        <span className="font-semibold text-slate-500 dark:text-slate-300">Example: </span>
                         <span>{item.example}</span>
                       </p>
                     )}
@@ -352,7 +352,7 @@ export const TemplateReferenceDrawer: React.FC<TemplateReferenceDrawerProps> = (
           </div>
 
           {/* Footer note */}
-          <div className="border-t border-slate-200 px-6 py-3 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/40 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+          <div className="border-t border-slate-200 px-6 py-3 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/40 text-[11px] text-slate-500 dark:text-slate-300 flex items-center justify-between">
             <span className="flex items-center">
               <Sparkles className="h-3.5 w-3.5 mr-1 text-indigo-500" aria-hidden="true" />
               Resumeee Application Domain Model
