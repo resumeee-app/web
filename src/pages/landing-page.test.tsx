@@ -34,19 +34,16 @@ describe("LandingPage Component", () => {
       const heroSection = screen.getByRole("region", { name: /hero/i });
       expect(heroSection).toBeInTheDocument();
 
-      // Badge pill
-      expect(within(heroSection).getByText(/Open Source Career Graph/i)).toBeInTheDocument();
-
       // Main hero heading
       const heading = within(heroSection).getByRole("heading", {
         level: 1,
-        name: /Branch your career/i,
+        name: /One resume, many variants/i,
       });
       expect(heading).toBeInTheDocument();
 
       // Value proposition subtitle
       expect(
-        within(heroSection).getByText(/powered by the AI of your choosing/i)
+        within(heroSection).getByText(/powered by your preferred AI/i)
       ).toBeInTheDocument();
 
       // Primary CTA: Get Started
@@ -149,22 +146,22 @@ describe("LandingPage Component", () => {
         })
       ).toBeInTheDocument();
       expect(
-        within(featuresSection).getByText(/short identifier hashes/i)
+        within(featuresSection).getByText(/anchored to real profile facts/i)
       ).toBeInTheDocument();
 
-      // Feature 3: ATS-Optimized & JSON Resume
+      // Feature 3: ATS-Optimized, JSON Resume Compatible
       expect(
         within(featuresSection).getByRole("heading", {
           level: 3,
-          name: /ATS-Optimized & JSON Resume/i,
+          name: /ATS-Optimized, JSON Resume Compatible/i,
         })
       ).toBeInTheDocument();
 
-      // Feature 4: AI Provider Freedom & Local Privacy
+      // Feature 4: Freedom & Local Privacy
       expect(
         within(featuresSection).getByRole("heading", {
           level: 3,
-          name: /AI Provider Freedom & Local Privacy/i,
+          name: /Freedom & Local Privacy/i,
         })
       ).toBeInTheDocument();
 
@@ -266,13 +263,13 @@ describe("LandingPage Component", () => {
         within(faqSection).queryByText(/managing multiple tailored resumes is not simple/i)
       ).not.toBeInTheDocument();
       expect(
-        within(faqSection).queryByText(/immutable relational graph/i)
+        within(faqSection).queryByText(/deterministic short identifier hash/i)
       ).not.toBeInTheDocument();
       expect(
         within(faqSection).queryByText(/total freedom over AI inference/i)
       ).not.toBeInTheDocument();
       expect(
-        within(faqSection).queryByText(/not AI slop/i)
+        within(faqSection).queryByText(/Real human effort and experience/i)
       ).not.toBeInTheDocument();
 
       // 2. Click prompt question to expand: aria-expanded="true" and answer content becomes visible
@@ -295,14 +292,14 @@ describe("LandingPage Component", () => {
       // 4. Opening another FAQ item expands it and collapses others
       await user.click(hallucinationBtn);
       expect(hallucinationBtn).toHaveAttribute("aria-expanded", "true");
-      expect(within(faqSection).getByText(/immutable relational graph/i)).toBeInTheDocument();
+      expect(within(faqSection).getByText(/deterministic short identifier hash/i)).toBeInTheDocument();
 
       await user.click(vibeCodedBtn);
       expect(hallucinationBtn).toHaveAttribute("aria-expanded", "false");
-      expect(within(faqSection).queryByText(/immutable relational graph/i)).not.toBeInTheDocument();
+      expect(within(faqSection).queryByText(/deterministic short identifier hash/i)).not.toBeInTheDocument();
       expect(vibeCodedBtn).toHaveAttribute("aria-expanded", "true");
       expect(
-        within(faqSection).getByText(/not AI slop/i)
+        within(faqSection).getByText(/Real human effort and experience/i)
       ).toBeInTheDocument();
       expect(
         within(faqSection).getByText(/several design iterations took place/i)
