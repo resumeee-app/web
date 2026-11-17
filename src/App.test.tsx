@@ -58,7 +58,7 @@ describe("Application Root Component", () => {
       render(<App />);
 
       // Hero heading and value proposition
-      expect(await screen.findByRole("heading", { level: 1, name: /branch your career/i })).toBeInTheDocument();
+      expect(await screen.findByRole("heading", { level: 1, name: /One resume, many variants/i })).toBeInTheDocument();
       expect(screen.getAllByText(/one resume to rule them all/i).length).toBeGreaterThan(0);
 
       // Primary CTA targets self-hosting quickstart
@@ -84,7 +84,7 @@ describe("Application Root Component", () => {
 
     it("passes axe-core accessibility audit on unauthenticated landing page render", async () => {
       const { container } = render(<App />);
-      await screen.findByRole("heading", { level: 1, name: /branch your career/i });
+      await screen.findByRole("heading", { level: 1, name: /One resume, many variants/i });
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
@@ -109,7 +109,7 @@ describe("Application Root Component", () => {
 
       // Verify dashboard heading is rendered, not landing page hero
       expect(screen.getByRole("heading", { level: 1, name: /resume management/i })).toBeInTheDocument();
-      expect(screen.queryByRole("heading", { name: /branch your career/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: /One resume, many variants/i })).not.toBeInTheDocument();
 
       // Verify authenticated navigation and user info
       expect(screen.getByRole("navigation", { name: /main navigation/i })).toBeInTheDocument();

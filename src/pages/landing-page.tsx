@@ -8,7 +8,6 @@ import {
   Check,
   Copy,
   CheckCheck,
-  Terminal,
   Database,
   Lock,
   KeyRound,
@@ -56,25 +55,25 @@ export const CORE_FEATURES: FeatureItem[] = [
     id: "anti-hallucination",
     title: "Anti-Hallucination & Provenance",
     description:
-      "Every tailored bullet is anchored to real profile facts with short identifier hashes. The AI model is strictly prohibited from inventing false credentials or roles.",
+      "Every tailored bullet is anchored to real profile facts. The AI model is prohibited from inventing false credentials or roles. Resumeee discards LLM hallucinations.",
     icon: ShieldCheck,
     colorClass: "text-emerald-600 dark:text-emerald-400",
     bgClass: "bg-emerald-50 dark:bg-emerald-950",
   },
   {
     id: "ats-optimized",
-    title: "ATS-Optimized & JSON Resume",
+    title: "ATS-Optimized, JSON Resume Compatible",
     description:
-      "Engineered for automated parsing bots and human recruiters alike. Instant export to the well-known JSON Resume standard, clean Markdown, and ATS-optimized PDF layouts.",
+      "Templates that work for parsing bots or human recruiters alike (or write your own template!). Instant export to the well-known JSON Resume standard, Markdown, and ATS-optimized layouts.",
     icon: FileText,
     colorClass: "text-sky-600 dark:text-sky-400",
     bgClass: "bg-sky-50 dark:bg-sky-950",
   },
   {
     id: "ai-freedom",
-    title: "AI Provider Freedom & Local Privacy",
+    title: "Freedom & Local Privacy",
     description:
-      "Connect your personal API keys for Google Gemini, OpenAI, or Anthropic Claude, or run privately with local models like Ollama. Complete freedom over where inference happens.",
+      "Connect your personal API keys for Google Gemini, OpenAI, or Anthropic Claude, or run privately with local models like Ollama. Complete freedom over where inference happens. No telemetry, no vendor lock-in.",
     icon: Cpu,
     colorClass: "text-purple-600 dark:text-purple-400",
     bgClass: "bg-purple-50 dark:bg-purple-950",
@@ -118,7 +117,7 @@ export const PRIVACY_HIGHLIGHTS: PrivacyHighlight[] = [
     id: "sqlite",
     title: "Storage Agnostic (SQLite Included)",
     description:
-      "Modular repository architecture with an out-of-the-box local SQLite connector. All data stays in a portable file on your filesystem.",
+      "Modular repository architecture with an out-of-the-box local SQLite connector. All data stays in a portable file on your filesystem. Supports MySQL and PostgreSQL. It also lets you write your own storage connector.",
     icon: Database,
     iconColorClass: "text-indigo-400",
   },
@@ -142,7 +141,7 @@ export const PRIVACY_HIGHLIGHTS: PrivacyHighlight[] = [
     id: "mcp",
     title: "Integrated MCP Server",
     description:
-      "Built-in Model Context Protocol server lets AI assistants and agents query your career graph and tailor resumes securely.",
+      "Built-in Model Context Protocol server lets AI assistants and agents query your career graph and tailor resumes. Interact with Resumeee using natural language if you prefer.",
     icon: Bot,
     iconColorClass: "text-amber-400",
   },
@@ -171,19 +170,19 @@ export const FAQ_ITEMS: FaqItem[] = [
     id: "hallucinations",
     question: "How does Resumeee prevent AI hallucinations?",
     answer:
-      "Resumeee structures your career as an immutable relational graph. Every experience, bullet fact, and skill receives a deterministic short identifier hash. When generating tailored resume versions, our engine constrains the LLM to only rephrase and reorder proven facts from your profile. Invented credentials or fabricated companies are rejected before export.",
+      "Every experience, bullet fact, and skill receives a deterministic short identifier hash. When generating tailored resume versions, our engine constrains the LLM to only rephrase and reorder proven facts from your profile. Invented credentials or fabricated companies are rejected before export.",
   },
   {
     id: "offline",
     question: "Can I use my preferred AI provider or run offline?",
     answer:
-      "Yes. You have total freedom over AI inference. You can configure your personal API keys for Google Gemini, OpenAI, or Anthropic Claude, or run completely offline using bare-metal binaries connected to local Ollama models or OpenAI-compatible backends like vLLM. No external network access is required when running locally.",
+      "Yes. You have total freedom over AI inference. You can configure your personal API keys for Google Gemini, OpenAI, or Anthropic Claude, or run completely offline by connecting to local Ollama models or OpenAI-compatible backends like vLLM. No external network access is required when running locally.",
   },
   {
     id: "ats",
     question: "Will my resumes pass Applicant Tracking Systems (ATS)?",
     answer:
-      "Yes. Resumeee templates strictly adhere to ATS standards: semantic headings, parseable text streams, clean single-column layouts, standard system typography, and zero complex graphics or multi-column text frames that break automated parsers.",
+      "Resumeee templates strictly adhere to ATS standards: semantic headings, parseable text streams, clean single-column layouts, standard system typography, and zero complex graphics or multi-column text frames that break automated parsers. However, ATS systems are closed-source and Resumeee can only guess how they work. While this does not guarantee 100% compatibility with every ATS, pre-existing templates have been proven compatible with the most popular ATS platforms.",
   },
   {
     id: "export",
@@ -192,10 +191,16 @@ export const FAQ_ITEMS: FaqItem[] = [
       "Absolutely. Resumeee provides full one-click exports to the well-known JSON Resume open standard, SQLite database backups, Markdown, and print-ready ATS PDFs. There is zero proprietary lock-in.",
   },
   {
+    id: "import",
+    question: "Can I import my data from a PDF or JSON Resume file?",
+    answer:
+      "Absolutely. Resumeee supports importing a JSON Resume file or a PDF (more formats planned). Resumeee leverages AI (the same one you choose for tailoring) to accurately extract information from PDF files.",
+  },
+  {
     id: "vibe-coded",
     question: "Is it \"vibe-coded\"?",
     answer:
-      "Yes, but several design iterations took place to make sure it provides real value, not AI slop. Years of engineering experience went into its architecture, fact-checking design, and code quality.",
+      "Yes, but several design iterations took place to make sure it provides real value. Real human effort and experience went into its design, architecture, fact-checking, and code quality. It is free and can run 100% locally. Consider this project free tokens compared to building it yourself. There are better alternatives out there (https://simplify.jobs), but with Resumeee, you keep control of your data (and again, it is free).",
   },
 ];
 
@@ -360,7 +365,7 @@ export const LandingPage: React.FC = () => {
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dockerCommand =
-    "docker run -d -p 8080:8080 -v ~/.resumeee:/data ghcr.io/resumeee-app/resumeee:latest";
+    "docker run -d -p 8080:8080 -v resumeee-data:/data ghcr.io/resumeee-app/resumeee:latest";
 
   useEffect(() => {
     return () => {
@@ -397,11 +402,6 @@ export const LandingPage: React.FC = () => {
         aria-label="Hero"
         className="relative flex flex-col items-center text-center max-w-4xl mx-auto space-y-8"
       >
-        {/* Pill Badge */}
-        <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-indigo-50/70 px-3.5 py-1 text-xs font-medium text-indigo-900 dark:border-indigo-800/80 dark:bg-indigo-950/50 dark:text-indigo-300">
-          <span className="flex h-2 w-2 rounded-full bg-indigo-600 dark:bg-indigo-400" />
-          <span>Open Source Career Graph • Local-First & Self-Hostable</span>
-        </div>
 
         {/* Hero Title */}
         <div className="space-y-4">
@@ -409,12 +409,12 @@ export const LandingPage: React.FC = () => {
             id="hero-heading"
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.15]"
           >
-            <span>Branch your career.</span>
+            <span className="mb-2 leading-[1.2]">One resume, many variants.</span>
             <br />
-            <span className="text-indigo-600 dark:text-indigo-400">Tailor resumes for every role.</span>
+            <span className="text-indigo-600 dark:text-indigo-400">Tailored resumes for the job you want.</span>
           </h1>
           <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
-            One resume to rule them all. Maintain a single source of career truth, branch tailored variants for every role, powered by the AI of your choosing.
+            Maintain a single source of career truth and branch tailored variants for every role or need, powered by your preferred AI.
           </p>
         </div>
 
@@ -440,7 +440,7 @@ export const LandingPage: React.FC = () => {
               className="flex items-center justify-center gap-2"
             >
               <Github className="h-4 w-4" aria-hidden="true" />
-              <span>Run it Locally</span>
+              <span>Run It Locally</span>
               <ExternalLink className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
             </a>
           </Button>
@@ -448,7 +448,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Trust & Guarantee Subtitle */}
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Zero telemetry • 100% AGPL-3.0 Licensed
+          Zero telemetry • Open Source
         </p>
 
         {/* Hero Visualizer: Authentic Resumeee Branch Workflow */}
@@ -456,28 +456,13 @@ export const LandingPage: React.FC = () => {
           data-testid="hero-branch-visualizer"
           className="w-full mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 p-4 sm:p-6 shadow-md text-left transition-all"
         >
-          <h2 className="sr-only">Resume Branch Workflow Preview</h2>
 
           {/* Top Window Bar */}
           <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-3 mb-5">
             <div className="flex items-center gap-3">
-              <div className="flex items-center space-x-1.5" aria-hidden="true">
-                <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                <div className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                <div className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-              </div>
               <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-medium">
-                <GitBranch className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
-                <span className="text-slate-800 dark:text-slate-200">Resumeee Workspace</span>
-                <span className="text-slate-400">/</span>
-                <span>Resume Branches</span>
+                <h2 >Resume Branch Workflow Preview</h2>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                <Check className="h-3 w-3" aria-hidden="true" />
-                Main In Sync
-              </span>
             </div>
           </div>
 
@@ -548,7 +533,7 @@ export const LandingPage: React.FC = () => {
               <div className="h-4 w-0.5 bg-indigo-300 dark:bg-indigo-700" />
               <div className="flex items-center gap-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
                 <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Tailored Opportunity Branches</span>
+                <span>Tailored Resumes</span>
               </div>
             </div>
 
@@ -573,10 +558,11 @@ export const LandingPage: React.FC = () => {
             id="features-heading"
             className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl"
           >
-            A Better Way to Tailor Resumes
+            A better way to keep your resume up to date.
           </h2>
           <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg">
-            Say goodbye to copy-paste divergences, fabricated resume points, and ATS rejection black holes.
+            You maintain a <span className="font-bold">single</span> profile. Every change creates a new revision that you can come back to at any time.
+            Resumeee keeps tailored variations in sync and helps you avoid ATS rejection black holes with job matching and ATS extraction confidence scores.
           </p>
         </div>
 
@@ -594,15 +580,11 @@ export const LandingPage: React.FC = () => {
         className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-900 text-slate-100 p-8 sm:p-12 shadow-lg space-y-8"
       >
         <div className="max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 font-mono text-xs text-indigo-400 bg-indigo-950/80 px-2.5 py-1 rounded border border-indigo-800">
-            <Terminal className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Developer-First Architecture</span>
-          </div>
           <h2
             id="open-source-heading"
             className="text-2xl sm:text-3xl font-bold tracking-tight text-white"
           >
-            Run it Locally, Choose Your AI Provider
+            Run It Locally, Choose Your AI Provider
           </h2>
           <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
             Resumeee gives you complete flexibility. Spin up a local container in seconds with Docker. Connect seamlessly to Google Gemini, OpenAI, or Anthropic Claude—or keep everything offline with local models like Ollama and vLLM. Zero telemetry, zero tracking.
@@ -613,10 +595,6 @@ export const LandingPage: React.FC = () => {
         <div className="rounded-xl border border-slate-800 bg-slate-950/90 overflow-hidden shadow-inner">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-slate-950">
             <div className="flex items-center space-x-2">
-              <div className="h-3 w-3 rounded-full bg-red-500/80" />
-              <div className="h-3 w-3 rounded-full bg-amber-500/80" />
-              <div className="h-3 w-3 rounded-full bg-emerald-500/80" />
-              <span className="ml-2 font-mono text-xs text-slate-500">bash — resumeee-deploy</span>
             </div>
             <button
               type="button"
@@ -672,9 +650,6 @@ export const LandingPage: React.FC = () => {
           >
             Frequently Asked Questions
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
-            Everything you need to know about Resumeee, privacy guarantees, and ATS parsing.
-          </p>
         </div>
 
         <div className="space-y-4">
@@ -752,7 +727,7 @@ export const LandingPage: React.FC = () => {
             size="lg"
             variant="outline"
             asChild
-            className="w-full sm:w-auto h-12 px-7 text-base font-semibold border-indigo-400 text-white hover:bg-indigo-700/50"
+            className="w-full sm:w-auto h-12 px-7 text-base font-semibold bg-transparent dark:bg-transparent border-indigo-200 dark:border-indigo-400 text-white dark:text-white hover:bg-indigo-700/50 dark:hover:bg-indigo-900/60 focus-visible:ring-white focus-visible:ring-offset-indigo-600 dark:focus-visible:ring-offset-indigo-950"
           >
             <a
               href="https://github.com/resumeee-app/resumeee"
