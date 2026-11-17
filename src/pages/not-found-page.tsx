@@ -10,7 +10,7 @@ export const NotFoundPage: React.FC = () => {
       <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
         Page Not Found
       </h1>
-      <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-sm">
+      <p className="mt-2 text-sm text-slate-700 dark:text-slate-300 max-w-sm">
         The requested page could not be located in this SPA routing context.
       </p>
       <div className="mt-6">

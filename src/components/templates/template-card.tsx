@@ -94,7 +94,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
           </div>
 
           {/* Target Formats */}
-          <div className="flex items-center space-x-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+          <div className="flex items-center space-x-1 text-[11px] font-medium text-slate-500 dark:text-slate-300">
             {template.html_template && (
               <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5">HTML</span>
             )}
@@ -111,7 +111,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
         <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
           {template.name}
         </h3>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+        <p className="mt-1 text-sm text-slate-700 dark:text-slate-300 line-clamp-2">
           {template.description || "No description provided."}
         </p>
       </div>
@@ -128,7 +128,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
             aria-label={`Preview ${template.name}`}
             className="h-8 text-xs text-slate-700 dark:text-slate-200"
           >
-            <Eye className="h-3.5 w-3.5 mr-1 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+            <Eye className="h-3.5 w-3.5 mr-1 text-slate-500 dark:text-slate-300" aria-hidden="true" />
             Preview
           </Button>
 
@@ -159,7 +159,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
                 to={`/templates/${template.id}`}
                 aria-label={`Edit ${template.name}`}
               >
-                <Edit2 className="h-3.5 w-3.5 mr-1 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                <Edit2 className="h-3.5 w-3.5 mr-1 text-slate-500 dark:text-slate-300" aria-hidden="true" />
                 Edit
               </Link>
             </Button>
@@ -168,7 +168,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
               asChild
               variant="ghost"
               size="sm"
-              className="h-8 text-xs text-slate-500 dark:text-slate-400"
+              className="h-8 text-xs text-slate-500 dark:text-slate-300"
             >
               <Link
                 to={`/templates/${template.id}`}

@@ -159,7 +159,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
     <div className={cn("space-y-6 bg-white dark:bg-slate-900 p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm", className)}>
       <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Contact Information</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-slate-300">
           Personal contact details and social links displayed across your resumes.
         </p>
       </div>

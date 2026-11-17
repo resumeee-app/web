@@ -197,7 +197,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
           <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
             Tailoring Strategy Configuration
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
             Tailoring Strategy defines AI prompt directives and density constraints. Visual formatting and layout are controlled separately by the Template Set.
           </p>
         </div>
@@ -262,11 +262,11 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Suggested Template Set{" "}
-            <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-normal text-slate-500 dark:text-slate-300">
               (Optional)
             </span>
           </label>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+          <p className="text-xs text-slate-500 dark:text-slate-300 mb-1">
             Visual Go template layout suggested when this tailoring strategy is selected.
           </p>
           <select
@@ -293,7 +293,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
           >
             Language
           </label>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+          <p className="text-xs text-slate-500 dark:text-slate-300 mb-1">
             Language for contextual translation of tailored resume content (summary, accomplishments, projects). Defaults to English.
           </p>
           <select
@@ -328,7 +328,7 @@ export const PresetForm: React.FC<PresetFormProps> = ({
             System Instructions (LLM Prompt){" "}
             <span className="text-red-500">*</span>
           </label>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
             Guidance and rules supplied to the LLM when tailoring resumes using
             this preset.
           </p>

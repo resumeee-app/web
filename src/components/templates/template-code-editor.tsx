@@ -228,7 +228,7 @@ export const TemplateCodeEditor: React.FC<TemplateCodeEditorProps> = ({
                 aria-haspopup="dialog"
                 aria-expanded={isReferenceOpen}
                 aria-controls="template-reference-drawer"
-                className="h-7 px-2 text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                className="h-7 px-2 text-xs font-medium text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
               >
                 <BookOpen className="h-3.5 w-3.5 mr-1 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
                 <span>Placeholder Hints</span>

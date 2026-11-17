@@ -101,11 +101,11 @@ export const BranchCard: React.FC<BranchCardProps> = ({
             </div>
 
             {isDefault ? (
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-300">
                 Direct Main Profile (Untailored) — mirrors canonical main data with zero LLM tailoring.
               </p>
             ) : (
-              <p className="text-sm text-slate-600 dark:text-slate-300">
+              <p className="text-sm text-slate-700 dark:text-slate-300">
                 <BranchTargetDisplay
                   targetCompany={branch.target_company}
                   targetRole={branch.target_role}
@@ -121,7 +121,7 @@ export const BranchCard: React.FC<BranchCardProps> = ({
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-slate-800 pt-4 text-xs text-slate-500 dark:text-slate-400">
+        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-slate-800 pt-4 text-xs text-slate-500 dark:text-slate-300">
           <div className="flex items-center gap-1.5">
             <Layers className="h-4 w-4 text-slate-400 dark:text-slate-500" aria-hidden="true" />
             <span className="truncate">
@@ -136,7 +136,7 @@ export const BranchCard: React.FC<BranchCardProps> = ({
             </span>
           </div>
 
-          <div className="col-span-2 flex items-center justify-between text-slate-500 dark:text-slate-400">
+          <div className="col-span-2 flex items-center justify-between text-slate-500 dark:text-slate-300">
             <span>
               Active Version:{" "}
               <strong className="font-medium text-slate-700 dark:text-slate-300">
@@ -144,7 +144,7 @@ export const BranchCard: React.FC<BranchCardProps> = ({
               </strong>
             </span>
             {!isDefault && presetName && (
-              <span className="truncate text-slate-500 dark:text-slate-400">
+              <span className="truncate text-slate-500 dark:text-slate-300">
                 Strategy: <strong className="font-medium text-slate-700 dark:text-slate-300">{presetName}</strong>
               </span>
             )}
@@ -159,13 +159,13 @@ export const BranchCard: React.FC<BranchCardProps> = ({
             className={`font-semibold flex items-center gap-1 ${
               hasMatchScore
                 ? "text-emerald-700 dark:text-emerald-400"
-                : "text-slate-500 dark:text-slate-400"
+                : "text-slate-500 dark:text-slate-300"
             }`}
           >
             <Check className="h-3 w-3" aria-hidden="true" />
             Match Score: {matchScoreDisplay}
           </span>
-          <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+          <span className="text-slate-500 dark:text-slate-300 flex items-center gap-1">
             <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
             Verified Facts
           </span>

@@ -175,7 +175,7 @@ export const TemplatesPage: React.FC = () => {
               className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 filterType === "all"
                   ? "bg-indigo-600 text-white"
-                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                  : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
               All ({templates.length})
@@ -187,7 +187,7 @@ export const TemplatesPage: React.FC = () => {
               className={`flex items-center rounded-md px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 filterType === "builtin"
                   ? "bg-amber-600 text-white"
-                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                  : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
               <ShieldCheck className="h-3 w-3 mr-1" aria-hidden="true" />
@@ -200,7 +200,7 @@ export const TemplatesPage: React.FC = () => {
               className={`flex items-center rounded-md px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 filterType === "custom"
                   ? "bg-indigo-600 text-white"
-                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                  : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
               <User className="h-3 w-3 mr-1" aria-hidden="true" />
@@ -211,7 +211,7 @@ export const TemplatesPage: React.FC = () => {
 
         {/* Loading and Error States */}
         {isLoading && (
-          <div className="mt-16 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
+          <div className="mt-16 flex flex-col items-center justify-center text-slate-500 dark:text-slate-300">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
             <p className="mt-3 text-sm">Loading template sets catalog...</p>
           </div>
@@ -262,7 +262,7 @@ export const TemplatesPage: React.FC = () => {
             <h3 className="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
               No template sets found
             </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
               {searchQuery
                 ? `No templates match your query "${searchQuery}". Try a different keyword.`
                 : "No template sets available in this category."}

@@ -138,7 +138,7 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
             >
               LLM Prompt Preview
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-300">
               Inspect the assembled prompt drafts compiled for resume tailoring.
             </p>
           </div>
@@ -150,7 +150,7 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
           onClick={() => setIsExpanded((prev) => !prev)}
           aria-expanded={isExpanded}
           aria-controls={panelId}
-          className="flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300"
+          className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300"
         >
           <span>{isExpanded ? "Hide LLM Prompt" : "Inspect LLM Prompt"}</span>
           {isExpanded ? (
@@ -219,7 +219,7 @@ export const PromptPreviewCard: React.FC<PromptPreviewCardProps> = ({
               className="flex min-h-[160px] flex-col items-center justify-center space-y-2 rounded-md border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 p-6"
             >
               <Loader2 className="h-6 w-6 animate-spin text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-300">
                 Compiling prompt draft from templates and profile data...
               </p>
             </div>

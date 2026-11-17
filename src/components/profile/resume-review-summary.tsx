@@ -201,7 +201,7 @@ export const ResumeReviewSummary: React.FC<ResumeReviewSummaryProps> = ({
     <div className="space-y-4">
       {/* Basics Card */}
       <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4 space-y-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
           Personal Details
         </h3>
         <div className="text-base font-semibold text-slate-900 dark:text-slate-100">
@@ -212,7 +212,7 @@ export const ResumeReviewSummary: React.FC<ResumeReviewSummaryProps> = ({
             {candidateLabel}
           </div>
         )}
-        <div className="flex flex-wrap gap-4 text-xs text-slate-600 dark:text-slate-400 pt-1">
+        <div className="flex flex-wrap gap-4 text-xs text-slate-700 dark:text-slate-300 pt-1">
           {candidateEmail && (
             <span className="inline-flex items-center gap-1">
               <Mail className="h-3.5 w-3.5" aria-hidden="true" />
@@ -236,7 +236,7 @@ export const ResumeReviewSummary: React.FC<ResumeReviewSummaryProps> = ({
           )}
         </div>
         {candidateSummary && (
-          <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 line-clamp-3">
+          <p className="text-xs text-slate-700 dark:text-slate-300 mt-2 line-clamp-3">
             {candidateSummary}
           </p>
         )}
@@ -255,13 +255,13 @@ export const ResumeReviewSummary: React.FC<ResumeReviewSummaryProps> = ({
             className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 text-center"
           >
             <Icon
-              className="h-4 w-4 mx-auto text-slate-500 dark:text-slate-400 mb-1"
+              className="h-4 w-4 mx-auto text-slate-500 dark:text-slate-300 mb-1"
               aria-hidden="true"
             />
             <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
               {count}
             </div>
-            <div className="text-xs text-slate-600 dark:text-slate-400">
+            <div className="text-xs text-slate-700 dark:text-slate-300">
               {label}
             </div>
           </div>
@@ -271,7 +271,7 @@ export const ResumeReviewSummary: React.FC<ResumeReviewSummaryProps> = ({
       {/* Compact Career Items Preview */}
       {hasCareerPreviewItems && (
         <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
             Career Items Preview
           </h3>
           <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
@@ -289,7 +289,7 @@ export const ResumeReviewSummary: React.FC<ResumeReviewSummaryProps> = ({
                     {position ? ` — ${position}` : ""}
                   </span>
                   {highlights.length > 0 && (
-                    <span className="text-slate-500 dark:text-slate-400">
+                    <span className="text-slate-500 dark:text-slate-300">
                       {` (${highlights.length} ${
                         highlights.length === 1 ? "highlight" : "highlights"
                       })`}
@@ -331,7 +331,7 @@ export const ResumeReviewSummary: React.FC<ResumeReviewSummaryProps> = ({
                     {studyDetails ? ` — ${studyDetails}` : ""}
                   </span>
                   {metaParts.length > 0 && (
-                    <span className="text-slate-500 dark:text-slate-400">
+                    <span className="text-slate-500 dark:text-slate-300">
                       {` (${metaParts.join(" · ")})`}
                     </span>
                   )}

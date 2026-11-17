@@ -69,7 +69,7 @@ export const VersionTimeline: React.FC<VersionTimelineProps> = ({
         <h2 className="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
           No versions generated yet
         </h2>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
           Trigger "Tailor Resume" to generate your first AI resume iteration.
         </p>
       </section>
@@ -91,7 +91,7 @@ export const VersionTimeline: React.FC<VersionTimelineProps> = ({
           <History className="h-5 w-5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Version History</h2>
         </div>
-        <span className="text-xs text-slate-500 dark:text-slate-400">
+        <span className="text-xs text-slate-500 dark:text-slate-300">
           {versions.length} {versions.length === 1 ? "version" : "versions"}{" "}
           recorded
         </span>
@@ -144,7 +144,7 @@ export const VersionTimeline: React.FC<VersionTimelineProps> = ({
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-300">
                   {v.model_used && (
                     <div className="flex items-center gap-1">
                       <Cpu className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" aria-hidden="true" />

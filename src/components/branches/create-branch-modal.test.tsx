@@ -300,11 +300,11 @@ describe("CreateBranchModal Component", () => {
     const step2Badge = screen.getByText("Step 2");
     const step3Badge = screen.getByText("Step 3");
 
-    expect(step1Badge).toHaveClass("dark:text-slate-400");
+    expect(step1Badge).toHaveClass("dark:text-slate-300");
     expect(step1Badge).not.toHaveClass("dark:text-slate-500");
-    expect(step2Badge).toHaveClass("dark:text-slate-400");
+    expect(step2Badge).toHaveClass("dark:text-slate-300");
     expect(step2Badge).not.toHaveClass("dark:text-slate-500");
-    expect(step3Badge).toHaveClass("dark:text-slate-400");
+    expect(step3Badge).toHaveClass("dark:text-slate-300");
     expect(step3Badge).not.toHaveClass("dark:text-slate-500");
   });
 

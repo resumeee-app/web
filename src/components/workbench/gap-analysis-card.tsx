@@ -264,7 +264,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-300">
                 {gapReport?.overall_match_summary ||
                   "Evaluated against target role requirements, ATS extraction confidence, and downstream job matching."}
               </p>
@@ -324,7 +324,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
               )}
             </div>
             {statusNote && (
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-300">
                 {statusNote}
               </p>
             )}
@@ -351,7 +351,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                   Match Analysis
                 </Badge>
               ) : (
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-300">
                   Not evaluated
                 </span>
               )}
@@ -373,7 +373,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
               </div>
             )}
 
-            <p className="text-xs text-slate-600 dark:text-slate-400">
+            <p className="text-xs text-slate-700 dark:text-slate-300">
               {gapReport?.overall_match_summary ||
                 "Direct alignment between your career profile facts and target role requirements."}
             </p>
@@ -390,7 +390,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                   {extractionScore.toFixed(1)}%
                 </span>
               ) : (
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-300">
                   Not evaluated
                 </span>
               )}
@@ -412,7 +412,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
               </div>
             )}
 
-            <p className="text-xs text-slate-600 dark:text-slate-400">
+            <p className="text-xs text-slate-700 dark:text-slate-300">
               {atsScore?.extraction_summary ||
                 "Measures how completely an ATS parser extracts and categorizes your rendered resume content."}
             </p>
@@ -429,7 +429,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                   {matchingScore.toFixed(1)}%
                 </span>
               ) : (
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-300">
                   Not evaluated
                 </span>
               )}
@@ -451,7 +451,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
               </div>
             )}
 
-            <p className="text-xs text-slate-600 dark:text-slate-400">
+            <p className="text-xs text-slate-700 dark:text-slate-300">
               {atsScore?.matching_summary ||
                 "Computes perceived alignment against the target job description using only the extracted ATS data."}
             </p>
@@ -465,7 +465,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
               <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                 No gap analysis report available
               </h3>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">
                 Select a completed version from the timeline to review target match
                 scoring and identified qualification gaps.
               </p>
@@ -482,7 +482,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                 </h3>
 
                 {allGaps.length === 0 ? (
-                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-300">
                     No critical qualification gaps detected for this version.
                   </p>
                 ) : (
@@ -504,7 +504,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                             <div className="flex items-center gap-2">
                               <span
                                 className={`font-semibold text-slate-900 dark:text-slate-100 ${
-                                  isDismissed ? "line-through text-slate-500 dark:text-slate-400" : ""
+                                  isDismissed ? "line-through text-slate-500 dark:text-slate-300" : ""
                                 }`}
                               >
                                 {gap.requirement}
@@ -528,7 +528,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                             </Badge>
                           </div>
 
-                          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                          <p className="mt-1 text-xs text-slate-700 dark:text-slate-300">
                             <span className="font-medium text-slate-700 dark:text-slate-300">Area:</span>{" "}
                             {gap.missing_area}
                           </p>
@@ -621,7 +621,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                     />
                     <span>Strategic Tailoring Recommendations</span>
                   </h3>
-                  <ul className="mt-2 space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                  <ul className="mt-2 space-y-2 text-sm text-slate-700 dark:text-slate-300">
                     {recommendations.map((rec, index) => (
                       <li
                         key={`${index}-${rec.slice(0, 32)}`}

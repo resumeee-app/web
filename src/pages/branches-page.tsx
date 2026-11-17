@@ -180,7 +180,7 @@ export const BranchesPage: React.FC = () => {
         >
           <div className="flex flex-col items-center gap-2">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
-            <p className="text-sm text-slate-500 dark:text-slate-400">Loading branches...</p>
+            <p className="text-sm text-slate-500 dark:text-slate-300">Loading branches...</p>
           </div>
         </div>
       ) : filteredBranches.length === 0 ? (
@@ -191,7 +191,7 @@ export const BranchesPage: React.FC = () => {
           <h2 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
             No branches created yet
           </h2>
-          <p className="mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 max-w-md text-sm text-slate-500 dark:text-slate-300">
             Create role-targeted resume branches to tailor your career history for
             specific positions, companies, or criteria.
           </p>

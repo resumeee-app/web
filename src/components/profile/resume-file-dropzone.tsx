@@ -190,7 +190,7 @@ export const ResumeFileDropzone: React.FC<ResumeFileDropzoneProps> = ({
         <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
           {selectedFile ? selectedFile.name : emptyPrompt}
         </p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
           {formatHint}
         </p>
       </div>
@@ -218,7 +218,7 @@ export const ResumeFileDropzone: React.FC<ResumeFileDropzoneProps> = ({
             type="button"
             onClick={handleRemove}
             disabled={disabled}
-            className="rounded p-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-50"
+            className="rounded p-1 text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-50"
             aria-label="Remove selected file"
           >
             <X className="h-4 w-4" aria-hidden="true" />

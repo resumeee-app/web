@@ -576,7 +576,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
         {/* Career Graph Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
           <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-md border border-indigo-100 dark:border-indigo-900 shadow-xs">
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 block">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-300 block">
               Total Skills
             </span>
             <span className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-0.5 block">
@@ -605,7 +605,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
           </div>
 
           <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-md border border-indigo-100 dark:border-indigo-900 shadow-xs">
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 block">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-300 block">
               Categories
             </span>
             <span className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-0.5 block">
@@ -650,7 +650,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                 "px-2.5 py-1 text-xs font-medium rounded transition-colors",
                 originFilter === "all"
                   ? "bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                  : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               )}
             >
               All Types
@@ -663,7 +663,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                 "px-2.5 py-1 text-xs font-medium rounded transition-colors",
                 originFilter === "custom"
                   ? "bg-white dark:bg-slate-950 text-indigo-700 dark:text-indigo-400 shadow-xs font-semibold"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                  : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               )}
             >
               Custom
@@ -676,7 +676,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                 "px-2.5 py-1 text-xs font-medium rounded transition-colors",
                 originFilter === "global"
                   ? "bg-white dark:bg-slate-950 text-blue-700 dark:text-blue-400 shadow-xs font-semibold"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                  : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               )}
             >
               Global
@@ -697,7 +697,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                 "px-3 py-1 text-xs font-medium rounded transition-colors",
                 usageFilter === "all"
                   ? "bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                  : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               )}
             >
               All ({consolidatedSkills.length})
@@ -710,7 +710,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                 "px-3 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1",
                 usageFilter === "attached"
                   ? "bg-white dark:bg-slate-950 text-emerald-700 dark:text-emerald-400 shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                  : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               )}
             >
               <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
@@ -724,7 +724,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                 "px-3 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1",
                 usageFilter === "unattached"
                   ? "bg-white dark:bg-slate-950 text-amber-700 dark:text-amber-400 shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                  : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               )}
             >
               <AlertCircle className="h-3 w-3" aria-hidden="true" />
@@ -756,7 +756,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                   <Tag className="h-4 w-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
                   <span>{category}</span>
                 </h3>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                <span className="text-xs text-slate-500 dark:text-slate-300 font-medium">
                   {categorySkills.length} {categorySkills.length === 1 ? "skill" : "skills"}
                 </span>
               </div>
@@ -995,7 +995,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
               {/* Linked Work Experiences */}
               {activeEvidenceStats.experiences.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 flex items-center gap-1.5">
                     <Briefcase className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Work Experiences ({activeEvidenceStats.experiences.length})</span>
                   </h4>
@@ -1009,7 +1009,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                           {exp.title}
                         </div>
                         {exp.subtitle && (
-                          <div className="text-slate-600 dark:text-slate-400 mt-0.5">
+                          <div className="text-slate-700 dark:text-slate-300 mt-0.5">
                             {exp.subtitle}
                           </div>
                         )}
@@ -1027,7 +1027,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
               {/* Linked Projects */}
               {activeEvidenceStats.projects.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 flex items-center gap-1.5">
                     <FolderGit2 className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Projects ({activeEvidenceStats.projects.length})</span>
                   </h4>
@@ -1041,7 +1041,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                           {proj.title}
                         </div>
                         {proj.subtitle && (
-                          <div className="text-slate-600 dark:text-slate-400 mt-0.5">
+                          <div className="text-slate-700 dark:text-slate-300 mt-0.5">
                             {proj.subtitle}
                           </div>
                         )}
@@ -1059,7 +1059,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
               {/* Linked Education */}
               {activeEvidenceStats.education.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 flex items-center gap-1.5">
                     <GraduationCap className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Education Credentials ({activeEvidenceStats.education.length})</span>
                   </h4>
@@ -1073,7 +1073,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                           {edu.title}
                         </div>
                         {edu.subtitle && (
-                          <div className="text-slate-600 dark:text-slate-400 mt-0.5">
+                          <div className="text-slate-700 dark:text-slate-300 mt-0.5">
                             {edu.subtitle}
                           </div>
                         )}
@@ -1086,7 +1086,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
               {/* Linked Quantifiable Achievement Facts */}
               {activeEvidenceStats.facts.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Achievement Facts ({activeEvidenceStats.facts.length})</span>
                   </h4>
@@ -1100,7 +1100,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                           {f.detail}
                         </div>
                         {f.title && (
-                          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-300 mt-1">
                             Associated with: {f.title}
                           </div>
                         )}

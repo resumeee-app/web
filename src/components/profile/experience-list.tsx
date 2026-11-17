@@ -323,7 +323,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Work Experience</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-300">
             Chronological employment history with quantifiable markdown bullet points.
           </p>
         </div>
@@ -335,7 +335,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
 
       {experiences.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-300">
             No work experiences added yet. Click &ldquo;Add Work Experience&rdquo; to begin.
           </p>
         </div>
@@ -358,7 +358,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                       <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
                         {exp.role_title}
                       </h3>
-                      <span className="text-slate-500 dark:text-slate-400" aria-hidden="true">
+                      <span className="text-slate-500 dark:text-slate-300" aria-hidden="true">
                         at
                       </span>
                       <span className="font-medium text-slate-800 dark:text-slate-200">{exp.company}</span>
@@ -369,7 +369,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-300">
                       <span>{dateDisplay}</span>
                       {locationDisplay && (
                         <>
@@ -379,7 +379,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                       )}
                     </div>
                     {exp.duties_summary && (
-                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                      <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
                         {exp.duties_summary}
                       </p>
                     )}
@@ -442,7 +442,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
 
                 {/* Bullets (Facts) */}
                 <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                     Key Achievements & Bullet Points
                   </h4>
                   <ul className="mt-2 space-y-2">

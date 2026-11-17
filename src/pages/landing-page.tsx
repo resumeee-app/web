@@ -218,7 +218,7 @@ export const FeatureCard: React.FC<{ feature: FeatureItem }> = ({ feature }) => 
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
           {feature.title}
         </h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
           {feature.description}
         </p>
       </div>
@@ -285,14 +285,14 @@ export const MockBranchCard: React.FC<{ branch: MockTailoredBranch }> = ({ branc
             <h3 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
               {branch.role}
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+            <p className="text-xs text-slate-700 dark:text-slate-300 mt-0.5">
               <strong className="font-medium text-slate-800 dark:text-slate-200">{branch.company}</strong> • {branch.department}
             </p>
           </div>
           <BranchStatusBadge status="active" />
         </div>
 
-        <div className="grid grid-cols-2 gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400">
+        <div className="grid grid-cols-2 gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-300">
           <div className="flex items-center gap-1.5 truncate">
             <Layers className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
             <span className="truncate">
@@ -320,7 +320,7 @@ export const MockBranchCard: React.FC<{ branch: MockTailoredBranch }> = ({ branc
             <Check className="h-3 w-3" aria-hidden="true" />
             Match Score: {branch.matchScore}
           </span>
-          <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+          <span className="text-slate-500 dark:text-slate-300 flex items-center gap-1">
             <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
             Verified Facts
           </span>
@@ -413,7 +413,7 @@ export const LandingPage: React.FC = () => {
             <br />
             <span className="text-indigo-600 dark:text-indigo-400">Tailored resumes for the job you want.</span>
           </h1>
-          <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-700 dark:text-slate-300 leading-relaxed">
             Maintain a single source of career truth and branch tailored variants for every role or need, powered by your preferred AI.
           </p>
         </div>
@@ -447,7 +447,7 @@ export const LandingPage: React.FC = () => {
         </div>
 
         {/* Trust & Guarantee Subtitle */}
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-slate-500 dark:text-slate-300">
           Zero telemetry • Open Source
         </p>
 
@@ -460,7 +460,7 @@ export const LandingPage: React.FC = () => {
           {/* Top Window Bar */}
           <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-3 mb-5">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-medium">
+              <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 font-medium">
                 <h2 >Resume Branch Workflow Preview</h2>
               </div>
             </div>
@@ -484,7 +484,7 @@ export const LandingPage: React.FC = () => {
                       Rev #14
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-slate-500 dark:text-slate-300">
                     Direct Main Profile (Untailored) — mirrors canonical main data with zero LLM tailoring.
                   </p>
                 </div>
@@ -494,30 +494,30 @@ export const LandingPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-600 dark:text-slate-300">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-700 dark:text-slate-300">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-slate-900 dark:text-slate-100">5</span>
-                  <span className="text-slate-500 dark:text-slate-400">Experiences</span>
+                  <span className="text-slate-500 dark:text-slate-300">Experiences</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-slate-900 dark:text-slate-100">24</span>
-                  <span className="text-slate-500 dark:text-slate-400">Skills</span>
+                  <span className="text-slate-500 dark:text-slate-300">Skills</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-slate-900 dark:text-slate-100">6</span>
-                  <span className="text-slate-500 dark:text-slate-400">Projects</span>
+                  <span className="text-slate-500 dark:text-slate-300">Projects</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-slate-900 dark:text-slate-100">2</span>
-                  <span className="text-slate-500 dark:text-slate-400">Education</span>
+                  <span className="text-slate-500 dark:text-slate-300">Education</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-slate-900 dark:text-slate-100">3</span>
-                  <span className="text-slate-500 dark:text-slate-400">Certs</span>
+                  <span className="text-slate-500 dark:text-slate-300">Certs</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-300">
                 <div className="flex items-center gap-1.5">
                   <Layers className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
                   <span>Template: <strong className="font-medium text-slate-700 dark:text-slate-300">Standard Clean</strong></span>
@@ -560,7 +560,7 @@ export const LandingPage: React.FC = () => {
           >
             A better way to keep your resume up to date.
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg">
+          <p className="text-slate-700 dark:text-slate-300 text-base sm:text-lg">
             You maintain a <span className="font-bold">single</span> profile. Every change creates a new revision that you can come back to at any time.
             Resumeee keeps tailored variations in sync and helps you avoid ATS rejection black holes with job matching and ATS extraction confidence scores.
           </p>
@@ -586,7 +586,7 @@ export const LandingPage: React.FC = () => {
           >
             Run It Locally, Choose Your AI Provider
           </h2>
-          <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
             Resumeee gives you complete flexibility. Spin up a local container in seconds with Docker. Connect seamlessly to Google Gemini, OpenAI, or Anthropic Claude—or keep everything offline with local models like Ollama and vLLM. Zero telemetry, zero tracking.
           </p>
         </div>
@@ -629,7 +629,7 @@ export const LandingPage: React.FC = () => {
                 <Icon className={`h-5 w-5 ${item.iconColorClass} shrink-0 mt-0.5`} aria-hidden="true" />
                 <div>
                   <h3 className="text-sm font-semibold text-white">{item.title}</h3>
-                  <p className="mt-1 text-xs text-slate-400">{item.description}</p>
+                  <p className="mt-1 text-xs text-slate-300">{item.description}</p>
                 </div>
               </div>
             );
@@ -682,7 +682,7 @@ export const LandingPage: React.FC = () => {
                 {isExpanded && (
                   <div
                     id={answerId}
-                    className="px-5 pb-5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-slate-800/80 pt-3"
+                    className="px-5 pb-5 text-sm text-slate-700 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/80 pt-3"
                   >
                     {item.answer}
                   </div>

@@ -195,7 +195,7 @@ export const QuotaMeter: React.FC<QuotaMeterProps> = ({ className }) => {
                   style={{ width: `${dailyPercent}%` }}
                 />
               </div>
-              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-300">
                 <span>{dailyRemaining} remaining</span>
                 <span>Resets {formatResetTime(quota.daily_reset_at)}</span>
               </div>
@@ -231,7 +231,7 @@ export const QuotaMeter: React.FC<QuotaMeterProps> = ({ className }) => {
                   style={{ width: `${monthlyPercent}%` }}
                 />
               </div>
-              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-300">
                 <span>{monthlyTokensRemaining.toLocaleString()} remaining</span>
                 <span>Resets {formatResetTime(quota.monthly_reset_at)}</span>
               </div>

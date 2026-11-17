@@ -46,7 +46,7 @@ export const PublicNav: React.FC = () => (
   <div className="hidden md:flex flex-1 items-center justify-center min-[1600px]:justify-start min-w-0 px-1 sm:px-2 lg:px-4">
     <nav
       aria-label="Public Navigation"
-      className="flex items-center space-x-1 lg:space-x-3 text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400 min-[1600px]:ml-[calc((100vw-80rem)/2-137px)]"
+      className="flex items-center space-x-1 lg:space-x-3 text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-300 min-[1600px]:ml-[calc((100vw-80rem)/2-137px)]"
     >
       {PUBLIC_NAV_LINKS.map((item) => (
         <a
@@ -70,7 +70,7 @@ export const PublicNav: React.FC = () => (
 export const PublicFooter: React.FC = () => (
   <footer
     role="contentinfo"
-    className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 py-6 text-center text-sm text-slate-500 dark:text-slate-400"
+    className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 py-6 text-center text-sm text-slate-500 dark:text-slate-300"
   >
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-1.5">
       <p>© {new Date().getFullYear()} Resumeee — One Resume to rule them all.</p>

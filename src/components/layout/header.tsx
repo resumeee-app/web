@@ -77,7 +77,7 @@ export const Header: React.FC = () => {
                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                           isActive
                             ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100"
+                            : "text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-slate-100"
                         )
                       }
                     >
@@ -101,7 +101,7 @@ export const Header: React.FC = () => {
             {!adminMode && user && (
               <div className="flex items-center space-x-1 sm:space-x-1.5 lg:space-x-2 border-l border-slate-200 dark:border-slate-800 pl-1.5 sm:pl-2 lg:pl-3">
                 <div
-                  className="hidden xl:flex items-center space-x-1.5 text-xs text-slate-600 dark:text-slate-400"
+                  className="hidden xl:flex items-center space-x-1.5 text-xs text-slate-700 dark:text-slate-300"
                   title={userIdentifier}
                 >
                   <User className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -111,7 +111,7 @@ export const Header: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => void signOut()}
-                  className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 text-xs px-1.5 sm:px-2 lg:px-3 h-8"
+                  className="text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100 text-xs px-1.5 sm:px-2 lg:px-3 h-8"
                   aria-label="Sign out"
                 >
                   <LogOut className="h-4 w-4 lg:mr-1.5" aria-hidden="true" />
@@ -150,7 +150,7 @@ export const Header: React.FC = () => {
                             variant="ghost"
                             size="icon"
                             aria-label="Close navigation menu"
-                            className="h-8 w-8 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                            className="h-8 w-8 text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
                           >
                             <X className="h-4 w-4" aria-hidden="true" />
                             <span className="sr-only">Close navigation menu</span>
@@ -176,7 +176,7 @@ export const Header: React.FC = () => {
                                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                                   isActive
                                     ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100"
+                                    : "text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-slate-100"
                                 )
                               }
                             >
@@ -189,7 +189,7 @@ export const Header: React.FC = () => {
 
                       {!adminMode && user && (
                         <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col space-y-3">
-                          <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400">
+                          <div className="flex items-center space-x-2 text-sm text-slate-700 dark:text-slate-300">
                             <User className="h-4 w-4 shrink-0" aria-hidden="true" />
                             <span className="truncate">{userIdentifier}</span>
                           </div>

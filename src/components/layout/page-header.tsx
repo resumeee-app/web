@@ -81,7 +81,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             {badge}
           </div>
           {description && (
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
               {description}
             </p>
           )}

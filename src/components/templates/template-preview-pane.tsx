@@ -341,7 +341,7 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
                   "flex items-center space-x-1 rounded px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                   isSelected
                     ? "bg-white dark:bg-slate-950 text-indigo-600 dark:text-indigo-400 shadow-sm"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                    : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
                 )}
               >
                 <Icon className="h-3 w-3" aria-hidden="true" />
@@ -376,7 +376,7 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
             <p className="mt-3 text-sm font-medium text-slate-700 dark:text-slate-300">
               Loading template preview...
             </p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">
               Rendering template formats and styles on server
             </p>
           </div>
@@ -389,7 +389,7 @@ export const TemplatePreviewPane: React.FC<TemplatePreviewPaneProps> = ({
             <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300">
               No template preview available
             </p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">
               Select or configure template source to preview.
             </p>
           </div>

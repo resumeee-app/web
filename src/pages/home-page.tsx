@@ -95,7 +95,7 @@ export const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
       <div>
         <div className="flex items-center space-x-2">
           <Icon className={`h-4 w-4 ${iconColorClass}`} aria-hidden="true" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
             {title}
           </span>
         </div>
@@ -113,7 +113,7 @@ export const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
             >
               {count}
             </div>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">
               {subtext}
             </p>
           </div>
@@ -266,7 +266,7 @@ export const HomePage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                     Main Profile
                   </span>
                 </div>
@@ -285,7 +285,7 @@ export const HomePage: React.FC = () => {
                   <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 truncate">
                     {profileFullName || "Core Main Profile"}
                   </h3>
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 truncate">
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300 truncate">
                     {profile?.headline || "Primary career graph & resume foundation"}
                   </p>
 
@@ -294,7 +294,7 @@ export const HomePage: React.FC = () => {
                       <div data-testid="metric-experiences" className="text-sm font-bold text-slate-900 dark:text-slate-100">
                         {experiencesCount}
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-300 uppercase">
                         Exp
                       </div>
                     </div>
@@ -302,7 +302,7 @@ export const HomePage: React.FC = () => {
                       <div data-testid="metric-skills" className="text-sm font-bold text-slate-900 dark:text-slate-100">
                         {skillsCount}
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-300 uppercase">
                         Skills
                       </div>
                     </div>
@@ -310,7 +310,7 @@ export const HomePage: React.FC = () => {
                       <div data-testid="metric-projects" className="text-sm font-bold text-slate-900 dark:text-slate-100">
                         {projectsCount}
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-300 uppercase">
                         Proj
                       </div>
                     </div>
@@ -318,7 +318,7 @@ export const HomePage: React.FC = () => {
                       <div data-testid="metric-education" className="text-sm font-bold text-slate-900 dark:text-slate-100">
                         {educationCount}
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-300 uppercase">
                         Edu
                       </div>
                     </div>
@@ -326,7 +326,7 @@ export const HomePage: React.FC = () => {
                       <div data-testid="metric-certifications" className="text-sm font-bold text-slate-900 dark:text-slate-100">
                         {certificationsCount}
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-300 uppercase">
                         Certs
                       </div>
                     </div>

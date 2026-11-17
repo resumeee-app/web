@@ -96,12 +96,12 @@ describe("ConstraintControls Component", () => {
     expect(results).toHaveNoViolations();
   });
 
-  it("uses dark:text-slate-400 for step indicators to satisfy dark mode contrast requirements", () => {
+  it("uses dark:text-slate-300 for step indicators to satisfy dark mode contrast requirements", () => {
     render(<ConstraintControls onApplyInstructions={vi.fn()} />);
     const stepIndicators = screen.getAllByText(/^\d+\.$/);
     expect(stepIndicators.length).toBeGreaterThan(0);
     for (const indicator of stepIndicators) {
-      expect(indicator).toHaveClass("dark:text-slate-400");
+      expect(indicator).toHaveClass("dark:text-slate-300");
       expect(indicator).not.toHaveClass("dark:text-slate-500");
     }
   });

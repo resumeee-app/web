@@ -209,7 +209,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Projects</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-300">
             Open-source libraries, major initiatives, and featured technical projects.
           </p>
         </div>
@@ -221,7 +221,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
 
       {projects.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-300">
             No projects added yet. Click &ldquo;Add Project&rdquo; to begin.
           </p>
         </div>
@@ -240,7 +240,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                     </h3>
                     {proj.role && (
                       <>
-                        <span className="text-slate-500 dark:text-slate-400" aria-hidden="true">
+                        <span className="text-slate-500 dark:text-slate-300" aria-hidden="true">
                           •
                         </span>
                         <span className="font-medium text-slate-700 dark:text-slate-300">{proj.role}</span>
@@ -263,7 +263,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                     </a>
                   )}
                   {(proj.start_date || proj.end_date) && (
-                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-300">
                       <span>{formatDateRange(proj.start_date, proj.end_date)}</span>
                     </div>
                   )}
@@ -280,7 +280,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                     </div>
                   )}
                   {proj.summary && (
-                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{proj.summary}</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{proj.summary}</p>
                   )}
                 </div>
 
@@ -310,7 +310,7 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
 
               {/* Bullets (Facts) */}
               <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-3">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                   Project Highlights
                 </h4>
                 <ul className="mt-2 space-y-2">
@@ -512,9 +512,9 @@ export const ProjectsList: React.FC<ProjectsListProps> = ({
                 >
                   <span>Extended Details</span>
                   {extendedOpen ? (
-                    <ChevronUp className="h-4 w-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                    <ChevronUp className="h-4 w-4 text-slate-500 dark:text-slate-300" aria-hidden="true" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                    <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-300" aria-hidden="true" />
                   )}
                 </button>
 

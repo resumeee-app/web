@@ -175,7 +175,7 @@ export const WorkflowGuide: React.FC<WorkflowGuideProps> = ({
             >
               How Resumeee Works
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-300">
               Architecture & setup progress guide
             </p>
           </div>
@@ -183,7 +183,7 @@ export const WorkflowGuide: React.FC<WorkflowGuideProps> = ({
 
         <div className="flex items-center space-x-3">
           {isCollapsed && (
-            <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+            <div className="flex items-center space-x-2 text-xs text-slate-700 dark:text-slate-300">
               <span className="font-medium text-slate-900 dark:text-slate-100">
                 Readiness: {completedCount}/{totalCount}
               </span>
@@ -197,7 +197,7 @@ export const WorkflowGuide: React.FC<WorkflowGuideProps> = ({
             onClick={toggleCollapse}
             aria-expanded={!isCollapsed}
             aria-controls="workflow-guide-content"
-            className="flex items-center space-x-1 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            className="flex items-center space-x-1 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
           >
             {isCollapsed ? (
               <>
@@ -231,7 +231,7 @@ export const WorkflowGuide: React.FC<WorkflowGuideProps> = ({
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   Main Career Graph
                 </h3>
-                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="mt-1 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                   Consolidate your full work history, verified skills, and achievements in one single source of truth.
                 </p>
               </div>
@@ -258,7 +258,7 @@ export const WorkflowGuide: React.FC<WorkflowGuideProps> = ({
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   Targeting Presets & Templates
                 </h3>
-                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="mt-1 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                   Calibrate AI instructions, tone, and length constraints paired with ATS-tested layouts for each target position.
                 </p>
               </div>
@@ -292,7 +292,7 @@ export const WorkflowGuide: React.FC<WorkflowGuideProps> = ({
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   Branch, Tailor & Verify
                 </h3>
-                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="mt-1 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                   Create role variants, run AI gap analysis with guaranteed provenance citations, and export verified ATS resumes.
                 </p>
               </div>
@@ -319,7 +319,7 @@ export const WorkflowGuide: React.FC<WorkflowGuideProps> = ({
                     Workspace Readiness
                   </h3>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-300">
                   {completedCount} of {totalCount} milestones completed ({readinessPercentage}%)
                 </p>
               </div>
@@ -330,7 +330,7 @@ export const WorkflowGuide: React.FC<WorkflowGuideProps> = ({
                   <span>100% Ready for Tailoring</span>
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300">
                   <span>{readinessPercentage}% Complete</span>
                 </span>
               )}
@@ -375,7 +375,7 @@ export const WorkflowGuide: React.FC<WorkflowGuideProps> = ({
                         />
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-300">
                       {item.description}
                     </p>
                   </div>

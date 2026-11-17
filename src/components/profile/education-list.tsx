@@ -232,7 +232,7 @@ export const EducationList: React.FC<EducationListProps> = ({
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Education</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-300">
             Degrees, academic institutions, fields of study, and honors.
           </p>
         </div>
@@ -244,7 +244,7 @@ export const EducationList: React.FC<EducationListProps> = ({
 
       {education.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-300">
             No education history added yet. Click &ldquo;Add Education&rdquo; to begin.
           </p>
         </div>
@@ -275,7 +275,7 @@ export const EducationList: React.FC<EducationListProps> = ({
                     <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       {[edu.degree, edu.field].filter(Boolean).join(" in ")}
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-300 flex-wrap">
                       {dateDisplay && <span>{dateDisplay}</span>}
                       {locationDisplay && (
                         <>
@@ -286,7 +286,7 @@ export const EducationList: React.FC<EducationListProps> = ({
                       {edu.score && (
                         <>
                           <span aria-hidden="true">•</span>
-                          <span className="font-medium text-slate-600 dark:text-slate-300">
+                          <span className="font-medium text-slate-700 dark:text-slate-300">
                             {edu.score}
                           </span>
                         </>
@@ -321,7 +321,7 @@ export const EducationList: React.FC<EducationListProps> = ({
                 {/* Polymorphic Facts / Bullet points for this education record */}
                 {(Boolean(edu.facts && edu.facts.length > 0) || Boolean(onAddFact)) && (
                   <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-3">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                       Key Achievements &amp; Bullet Points
                     </h4>
                     {edu.facts && edu.facts.length > 0 && (
@@ -600,7 +600,7 @@ export const EducationList: React.FC<EducationListProps> = ({
 
                     {/* Facts / Achievements Section */}
                     <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                         Key Achievements &amp; Bullet Points
                       </h4>
 
