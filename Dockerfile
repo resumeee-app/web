@@ -52,8 +52,8 @@ USER nginx
 # Expose unprivileged HTTP port
 EXPOSE 8080
 
-# Health check verifying root SPA endpoint returns HTTP 200
+# Health check verifying root SPA endpoint returns HTTP 200 (BusyBox wget compatible)
 HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1
+  CMD wget -q --spider http://127.0.0.1:8080/ || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
