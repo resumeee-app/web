@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -52,6 +53,26 @@ export interface CreateBranchModalProps {
    * Optional ref to trigger element to restore focus on modal dismissal.
    */
   triggerRef?: React.RefObject<HTMLElement | null>;
+  /**
+   * Optional initial form values used to pre-populate the wizard (e.g. guided tour demos).
+   */
+  initialValues?: Partial<CreateBranchInput>;
+  /**
+   * Optional externally controlled wizard step (1 | 2 | 3).
+   */
+  controlledStep?: 1 | 2 | 3;
+  /**
+   * Optional callback fired whenever the active wizard step changes.
+   */
+  onStepChange?: (step: 1 | 2 | 3) => void;
+  /**
+   * When true, locks inputs/radios to read-only demo values while keeping Cancel and Submit functional.
+   */
+  readOnlyDemo?: boolean;
+  /**
+   * When true, renders the dialog inline within its parent container instead of portaling over the full viewport.
+   */
+  inline?: boolean;
 }
 
 /**
@@ -86,8 +107,23 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
   onSubmit,
   isSubmitting = false,
   triggerRef,
+  initialValues,
+  controlledStep,
+  onStepChange,
+  readOnlyDemo = false,
+  inline = false,
 }) => {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const inlineTitleId = React.useId();
+  const inlineDescId = React.useId();
+  const [internalStep, setInternalStep] = useState<1 | 2 | 3>(1);
+  const step = controlledStep ?? internalStep;
+  const setStep = React.useCallback(
+    (next: 1 | 2 | 3) => {
+      setInternalStep(next);
+      onStepChange?.(next);
+    },
+    [onStepChange]
+  );
   const [hasManuallySelectedTheme, setHasManuallySelectedTheme] = useState(false);
   const internalTriggerRef = useRef<HTMLElement | null>(null);
 
@@ -107,29 +143,31 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
       if (!triggerRef?.current) {
         internalTriggerRef.current = (document.activeElement as HTMLElement) || null;
       }
-      setStep(1);
-      setHasManuallySelectedTheme(false);
-      setName("");
-      setTargetCompany("");
-      setTargetRole("");
-      setTargetRequirements("");
-      setBranchInstructions("");
+      setInternalStep(1);
+      setHasManuallySelectedTheme(Boolean(initialValues?.template_set_id));
+      setName(initialValues?.name ?? "");
+      setTargetCompany(initialValues?.target_company ?? "");
+      setTargetRole(initialValues?.target_role ?? "");
+      setTargetRequirements(initialValues?.target_requirements ?? "");
+      setBranchInstructions(initialValues?.branch_instructions ?? "");
       setNameError(null);
 
-      // Default preset to built-in system preset if available
+      // Default preset to initialValues or built-in system preset if available
       const defaultPreset =
         presets.find((p) => p.is_built_in) || presets[0] || null;
-      const initialPresetId = defaultPreset ? defaultPreset.id : "";
+      const initialPresetId =
+        initialValues?.preset_id ?? (defaultPreset ? defaultPreset.id : "");
       setPresetId(initialPresetId);
 
-      // Default template to preset's suggested theme, or first available template
+      // Default template to initialValues, preset's suggested theme, or first available template
       const initialTemplateId =
-        defaultPreset?.suggested_theme_id ||
-        (templates[0] && templates[0].id) ||
+        initialValues?.template_set_id ??
+        defaultPreset?.suggested_theme_id ??
+        (templates[0] && templates[0].id) ??
         "standard";
       setTemplateSetId(initialTemplateId);
     }
-  }, [open, presets, templates, triggerRef]);
+  }, [open, presets, templates, triggerRef, initialValues]);
 
   /**
    * Validates Step 1 inputs (required name and unique name check).
@@ -157,6 +195,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
    * Handles preset selection changes, auto-suggesting the preset's theme if not manually chosen.
    */
   const handlePresetChange = (newPresetId: string) => {
+    if (readOnlyDemo) return;
     setPresetId(newPresetId);
     if (newPresetId && !hasManuallySelectedTheme) {
       const selected = presets.find((p) => p.id === newPresetId);
@@ -171,6 +210,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
    * Handles template selection changes, recording user manual intent.
    */
   const handleTemplateChange = (newTemplateId: string, isManual = true) => {
+    if (readOnlyDemo) return;
     setTemplateSetId(newTemplateId);
     if (isManual) {
       setHasManuallySelectedTheme(true);
@@ -221,28 +261,41 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
     onOpenChange(false);
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={FORM_DIALOG_CONTENT_CLASS}
-        onCloseAutoFocus={(e) => {
-          const el = triggerRef?.current || internalTriggerRef.current;
-          if (el) {
-            e.preventDefault();
-            internalTriggerRef.current = null;
-            el.focus();
-          }
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle>Create New Resume Branch</DialogTitle>
-          <DialogDescription>
-            Configure a tailored resume branch with target roles, custom instructions, and template sets.
-          </DialogDescription>
-        </DialogHeader>
+  const handleInlineClose = React.useCallback(() => {
+    onOpenChange(false);
+    const el = triggerRef?.current || internalTriggerRef.current;
+    if (el) {
+      internalTriggerRef.current = null;
+      requestAnimationFrame(() => el.focus());
+    }
+  }, [onOpenChange, triggerRef]);
 
-        {/* Wizard Step Indicator */}
-        <nav aria-label="Creation Steps" className="border-b border-slate-200 dark:border-slate-800 pb-3 my-2">
+  useEffect(() => {
+    if (!inline || !open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleInlineClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [inline, open, handleInlineClose]);
+
+  const handleCloseAction = () => {
+    if (inline) {
+      handleInlineClose();
+    } else {
+      onOpenChange(false);
+    }
+  };
+
+  const StepHeadingTag: "h3" | "h4" = inline ? "h4" : "h3";
+
+  const wizardBody = (
+    <>
+      {/* Wizard Step Indicator */}
+      <nav aria-label="Creation Steps" className="border-b border-slate-200 dark:border-slate-800 pb-3 my-2">
           <ol className="flex w-full items-center justify-between gap-2 text-xs sm:text-sm">
             <li className="flex-1">
               <button
@@ -310,8 +363,10 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 id="create-branch-name"
                 type="text"
                 aria-required="true"
+                readOnly={readOnlyDemo}
                 value={name}
                 onChange={(e) => {
+                  if (readOnlyDemo) return;
                   setName(e.target.value);
                   if (nameError) setNameError(null);
                 }}
@@ -339,8 +394,11 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 <input
                   id="create-target-company"
                   type="text"
+                  readOnly={readOnlyDemo}
                   value={targetCompany}
-                  onChange={(e) => setTargetCompany(e.target.value)}
+                  onChange={(e) => {
+                    if (!readOnlyDemo) setTargetCompany(e.target.value);
+                  }}
                   placeholder="e.g. Stripe"
                   className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
@@ -356,8 +414,11 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
                 <input
                   id="create-target-role"
                   type="text"
+                  readOnly={readOnlyDemo}
                   value={targetRole}
-                  onChange={(e) => setTargetRole(e.target.value)}
+                  onChange={(e) => {
+                    if (!readOnlyDemo) setTargetRole(e.target.value);
+                  }}
                   placeholder="e.g. Staff Backend Engineer"
                   className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
@@ -375,8 +436,11 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
               <textarea
                 id="create-target-requirements"
                 rows={3}
+                readOnly={readOnlyDemo}
                 value={targetRequirements}
-                onChange={(e) => setTargetRequirements(e.target.value)}
+                onChange={(e) => {
+                  if (!readOnlyDemo) setTargetRequirements(e.target.value);
+                }}
                 placeholder="Paste job description or requirements to guide LLM alignment..."
                 className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
@@ -386,9 +450,9 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
           {/* STEP 2: AI Tailoring Strategy */}
           <div className={step === 2 ? "space-y-4" : "hidden"}>
             <div className="border-b border-slate-100 dark:border-slate-800 pb-2">
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+              <StepHeadingTag className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Step 2: AI Tailoring Strategy
-              </h3>
+              </StepHeadingTag>
               <p className="text-xs text-slate-500 dark:text-slate-300">
                 Choose how AI analyzes and presents your career achievements (prompt directives and density guidelines):
               </p>
@@ -489,8 +553,11 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
               <textarea
                 id="create-branch-instructions"
                 rows={2}
+                readOnly={readOnlyDemo}
                 value={branchInstructions}
-                onChange={(e) => setBranchInstructions(e.target.value)}
+                onChange={(e) => {
+                  if (!readOnlyDemo) setBranchInstructions(e.target.value);
+                }}
                 placeholder="e.g. Prioritize distributed systems, Kubernetes, and Go architecture..."
                 className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
@@ -500,9 +567,9 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
           {/* STEP 3: Visual Layout & Design */}
           <div className={step === 3 ? "space-y-4" : "hidden"}>
             <div className="border-b border-slate-100 dark:border-slate-800 pb-2">
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+              <StepHeadingTag className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Step 3: Visual Layout & Design
-              </h3>
+              </StepHeadingTag>
               <p className="text-xs text-slate-500 dark:text-slate-300">
                 Choose visual appearance and ATS formatting (visual Go template layout, independent of AI strategy):
               </p>
@@ -589,7 +656,7 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
               type="button"
               variant="outline"
               disabled={isSubmitting}
-              onClick={() => onOpenChange(false)}
+              onClick={handleCloseAction}
             >
               Cancel
             </Button>
@@ -620,6 +687,69 @@ export const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
             </div>
           </DialogFooter>
         </form>
+    </>
+  );
+
+  if (inline) {
+    if (!open) return null;
+    return (
+      <div className="relative z-10 flex w-full items-center justify-center rounded-lg bg-slate-950/20 dark:bg-slate-950/50 backdrop-blur-[1px] p-2 sm:p-4">
+        <div
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby={inlineTitleId}
+          aria-describedby={inlineDescId}
+          className="relative w-full max-w-[680px] rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-5 sm:p-6 shadow-xl space-y-4"
+        >
+          <button
+            type="button"
+            onClick={handleInlineClose}
+            aria-label="Close"
+            className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Close</span>
+          </button>
+
+          <div className="flex flex-col space-y-1.5 text-center sm:text-left pr-6">
+            <h3
+              id={inlineTitleId}
+              className="text-lg font-semibold leading-none tracking-tight text-slate-900 dark:text-slate-100"
+            >
+              Create New Resume Branch
+            </h3>
+            <p id={inlineDescId} className="text-sm text-slate-500 dark:text-slate-300">
+              Configure a tailored resume branch with target roles, custom instructions, and template sets.
+            </p>
+          </div>
+
+          {wizardBody}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className={FORM_DIALOG_CONTENT_CLASS}
+        onCloseAutoFocus={(e) => {
+          const el = triggerRef?.current || internalTriggerRef.current;
+          if (el) {
+            e.preventDefault();
+            internalTriggerRef.current = null;
+            el.focus();
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Create New Resume Branch</DialogTitle>
+          <DialogDescription>
+            Configure a tailored resume branch with target roles, custom instructions, and template sets.
+          </DialogDescription>
+        </DialogHeader>
+
+        {wizardBody}
       </DialogContent>
     </Dialog>
   );

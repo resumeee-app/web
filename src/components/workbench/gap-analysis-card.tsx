@@ -65,6 +65,8 @@ export interface GapAnalysisCardProps {
   isSimulating?: boolean;
   /** Callback invoked when the user clicks the on-demand ATS simulation trigger button. */
   onSimulate?: () => Promise<void> | void;
+  /** When true, hides interactive simulation and report toggle buttons for compact read-only previews. */
+  previewOnly?: boolean;
 }
 
 function clampPercent(value?: number | null): number | null {
@@ -105,6 +107,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
   hasCompletedVersion = false,
   isSimulating = false,
   onSimulate,
+  previewOnly = false,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
   const [dismissedMap, setDismissedMap] = React.useState<Record<string, boolean>>({});
@@ -271,64 +274,66 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
             </div>
           </div>
 
-          <div className="flex flex-col items-start sm:items-end gap-1.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                variant={hasEvaluatedScore ? "outline" : "default"}
-                size="sm"
-                disabled={isSimulateDisabled}
-                aria-disabled={isSimulateDisabled}
-                onClick={() => {
-                  if (!isSimulateDisabled && onSimulate) {
-                    void onSimulate();
-                  }
-                }}
-                className="flex items-center gap-1.5"
-              >
-                {isSimulating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                    <span>Calculating ATS Score...</span>
-                  </>
-                ) : hasEvaluatedScore ? (
-                  <>
-                    <FileCheck2 className="h-4 w-4" aria-hidden="true" />
-                    <span>ATS Score Calculated</span>
-                  </>
-                ) : (
-                  <>
-                    <ScanSearch className="h-4 w-4" aria-hidden="true" />
-                    <span>Calculate ATS Score</span>
-                  </>
-                )}
-              </Button>
-
-              {gapReport && (
+          {!previewOnly && (
+            <div className="flex flex-col items-start sm:items-end gap-1.5">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
-                  variant="outline"
+                  type="button"
+                  variant={hasEvaluatedScore ? "outline" : "default"}
                   size="sm"
-                  onClick={() => setIsExpanded((prev) => !prev)}
-                  aria-expanded={isExpanded}
-                  aria-controls={panelId}
-                  aria-label="Toggle gap analysis report"
+                  disabled={isSimulateDisabled}
+                  aria-disabled={isSimulateDisabled}
+                  onClick={() => {
+                    if (!isSimulateDisabled && onSimulate) {
+                      void onSimulate();
+                    }
+                  }}
                   className="flex items-center gap-1.5"
                 >
-                  <span>{isExpanded ? "Collapse" : "Expand Report"}</span>
-                  {isExpanded ? (
-                    <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                  {isSimulating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      <span>Calculating ATS Score...</span>
+                    </>
+                  ) : hasEvaluatedScore ? (
+                    <>
+                      <FileCheck2 className="h-4 w-4" aria-hidden="true" />
+                      <span>ATS Score Calculated</span>
+                    </>
                   ) : (
-                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                    <>
+                      <ScanSearch className="h-4 w-4" aria-hidden="true" />
+                      <span>Calculate ATS Score</span>
+                    </>
                   )}
                 </Button>
+
+                {gapReport && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsExpanded((prev) => !prev)}
+                    aria-expanded={isExpanded}
+                    aria-controls={panelId}
+                    aria-label="Toggle gap analysis report"
+                    className="flex items-center gap-1.5"
+                  >
+                    <span>{isExpanded ? "Collapse" : "Expand Report"}</span>
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                    )}
+                  </Button>
+                )}
+              </div>
+              {statusNote && (
+                <p className="text-xs text-slate-500 dark:text-slate-300">
+                  {statusNote}
+                </p>
               )}
             </div>
-            {statusNote && (
-              <p className="text-xs text-slate-500 dark:text-slate-300">
-                {statusNote}
-              </p>
-            )}
-          </div>
+          )}
         </div>
 
         {/* Unified Three-Score Breakdown */}
@@ -544,53 +549,55 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
                           )}
 
                           {/* Interactive Resolution Action Bar */}
-                          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/60 dark:border-slate-700/60 pt-2.5">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleOpenQuickAdd(gap)}
-                              aria-label={`I have this experience: ${gap.requirement}`}
-                              className="h-7 text-xs border-emerald-600/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-                            >
-                              <PlusCircle className="mr-1 h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                              <span>I Have This Experience</span>
-                            </Button>
+                          {!previewOnly && (
+                            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/60 dark:border-slate-700/60 pt-2.5">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleOpenQuickAdd(gap)}
+                                aria-label={`I have this experience: ${gap.requirement}`}
+                                className="h-7 text-xs border-emerald-600/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                              >
+                                <PlusCircle className="mr-1 h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                                <span>I Have This Experience</span>
+                              </Button>
 
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleToggleTalkingPoint(gap.requirement)}
-                              aria-label={`Interview talking point for ${gap.requirement}`}
-                              className="h-7 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
-                            >
-                              <MessageSquareQuote className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
-                              <span>Interview Talking Point</span>
-                            </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleToggleTalkingPoint(gap.requirement)}
+                                aria-label={`Interview talking point for ${gap.requirement}`}
+                                className="h-7 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+                              >
+                                <MessageSquareQuote className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+                                <span>Interview Talking Point</span>
+                              </Button>
 
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleToggleDismiss(gap)}
-                              aria-label={
-                                isDismissed
-                                  ? `Restore gap: ${gap.requirement}`
-                                  : `Dismiss gap as false positive: ${gap.requirement}`
-                              }
-                              className="h-7 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                            >
-                              {isDismissed ? (
-                                <>
-                                  <RotateCcw className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
-                                  <span>Restore</span>
-                                </>
-                              ) : (
-                                <>
-                                  <EyeOff className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
-                                  <span>Dismiss (False Positive)</span>
-                                </>
-                              )}
-                            </Button>
-                          </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleToggleDismiss(gap)}
+                                aria-label={
+                                  isDismissed
+                                    ? `Restore gap: ${gap.requirement}`
+                                    : `Dismiss gap as false positive: ${gap.requirement}`
+                                }
+                                className="h-7 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                              >
+                                {isDismissed ? (
+                                  <>
+                                    <RotateCcw className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+                                    <span>Restore</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <EyeOff className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+                                    <span>Dismiss (False Positive)</span>
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          )}
 
                           {/* Contextual Interview Talking Point Drawer */}
                           {showTalkingPoint && (

@@ -5,7 +5,6 @@ import {
   FileText,
   Cpu,
   ArrowRight,
-  Check,
   Copy,
   CheckCheck,
   Database,
@@ -15,16 +14,15 @@ import {
   Sparkles,
   HelpCircle,
   ChevronDown,
-  User,
-  Layers,
-  Clock,
-  Eye,
   Github,
   Bot,
   Accessibility,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DefaultBranchBadge, BranchStatusBadge } from "@/components/branches/branch-shared-elements";
+import {
+  LandingGuidedTour,
+  type TourTimingConfig,
+} from "@/components/landing/landing-guided-tour";
 
 /**
  * Data model for core capability feature cards.
@@ -227,139 +225,19 @@ export const FeatureCard: React.FC<{ feature: FeatureItem }> = ({ feature }) => 
 };
 
 /**
- * Data model for mock tailored branch cards shown in hero visualizer.
+ * Props accepted by {@link LandingPage}.
  */
-export interface MockTailoredBranch {
-  id: string;
-  role: string;
-  company: string;
-  department: string;
-  layout: string;
-  modified: string;
-  version: string;
-  strategy: string;
-  matchScore: string;
+export interface LandingPageProps {
+  /** Optional timing overrides forwarded to the hero guided tour. */
+  tourTimingMs?: TourTimingConfig;
 }
-
-/**
- * Preview branch cards demonstrating targeted variants in the hero section.
- */
-export const MOCK_TAILORED_BRANCHES: MockTailoredBranch[] = [
-  {
-    id: "branch-stripe",
-    role: "Staff Platform Engineer",
-    company: "Stripe",
-    department: "Infrastructure & Observability",
-    layout: "ATS Modern Tech",
-    modified: "Nov 7, 2026",
-    version: "v3",
-    strategy: "Senior Staff Engineering",
-    matchScore: "98%",
-  },
-  {
-    id: "branch-supabase",
-    role: "Founding Systems Architect",
-    company: "Supabase",
-    department: "Cloud Core Team",
-    layout: "Standard Clean",
-    modified: "Nov 7, 2026",
-    version: "v2",
-    strategy: "0-to-1 Startup Velocity",
-    matchScore: "96%",
-  },
-];
-
-/**
- * Subcomponent rendering an authentic tailored branch card preview in the hero visualizer.
- */
-export const MockBranchCard: React.FC<{ branch: MockTailoredBranch }> = ({ branch }) => {
-  return (
-    <article
-      data-testid="mock-branch-card"
-      className="flex flex-col justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-4"
-      aria-label={`${branch.role} branch card`}
-    >
-      <div className="space-y-3">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <h3 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-              {branch.role}
-            </h3>
-            <p className="text-xs text-slate-700 dark:text-slate-300 mt-0.5">
-              <strong className="font-medium text-slate-800 dark:text-slate-200">{branch.company}</strong> • {branch.department}
-            </p>
-          </div>
-          <BranchStatusBadge status="active" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-300">
-          <div className="flex items-center gap-1.5 truncate">
-            <Layers className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
-            <span className="truncate">
-              Layout: <strong className="font-medium text-slate-700 dark:text-slate-300">{branch.layout}</strong>
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 truncate">
-            <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
-            <span className="truncate">
-              Modified: <span className="text-slate-700 dark:text-slate-300">{branch.modified}</span>
-            </span>
-          </div>
-          <div className="col-span-2 flex items-center justify-between pt-1">
-            <span>
-              Active Version: <strong className="font-medium text-slate-700 dark:text-slate-300">{branch.version}</strong>
-            </span>
-            <span className="truncate">
-              Strategy: <strong className="font-medium text-slate-700 dark:text-slate-300">{branch.strategy}</strong>
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between text-[11px] rounded bg-slate-50 dark:bg-slate-950/70 px-2.5 py-1.5 border border-slate-100 dark:border-slate-800">
-          <span className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-            <Check className="h-3 w-3" aria-hidden="true" />
-            Match Score: {branch.matchScore}
-          </span>
-          <span className="text-slate-500 dark:text-slate-300 flex items-center gap-1">
-            <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-            Verified Facts
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-3">
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs font-medium"
-          disabled
-          aria-hidden="true"
-          tabIndex={-1}
-        >
-          Open Workbench
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          className="h-8 text-xs font-medium flex items-center gap-1"
-          disabled
-          aria-hidden="true"
-          tabIndex={-1}
-        >
-          <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>Inspect</span>
-        </Button>
-      </div>
-    </article>
-  );
-};
 
 /**
  * Public Landing Page component showcasing Resumeee.
  *
  * @returns JSX Element rendering the public landing page.
  */
-export const LandingPage: React.FC = () => {
+export const LandingPage: React.FC<LandingPageProps> = ({ tourTimingMs }) => {
   const [copied, setCopied] = useState(false);
   const [copiedManual, setCopiedManual] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
@@ -422,151 +300,60 @@ export const LandingPage: React.FC = () => {
       <section
         id="hero"
         aria-label="Hero"
-        className="relative flex flex-col items-center text-center max-w-4xl mx-auto space-y-8"
+        className="relative flex flex-col items-center text-center space-y-8"
       >
+        <div className="max-w-4xl mx-auto space-y-8 flex flex-col items-center">
+          {/* Hero Title */}
+          <div className="space-y-4">
+            <h1
+              id="hero-heading"
+              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.15]"
+            >
+              <span className="mb-2 leading-[1.2]">One resume, many variants.</span>
+              <br />
+              <span className="text-indigo-600 dark:text-indigo-400">Tailored resumes for the job you want.</span>
+            </h1>
+            <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-700 dark:text-slate-300 leading-relaxed">
+              Maintain a single source of career truth and branch tailored variants for every role or need, powered by your preferred AI.
+            </p>
+          </div>
 
-        {/* Hero Title */}
-        <div className="space-y-4">
-          <h1
-            id="hero-heading"
-            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.15]"
-          >
-            <span className="mb-2 leading-[1.2]">One resume, many variants.</span>
-            <br />
-            <span className="text-indigo-600 dark:text-indigo-400">Tailored resumes for the job you want.</span>
-          </h1>
-          <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-700 dark:text-slate-300 leading-relaxed">
-            Maintain a single source of career truth and branch tailored variants for every role or need, powered by your preferred AI.
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-center">
+            <Button size="lg" asChild className="w-full sm:w-auto h-12 px-7 text-base font-semibold shadow-sm">
+              <a href="#open-source" className="flex items-center justify-center gap-2">
+                <span>Get Started</span>
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </a>
+            </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              asChild
+              className="w-full sm:w-auto h-12 px-7 text-base font-semibold"
+            >
+              <a
+                href="https://github.com/resumeee-app/resumeee"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="flex items-center justify-center gap-2"
+              >
+                <Github className="h-4 w-4" aria-hidden="true" />
+                <span>Run It Locally</span>
+                <ExternalLink className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+              </a>
+            </Button>
+          </div>
+
+          {/* Trust & Guarantee Subtitle */}
+          <p className="text-xs text-slate-500 dark:text-slate-300">
+            Zero telemetry • Open Source
           </p>
         </div>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-center">
-          <Button size="lg" asChild className="w-full sm:w-auto h-12 px-7 text-base font-semibold shadow-sm">
-            <a href="#open-source" className="flex items-center justify-center gap-2">
-              <span>Get Started</span>
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </a>
-          </Button>
-
-          <Button
-            size="lg"
-            variant="outline"
-            asChild
-            className="w-full sm:w-auto h-12 px-7 text-base font-semibold"
-          >
-            <a
-              href="https://github.com/resumeee-app/resumeee"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="flex items-center justify-center gap-2"
-            >
-              <Github className="h-4 w-4" aria-hidden="true" />
-              <span>Run It Locally</span>
-              <ExternalLink className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
-            </a>
-          </Button>
-        </div>
-
-        {/* Trust & Guarantee Subtitle */}
-        <p className="text-xs text-slate-500 dark:text-slate-300">
-          Zero telemetry • Open Source
-        </p>
-
-        {/* Hero Visualizer: Authentic Resumeee Branch Workflow */}
-        <div
-          data-testid="hero-branch-visualizer"
-          className="w-full mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 p-4 sm:p-6 shadow-md text-left transition-all"
-        >
-
-          {/* Top Window Bar */}
-          <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-3 mb-5">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 font-medium">
-                <h2 >Resume Branch Workflow Preview</h2>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {/* Trunk: Main Career Profile Card (mirrors home-page.tsx & branch-card.tsx) */}
-            <article
-              className="rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-3"
-              aria-label="Main Career Profile"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100 text-base">
-                      <User className="h-4 w-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
-                      <span>Main Career Profile</span>
-                    </h3>
-                    <DefaultBranchBadge iconSize="sm" />
-                    <span className="inline-flex items-center rounded-md bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-700/10 dark:ring-indigo-700/30">
-                      Rev #14
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-300">
-                    Direct Main Profile (Untailored) — mirrors canonical main data with zero LLM tailoring.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2 text-xs">
-                  <BranchStatusBadge status="active" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-700 dark:text-slate-300">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">5</span>
-                  <span className="text-slate-500 dark:text-slate-300">Experiences</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">24</span>
-                  <span className="text-slate-500 dark:text-slate-300">Skills</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">6</span>
-                  <span className="text-slate-500 dark:text-slate-300">Projects</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">2</span>
-                  <span className="text-slate-500 dark:text-slate-300">Education</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">3</span>
-                  <span className="text-slate-500 dark:text-slate-300">Certs</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-300">
-                <div className="flex items-center gap-1.5">
-                  <Layers className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
-                  <span>Template: <strong className="font-medium text-slate-700 dark:text-slate-300">Standard Clean</strong></span>
-                </div>
-                <div>
-                  Active Version: <strong className="font-medium text-slate-700 dark:text-slate-300">v14</strong>
-                </div>
-              </div>
-            </article>
-
-            {/* Tree Branch Split Connector */}
-            <div className="flex items-center gap-2 pl-4 py-1">
-              <div className="h-4 w-0.5 bg-indigo-300 dark:bg-indigo-700" />
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
-                <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Tailored Resumes</span>
-              </div>
-            </div>
-
-            {/* Grid of Tailored Role Branch Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-0 sm:pl-4 border-l-2 border-indigo-200 dark:border-indigo-900/60 ml-2">
-              {MOCK_TAILORED_BRANCHES.map((branch) => (
-                <MockBranchCard key={branch.id} branch={branch} />
-              ))}
-            </div>
-          </div>
-        </div>
+        {/* Hero Guided Tour: Interactive Mocked Stepper using Real Components */}
+        <LandingGuidedTour tourTimingMs={tourTimingMs} />
       </section>
 
       {/* 2. CORE FEATURES PILLARS */}

@@ -34,6 +34,8 @@ export interface DiffViewerProps {
   mainProfile?: MainProfileSnapshot | null;
   /** Array of all historical versions for the branch (to compare against prior versions) */
   previousVersions?: BranchVersion[];
+  /** When true, hides baseline selector dropdown for compact read-only previews */
+  previewOnly?: boolean;
   /** Optional additional CSS class names */
   className?: string;
 }
@@ -75,6 +77,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   currentVersion,
   mainProfile,
   previousVersions = [],
+  previewOnly = false,
   className = "",
 }) => {
   const [baselineId, setBaselineId] = React.useState<string>("main");
@@ -158,24 +161,30 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         </div>
 
         {/* Baseline Selector */}
-        <div className="flex items-center gap-2">
-          <label htmlFor="diff-baseline-select" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            Compare against:
-          </label>
-          <select
-            id="diff-baseline-select"
-            value={baselineId}
-            onChange={(e) => setBaselineId(e.target.value)}
-            className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-          >
-            <option value="main">Main Career Profile</option>
-            {candidateVersions.map((v) => (
-              <option key={v.id} value={v.id}>
-                Version v{v.version_number} ({v.id.slice(0, 8)})
-              </option>
-            ))}
-          </select>
-        </div>
+        {previewOnly ? (
+          <span className="inline-flex items-center rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300">
+            vs. Main Career Profile
+          </span>
+        ) : (
+          <div className="flex items-center gap-2">
+            <label htmlFor="diff-baseline-select" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Compare against:
+            </label>
+            <select
+              id="diff-baseline-select"
+              value={baselineId}
+              onChange={(e) => setBaselineId(e.target.value)}
+              className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-900 dark:text-slate-100 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            >
+              <option value="main">Main Career Profile</option>
+              {candidateVersions.map((v) => (
+                <option key={v.id} value={v.id}>
+                  Version v{v.version_number} ({v.id.slice(0, 8)})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Headline & Summary Diff Card */}

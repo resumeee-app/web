@@ -72,6 +72,15 @@
   outline-offset: 2px;
 }
 
+@keyframes tour-timer-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 /* Print Stylesheet for ATS Resume Generation & Headless PDF Export */
 @media print {
   body {

@@ -48,6 +48,8 @@ export interface ResumeViewerProps {
   markdownContent?: string;
   /** Clean ASCII plain-text resume output */
   plainTextContent?: string;
+  /** When true, omits format switcher radios and uses compact preview height */
+  previewOnly?: boolean;
   /** Optional additional CSS class names */
   className?: string;
 }
@@ -62,6 +64,7 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
   htmlContent = "",
   markdownContent = "",
   plainTextContent = "",
+  previewOnly = false,
   className = "",
 }) => {
   const [viewMode, setViewMode] = React.useState<ResumeViewMode>("html");
@@ -114,46 +117,50 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
   return (
     <div className={`flex flex-col gap-3 ${className}`}>
       {/* Controls Bar: View Mode (HTML, Markdown, Plain Text) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm">
-        {/* View Mode Toggle: HTML vs Markdown vs Plain Text */}
-        <div
-          role="radiogroup"
-          aria-label="Resume view mode"
-          className="inline-flex items-center rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5 shadow-sm"
-        >
-          {MODES.map((mode) => {
-            const Icon = mode.icon;
-            const isChecked = viewMode === mode.id;
-            return (
-              <button
-                key={mode.id}
-                ref={(el) => {
-                  buttonRefs.current[mode.id] = el;
-                }}
-                type="button"
-                role="radio"
-                tabIndex={isChecked ? 0 : -1}
-                aria-checked={isChecked}
-                onKeyDown={handleKeyDown}
-                onClick={() => setViewMode(mode.id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-                  isChecked
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>{mode.label}</span>
-              </button>
-            );
-          })}
+      {!previewOnly && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm">
+          {/* View Mode Toggle: HTML vs Markdown vs Plain Text */}
+          <div
+            role="radiogroup"
+            aria-label="Resume view mode"
+            className="inline-flex items-center rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5 shadow-sm"
+          >
+            {MODES.map((mode) => {
+              const Icon = mode.icon;
+              const isChecked = viewMode === mode.id;
+              return (
+                <button
+                  key={mode.id}
+                  ref={(el) => {
+                    buttonRefs.current[mode.id] = el;
+                  }}
+                  type="button"
+                  role="radio"
+                  tabIndex={isChecked ? 0 : -1}
+                  aria-checked={isChecked}
+                  onKeyDown={handleKeyDown}
+                  onClick={() => setViewMode(mode.id)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                    isChecked
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{mode.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Preview Container: Hoisted one level above, occupying 100% width with no margins */}
       <div
         data-testid="resume-page-paper"
-        className="w-full min-h-[600px] bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col"
+        className={`w-full ${
+          previewOnly ? "min-h-[340px]" : "min-h-[600px]"
+        } bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col`}
       >
         {/* Render Area: Sandboxed iframe for HTML, or accessible pre for Markdown / Plain Text */}
         <div className="flex-1 w-full h-full p-2 overflow-hidden">
@@ -162,7 +169,9 @@ export const ResumeViewer: React.FC<ResumeViewerProps> = ({
               title="Rendered Resume Preview"
               srcDoc={sanitizedHtml}
               sandbox=""
-              className="w-full h-full min-h-[600px] border-0"
+              className={`w-full h-full ${
+                previewOnly ? "min-h-[340px]" : "min-h-[600px]"
+              } border-0 rounded-md bg-white dark:bg-white`}
             />
           ) : viewMode === "markdown" ? (
             <pre

@@ -1,19 +1,23 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { render, screen, within, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { LandingPage } from "./landing-page";
 import { ThemeProvider } from "@/lib/theme-provider";
 
-function renderLandingPage() {
+function renderLandingPage(tourTimingMs = { modalStepMs: 15, generationStepMs: 15 }) {
   return render(
     <ThemeProvider>
-      <LandingPage />
+      <LandingPage tourTimingMs={tourTimingMs} />
     </ThemeProvider>
   );
 }
 
 describe("LandingPage Component", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   beforeEach(() => {
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: false,
@@ -65,61 +69,460 @@ describe("LandingPage Component", () => {
       expect(within(heroSection).queryByText(/Runs offline with Ollama/i)).not.toBeInTheDocument();
     });
 
-    it("renders the authentic branch workflow visualizer in the hero with mock cards, match scores, and badges", () => {
+    it("replaces the static preview with an interactive 4-step guided tour stepper, free tab jumps, and Previous navigation", async () => {
+      const user = userEvent.setup();
       renderLandingPage();
 
-      const visualizer = screen.getByTestId("hero-branch-visualizer");
-      expect(visualizer).toBeInTheDocument();
-
-      // Main trunk profile card
-      expect(within(visualizer).getByText(/Main Career Profile/i)).toBeInTheDocument();
-      expect(within(visualizer).getByText(/Default Branch/i)).toBeInTheDocument();
-      expect(within(visualizer).getByText(/Rev #14/i)).toBeInTheDocument();
-
-      // Mock branch cards count
-      const mockCards = within(visualizer).getAllByTestId("mock-branch-card");
-      expect(mockCards).toHaveLength(2);
-      const card1 = mockCards[0]!;
-      const card2 = mockCards[1]!;
-
-      // Card 1: Staff Platform Engineer at Stripe
       expect(
-        within(card1).getByRole("heading", { level: 3, name: /Staff Platform Engineer/i })
-      ).toBeInTheDocument();
-      expect(within(card1).getByText(/Stripe/i)).toBeInTheDocument();
-      expect(within(card1).getByText(/Infrastructure & Observability/i)).toBeInTheDocument();
-      expect(within(card1).getByText(/ATS Modern Tech/i)).toBeInTheDocument();
-      expect(within(card1).getByText(/Senior Staff Engineering/i)).toBeInTheDocument();
-      expect(within(card1).getByText(/Match Score: 98%/i)).toBeInTheDocument();
-      expect(within(card1).queryByText(/ATS Score/i)).not.toBeInTheDocument();
+        screen.queryByRole("heading", { name: /resume branch workflow preview/i })
+      ).not.toBeInTheDocument();
 
-      // Card 2: Founding Systems Architect at Supabase
-      expect(
-        within(card2).getByRole("heading", { level: 3, name: /Founding Systems Architect/i })
-      ).toBeInTheDocument();
-      expect(within(card2).getByText(/Supabase/i)).toBeInTheDocument();
-      expect(within(card2).getByText(/Cloud Core Team/i)).toBeInTheDocument();
-      expect(within(card2).getByText(/Standard Clean/i)).toBeInTheDocument();
-      expect(within(card2).getByText(/0-to-1 Startup Velocity/i)).toBeInTheDocument();
-      expect(within(card2).getByText(/Match Score: 96%/i)).toBeInTheDocument();
-      expect(within(card2).queryByText(/ATS Score/i)).not.toBeInTheDocument();
+      const tourRegion = screen.getByRole("region", { name: /guided tour/i });
+      expect(tourRegion).toBeInTheDocument();
 
-      // Active status badges count across visualizer (1 trunk + 2 branch cards = 3)
-      const activeBadges = within(visualizer).getAllByText(/^Active$/i);
-      expect(activeBadges).toHaveLength(3);
-
-      // Verified facts badges
-      const verifiedBadges = within(visualizer).getAllByText(/Verified Facts/i);
-      expect(verifiedBadges).toHaveLength(2);
-
-      // Non-interactive mock preview buttons: disabled, aria-hidden="true", and tabIndex="-1"
-      const previewButtons = within(visualizer).getAllByRole("button", { hidden: true });
-      expect(previewButtons.length).toBeGreaterThanOrEqual(4);
-      previewButtons.forEach((btn) => {
-        expect(btn).toBeDisabled();
-        expect(btn).toHaveAttribute("aria-hidden", "true");
-        expect(btn).toHaveAttribute("tabindex", "-1");
+      const stepperNav = within(tourRegion).getByRole("navigation", {
+        name: /guided tour steps/i,
       });
+
+      const step1Btn = within(stepperNav).getByRole("button", { name: /curate main profile/i });
+      const step2Btn = within(stepperNav).getByRole("button", { name: /branch for a role/i });
+      const step3Btn = within(stepperNav).getByRole("button", { name: /tailor & analyze/i });
+      const step4Btn = within(stepperNav).getByRole("button", { name: /diff, preview & export/i });
+
+      expect(step1Btn).toHaveAttribute("aria-current", "step");
+      expect(step2Btn).not.toHaveAttribute("aria-current", "step");
+
+      // Idle state has only "Try it" (no duplicate Next button before running the step)
+      expect(within(tourRegion).queryByRole("button", { name: /^next/i })).not.toBeInTheDocument();
+
+      // Free navigation: jump straight to Step 4 via stepper tabs
+      await user.click(step4Btn);
+      expect(step4Btn).toHaveAttribute("aria-current", "step");
+      expect(
+        within(tourRegion).getByRole("region", { name: /tailored resume diff viewer/i })
+      ).toBeInTheDocument();
+
+      // Previous button steps backward sequentially
+      const prevBtn = within(tourRegion).getByRole("button", { name: /previous step/i });
+      expect(prevBtn).toBeEnabled();
+
+      await user.click(prevBtn);
+      expect(step3Btn).toHaveAttribute("aria-current", "step");
+
+      await user.click(within(tourRegion).getByRole("button", { name: /previous step/i }));
+      expect(step2Btn).toHaveAttribute("aria-current", "step");
+
+      await user.click(within(tourRegion).getByRole("button", { name: /previous step/i }));
+      expect(step1Btn).toHaveAttribute("aria-current", "step");
+      expect(within(tourRegion).getByRole("button", { name: /previous step/i })).toBeDisabled();
+    });
+
+    it("positions Try it and Reset Demo in the bottom wizard footer and transforms Try it into Next", async () => {
+      const user = userEvent.setup();
+      renderLandingPage();
+
+      const tourRegion = screen.getByRole("region", { name: /guided tour/i });
+      const previewRegion = within(tourRegion).getByRole("region", { name: /step 1 preview/i });
+
+      // Essential ExperienceList content present; SkillsManager omitted
+      expect(
+        within(previewRegion).getByRole("heading", { name: /work experience/i })
+      ).toBeInTheDocument();
+      expect(
+        within(previewRegion).getByRole("heading", { name: /senior growth product manager/i })
+      ).toBeInTheDocument();
+      expect(within(previewRegion).getByText("Northstar Goods")).toBeInTheDocument();
+      expect(within(previewRegion).getByText(/go-to-market launch/i)).toBeInTheDocument();
+      expect(within(previewRegion).getByText(/Rev #14/i)).toBeInTheDocument();
+      expect(
+        within(previewRegion).queryByRole("heading", { name: /skills & competencies/i })
+      ).not.toBeInTheDocument();
+
+      // Zero non-actionable buttons, inputs, links, or selects inside preview canvas
+      expect(within(previewRegion).queryAllByRole("button")).toHaveLength(0);
+      expect(within(previewRegion).queryAllByRole("textbox")).toHaveLength(0);
+      expect(within(previewRegion).queryAllByRole("searchbox")).toHaveLength(0);
+      expect(within(previewRegion).queryAllByRole("combobox")).toHaveLength(0);
+      expect(within(previewRegion).queryAllByRole("link")).toHaveLength(0);
+
+      // Try it sits in the bottom wizard footer (after the preview region and Previous button)
+      const prevBtn = within(tourRegion).getByRole("button", { name: /previous step/i });
+      const tryBtn = within(tourRegion).getByRole("button", {
+        name: /try it: add verified fact/i,
+      });
+      expect(
+        previewRegion.compareDocumentPosition(tryBtn) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+      expect(
+        prevBtn.compareDocumentPosition(tryBtn) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+
+      // Trigger Step 1 Try it
+      await user.click(tryBtn);
+
+      expect(
+        within(previewRegion).getByText(/presented quarterly pricing experiments to executive board/i)
+      ).toBeInTheDocument();
+      expect(within(previewRegion).getByText(/Rev #15/i)).toBeInTheDocument();
+      expect(within(previewRegion).getByText(/\+1 verified fact/i)).toBeInTheDocument();
+      expect(within(previewRegion).getByText(/^New$/i)).toBeInTheDocument();
+
+      // Completion indicator is non-interactive text, while Try it transforms into Next with Reset Demo on its left
+      expect(
+        within(tourRegion).queryByRole("button", { name: /try it: add verified fact/i })
+      ).not.toBeInTheDocument();
+      expect(
+        within(tourRegion).queryByRole("button", { name: /verified fact added/i })
+      ).not.toBeInTheDocument();
+      expect(within(tourRegion).getByText(/verified fact added \(rev #15\)/i)).toBeInTheDocument();
+
+      const resetBtn = within(tourRegion).getByRole("button", { name: /reset demo/i });
+      const nextBtn = within(tourRegion).getByRole("button", { name: /^next$/i });
+      expect(nextBtn).toBeEnabled();
+      expect(
+        previewRegion.compareDocumentPosition(resetBtn) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+      expect(
+        prevBtn.compareDocumentPosition(resetBtn) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+      expect(
+        resetBtn.compareDocumentPosition(nextBtn) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+
+      // Reset Step restores initial state and brings back Try it
+      await user.click(resetBtn);
+      expect(
+        within(previewRegion).queryByText(/presented quarterly pricing experiments to executive board/i)
+      ).not.toBeInTheDocument();
+      expect(within(previewRegion).getByText(/Rev #14/i)).toBeInTheDocument();
+      expect(within(previewRegion).queryByText(/^New$/i)).not.toBeInTheDocument();
+      expect(within(tourRegion).queryByRole("button", { name: /reset demo/i })).not.toBeInTheDocument();
+      expect(within(tourRegion).queryByRole("button", { name: /^next$/i })).not.toBeInTheDocument();
+
+      // Re-run Try it and advance via transformed Next button to Step 2
+      await user.click(
+        within(tourRegion).getByRole("button", { name: /try it: add verified fact/i })
+      );
+      await user.click(within(tourRegion).getByRole("button", { name: /^next$/i }));
+      expect(
+        within(tourRegion).getByRole("button", { name: /branch for a role/i })
+      ).toHaveAttribute("aria-current", "step");
+      expect(
+        within(tourRegion).getByRole("button", { name: /try it: create role branch/i })
+      ).toBeInTheDocument();
+    });
+
+    it("Step 2 opens CreateBranchModal, auto-walks all 3 modal steps, and appends the new BranchCard", async () => {
+      const user = userEvent.setup();
+      renderLandingPage({ modalStepMs: 250, generationStepMs: 15 });
+
+      const tourRegion = screen.getByRole("region", { name: /guided tour/i });
+      await user.click(within(tourRegion).getByRole("button", { name: /branch for a role/i }));
+
+      const previewRegion = within(tourRegion).getByRole("region", { name: /step 2 preview/i });
+
+      // Main Career Profile + initial Patagonia branch without dead action buttons
+      expect(
+        within(previewRegion).getByRole("heading", { name: /main career profile/i })
+      ).toBeInTheDocument();
+      expect(
+        within(previewRegion).getByRole("heading", { name: /patagonia - director of brand/i })
+      ).toBeInTheDocument();
+      expect(
+        within(previewRegion).queryByRole("heading", { name: /spotify - lead product strategist/i })
+      ).not.toBeInTheDocument();
+      expect(within(previewRegion).queryAllByRole("button")).toHaveLength(0);
+      expect(within(previewRegion).queryAllByRole("link")).toHaveLength(0);
+
+      // Timer progress bar is hidden before launching the modal demo
+      expect(
+        within(tourRegion).queryByRole("progressbar", { name: /auto-advance timer/i })
+      ).not.toBeInTheDocument();
+
+      // Try it opens real CreateBranchModal inside the Step 2 demo frame on Step 1
+      await user.click(
+        within(tourRegion).getByRole("button", { name: /try it: create role branch/i })
+      );
+
+      const dialog = await within(tourRegion).findByRole("dialog", {
+        name: /create new resume branch/i,
+      });
+      const step1Timer = within(tourRegion).getByRole("progressbar", {
+        name: /modal step 1 of 3 auto-advance timer/i,
+      });
+      expect(step1Timer).toHaveAttribute("aria-valuenow", "33");
+      expect(
+        step1Timer.compareDocumentPosition(dialog) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+
+      expect(within(dialog).getByLabelText(/branch name/i)).toHaveValue(
+        "Spotify - Lead Product Strategist"
+      );
+      expect(
+        within(dialog).getByRole("button", { name: /step 1.*the opportunity/i })
+      ).toHaveAttribute("aria-current", "step");
+
+      // Auto-walkthrough visits Step 2, Step 3, then closes and spawns BranchCard
+      await waitFor(() => {
+        expect(
+          within(dialog).getByRole("button", { name: /step 2.*ai tailoring/i })
+        ).toHaveAttribute("aria-current", "step");
+      });
+      expect(
+        within(tourRegion).getByRole("progressbar", {
+          name: /modal step 2 of 3 auto-advance timer/i,
+        })
+      ).toHaveAttribute("aria-valuenow", "67");
+
+      await waitFor(() => {
+        expect(
+          within(dialog).getByRole("button", { name: /step 3.*visual design/i })
+        ).toHaveAttribute("aria-current", "step");
+      });
+      expect(
+        within(tourRegion).getByRole("progressbar", {
+          name: /modal step 3 of 3 auto-advance timer/i,
+        })
+      ).toHaveAttribute("aria-valuenow", "100");
+
+      await expect(
+        within(previewRegion).findByRole("heading", { name: /spotify - lead product strategist/i })
+      ).resolves.toBeInTheDocument();
+      expect(within(previewRegion).getAllByText(/match score:\s*n\/a/i)).toHaveLength(2);
+      expect(within(previewRegion).queryByText(/match score:\s*97%/i)).not.toBeInTheDocument();
+      expect(within(tourRegion).queryByRole("dialog")).not.toBeInTheDocument();
+      expect(
+        within(tourRegion).queryByRole("progressbar", { name: /auto-advance timer/i })
+      ).not.toBeInTheDocument();
+      expect(within(tourRegion).getByRole("button", { name: /reset demo/i })).toBeInTheDocument();
+      expect(within(tourRegion).getByRole("button", { name: /^next$/i })).toBeEnabled();
+    });
+
+    it("Step 2 defaults to 2500ms between modal steps when tourTimingMs is omitted", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      render(
+        <ThemeProvider>
+          <LandingPage />
+        </ThemeProvider>
+      );
+
+      const tourRegion = screen.getByRole("region", { name: /guided tour/i });
+      await user.click(within(tourRegion).getByRole("button", { name: /branch for a role/i }));
+      await user.click(
+        within(tourRegion).getByRole("button", { name: /try it: create role branch/i })
+      );
+
+      const dialog = within(tourRegion).getByRole("dialog", {
+        name: /create new resume branch/i,
+      });
+      const timerBar = within(tourRegion).getByRole("progressbar", {
+        name: /auto-advance timer/i,
+      });
+      expect(timerBar.style.getPropertyValue("--tour-timer-duration")).toBe("2500ms");
+
+      // After 2000ms (past the old 1500ms), modal must still be on Step 1
+      await act(async () => {
+        vi.advanceTimersByTime(2000);
+      });
+      expect(
+        within(dialog).getByRole("button", { name: /step 1.*the opportunity/i })
+      ).toHaveAttribute("aria-current", "step");
+
+      // Reaching 2500ms advances to Step 2
+      await act(async () => {
+        vi.advanceTimersByTime(550);
+      });
+      expect(
+        within(dialog).getByRole("button", { name: /step 2.*ai tailoring/i })
+      ).toHaveAttribute("aria-current", "step");
+
+      // Clean cancel restores real timers cleanly and removes timer indicator
+      await user.click(within(dialog).getByRole("button", { name: /cancel/i }));
+      expect(
+        within(tourRegion).queryByRole("progressbar", { name: /auto-advance timer/i })
+      ).not.toBeInTheDocument();
+    });
+
+    it("Step 2 allows cancelling CreateBranchModal without appending a new BranchCard", async () => {
+      const user = userEvent.setup();
+      renderLandingPage({ modalStepMs: 2000, generationStepMs: 15 });
+
+      const tourRegion = screen.getByRole("region", { name: /guided tour/i });
+      await user.click(within(tourRegion).getByRole("button", { name: /branch for a role/i }));
+
+      await user.click(
+        within(tourRegion).getByRole("button", { name: /try it: create role branch/i })
+      );
+
+      const dialog = await within(tourRegion).findByRole("dialog", {
+        name: /create new resume branch/i,
+      });
+      await user.click(within(dialog).getByRole("button", { name: /cancel/i }));
+
+      expect(within(tourRegion).queryByRole("dialog")).not.toBeInTheDocument();
+      expect(
+        within(tourRegion).queryByRole("heading", { name: /spotify - lead product strategist/i })
+      ).not.toBeInTheDocument();
+    });
+
+    it("Step 3 runs simulated tailoring via TailorActionBar, GenerationProgress, and GapAnalysisCard", async () => {
+      const user = userEvent.setup();
+      renderLandingPage();
+
+      const tourRegion = screen.getByRole("region", { name: /guided tour/i });
+      await user.click(within(tourRegion).getByRole("button", { name: /tailor & analyze/i }));
+
+      const previewRegion = within(tourRegion).getByRole("region", { name: /step 3 preview/i });
+
+      // Freshly branched Spotify role starts synced & untailored (all 3 ATS/Match scores Not evaluated)
+      expect(within(previewRegion).getByText(/main in sync/i)).toBeInTheDocument();
+      expect(
+        within(previewRegion).queryByText(/upstream main profile revisions available/i)
+      ).not.toBeInTheDocument();
+      expect(within(previewRegion).getAllByText(/not evaluated/i)).toHaveLength(3);
+      expect(within(previewRegion).queryAllByRole("meter")).toHaveLength(0);
+      expect(
+        within(previewRegion).getByText(/no gap analysis report available/i)
+      ).toBeInTheDocument();
+
+      // TailorActionBar renders full app Content & AI Strategy + Document Appearance cards
+      expect(
+        within(previewRegion).getByRole("heading", { name: /content & ai strategy/i })
+      ).toBeInTheDocument();
+      expect(
+        within(previewRegion).getByRole("heading", { name: /document appearance/i })
+      ).toBeInTheDocument();
+
+      const strategySelect = within(previewRegion).getByRole("combobox", {
+        name: /tailoring strategy/i,
+      });
+      expect(strategySelect).toHaveValue("preset-exec-story");
+      expect(strategySelect).toHaveAttribute("tabindex", "-1");
+      expect(strategySelect).toHaveAttribute("aria-disabled", "true");
+
+      const templateSelect = within(previewRegion).getByRole("combobox", {
+        name: /resume template/i,
+      });
+      expect(templateSelect).toHaveValue("tmpl-modern-editorial");
+      expect(templateSelect).toHaveAttribute("tabindex", "-1");
+      expect(templateSelect).toHaveAttribute("aria-disabled", "true");
+      expect(within(previewRegion).getByText(/active layout:/i)).toBeInTheDocument();
+      expect(within(previewRegion).getByText(/tailor resume first to preview/i)).toBeInTheDocument();
+
+      // Highlighted Tailor Resume button stays clickable while footer Try it also remains present
+      const previewTailorBtn = within(previewRegion).getByRole("button", {
+        name: /^tailor resume$/i,
+      });
+      expect(previewTailorBtn).toBeEnabled();
+      expect(previewTailorBtn).not.toHaveAttribute("tabindex", "-1");
+      expect(within(previewRegion).getByText(/click below to tailor/i)).toBeInTheDocument();
+      expect(
+        within(tourRegion).getByRole("button", { name: /^try it: tailor resume$/i })
+      ).toBeEnabled();
+
+      // GapAnalysisCard below stays compact without full workbench buttons or expanded report
+      expect(
+        within(previewRegion).queryByRole("button", { name: /calculate ats score/i })
+      ).not.toBeInTheDocument();
+      expect(
+        within(previewRegion).queryByRole("button", { name: /toggle gap analysis report/i })
+      ).not.toBeInTheDocument();
+      expect(
+        within(previewRegion).queryByRole("heading", { name: /identified qualification gaps/i })
+      ).not.toBeInTheDocument();
+      expect(within(previewRegion).queryByText(/^Evaluated$/i)).not.toBeInTheDocument();
+
+      // Clicking the highlighted Tailor Resume button inside the preview directly runs tailoring
+      await user.click(previewTailorBtn);
+
+      expect(await within(previewRegion).findByText("97.0%")).toBeInTheDocument();
+      expect(within(previewRegion).getByText("98.0%")).toBeInTheDocument();
+      expect(within(previewRegion).getByText("95.0%")).toBeInTheDocument();
+      expect(within(previewRegion).getByText(/^Evaluated$/i)).toBeInTheDocument();
+      expect(within(previewRegion).getAllByRole("meter")).toHaveLength(3);
+      expect(within(tourRegion).getByText(/tailored v1 ready/i)).toBeInTheDocument();
+      expect(
+        within(previewRegion).getByRole("status", { name: /generation progress/i })
+      ).toBeInTheDocument();
+      expect(within(previewRegion).queryByText(/click below to tailor/i)).not.toBeInTheDocument();
+      expect(
+        within(previewRegion).getByRole("button", { name: /^tailor resume$/i })
+      ).toBeDisabled();
+
+      const resetBtn = within(tourRegion).getByRole("button", { name: /reset demo/i });
+      expect(within(tourRegion).getByRole("button", { name: /^next$/i })).toBeEnabled();
+
+      // Resetting Step 3 restores Not evaluated state, and clicking footer Try it also works
+      await user.click(resetBtn);
+      expect(within(previewRegion).getAllByText(/not evaluated/i)).toHaveLength(3);
+      expect(
+        within(previewRegion).getByRole("button", { name: /^tailor resume$/i })
+      ).toBeEnabled();
+      await user.click(
+        within(tourRegion).getByRole("button", { name: /^try it: tailor resume$/i })
+      );
+      expect(await within(previewRegion).findByText("97.0%")).toBeInTheDocument();
+    });
+
+    it("Step 4 toggles compact spotlight from DiffViewer to ResumeViewer and offers Reset Demo + Restart Tour", async () => {
+      const user = userEvent.setup();
+      renderLandingPage();
+
+      const tourRegion = screen.getByRole("region", { name: /guided tour/i });
+      // Complete Step 1 first so we can verify Restart Tour resets earlier steps too
+      await user.click(
+        within(tourRegion).getByRole("button", { name: /try it: add verified fact/i })
+      );
+      await user.click(within(tourRegion).getByRole("button", { name: /^next$/i }));
+      expect(
+        within(tourRegion).getByRole("button", { name: /branch for a role/i })
+      ).toHaveAttribute("aria-current", "step");
+
+      // Jump directly to Step 4 via stepper tabs
+      await user.click(
+        within(tourRegion).getByRole("button", { name: /diff, preview & export/i })
+      );
+
+      const previewRegion = within(tourRegion).getByRole("region", { name: /step 4 preview/i });
+
+      expect(
+        within(previewRegion).getByRole("region", { name: /tailored resume diff viewer/i })
+      ).toBeInTheDocument();
+      expect(within(previewRegion).queryAllByRole("button")).toHaveLength(0);
+      expect(within(previewRegion).queryAllByRole("combobox")).toHaveLength(0);
+      expect(within(previewRegion).queryAllByRole("link")).toHaveLength(0);
+
+      await user.click(
+        within(tourRegion).getByRole("button", { name: /try it: render ats resume & export/i })
+      );
+
+      const iframe = within(previewRegion).getByTitle("Rendered Resume Preview");
+      expect(iframe).toBeInTheDocument();
+      expect(iframe.getAttribute("srcdoc")).toContain("background-color: #ffffff");
+      expect(
+        within(previewRegion).getByText(/simulated export ready:.*-v1\.json/i)
+      ).toBeInTheDocument();
+      expect(within(previewRegion).queryAllByRole("radio")).toHaveLength(0);
+
+      // Step 4 completed state shows Reset Demo (left) and Restart Tour (right), no Next button
+      expect(within(tourRegion).queryByRole("button", { name: /^next$/i })).not.toBeInTheDocument();
+      const resetBtn = within(tourRegion).getByRole("button", { name: /reset demo/i });
+      const restartBtn = within(tourRegion).getByRole("button", { name: /restart tour/i });
+      expect(
+        resetBtn.compareDocumentPosition(restartBtn) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+
+      // Clicking Restart Tour returns to Step 1 and resets all completed tour state
+      await user.click(restartBtn);
+      expect(
+        within(tourRegion).getByRole("button", { name: /curate main profile/i })
+      ).toHaveAttribute("aria-current", "step");
+      const step1Preview = within(tourRegion).getByRole("region", { name: /step 1 preview/i });
+      expect(within(step1Preview).getByText(/Rev #14/i)).toBeInTheDocument();
+      expect(
+        within(tourRegion).getByRole("button", { name: /try it: add verified fact/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -323,10 +726,71 @@ describe("LandingPage Component", () => {
   });
 
   describe("Accessibility & Contrast", () => {
-    it("passes automated axe-core accessibility audit with zero violations", async () => {
-      const { container } = renderLandingPage();
-      const results = await axe(container);
-      expect(results).toHaveNoViolations();
+    it("passes automated axe-core accessibility audit across all guided tour steps", async () => {
+      const user = userEvent.setup();
+      const { container } = renderLandingPage({ modalStepMs: 5000, generationStepMs: 15 });
+
+      // Step 1
+      expect(await axe(container)).toHaveNoViolations();
+
+      const tourRegion = screen.getByRole("region", { name: /guided tour/i });
+
+      // Step 2 (and while inline CreateBranchModal is open inside tourRegion)
+      await user.click(within(tourRegion).getByRole("button", { name: /branch for a role/i }));
+      expect(await axe(container)).toHaveNoViolations();
+      await user.click(
+        within(tourRegion).getByRole("button", { name: /try it: create role branch/i })
+      );
+      await within(tourRegion).findByRole("dialog", { name: /create new resume branch/i });
+      expect(await axe(container)).toHaveNoViolations();
+      await user.click(within(tourRegion).getByRole("button", { name: /cancel/i }));
+
+      // Step 3 (initial untailored and after tailoring v1)
+      await user.click(within(tourRegion).getByRole("button", { name: /tailor & analyze/i }));
+      expect(await axe(container)).toHaveNoViolations();
+      await user.click(within(tourRegion).getByRole("button", { name: /try it: tailor resume/i }));
+      await within(tourRegion).findByText("97.0%");
+      expect(await axe(container)).toHaveNoViolations();
+
+      // Step 4 (DiffViewer and ResumeViewer)
+      await user.click(
+        within(tourRegion).getByRole("button", { name: /diff, preview & export/i })
+      );
+      expect(await axe(container)).toHaveNoViolations();
+      await user.click(
+        within(tourRegion).getByRole("button", { name: /try it: render ats resume & export/i })
+      );
+      // In jsdom, cross-frame messaging for sandboxed iframes is not supported by axe-core
+      expect(await axe(container, { iframes: false })).toHaveNoViolations();
+    });
+
+    it("passes automated axe-core accessibility audit in dark mode across guided tour steps", async () => {
+      const user = userEvent.setup();
+      document.documentElement.classList.add("dark");
+      try {
+        const { container } = renderLandingPage({ modalStepMs: 5000, generationStepMs: 15 });
+        const tourRegion = screen.getByRole("region", { name: /guided tour/i });
+
+        expect(await axe(container)).toHaveNoViolations();
+
+        await user.click(within(tourRegion).getByRole("button", { name: /tailor & analyze/i }));
+        expect(await axe(container)).toHaveNoViolations();
+
+        await user.click(
+          within(tourRegion).getByRole("button", { name: /diff, preview & export/i })
+        );
+        expect(await axe(container)).toHaveNoViolations();
+
+        await user.click(
+          within(tourRegion).getByRole("button", { name: /try it: render ats resume & export/i })
+        );
+        const iframe = within(tourRegion).getByTitle("Rendered Resume Preview");
+        expect(iframe.className).toContain("dark:bg-white");
+        expect(iframe.getAttribute("srcdoc")).toContain("background-color: #ffffff");
+        expect(await axe(container, { iframes: false })).toHaveNoViolations();
+      } finally {
+        document.documentElement.classList.remove("dark");
+      }
     });
   });
 });

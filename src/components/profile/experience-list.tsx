@@ -46,6 +46,10 @@ export interface ExperienceListProps {
   onDeleteFact: (factId: string) => void;
   /** Optional accessible live-region announcement handler */
   onAnnouncement?: (message: string) => void;
+  /** When true, hides CRUD buttons and bullet inputs for compact read-only previews */
+  previewOnly?: boolean;
+  /** Optional list of fact IDs to visually emphasize as newly added */
+  highlightedFactIds?: string[];
   /** Optional container class name */
   className?: string;
 }
@@ -77,6 +81,8 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
   onAddFact,
   onDeleteFact,
   onAnnouncement,
+  previewOnly = false,
+  highlightedFactIds,
   className,
 }) => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -327,10 +333,12 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
             Chronological employment history with quantifiable markdown bullet points.
           </p>
         </div>
-        <Button onClick={handleOpenAdd} size="sm" className="gap-1.5">
-          <Plus className="h-4 w-4" aria-hidden="true" />
-          <span>Add Work Experience</span>
-        </Button>
+        {!previewOnly && (
+          <Button onClick={handleOpenAdd} size="sm" className="gap-1.5">
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            <span>Add Work Experience</span>
+          </Button>
+        )}
       </div>
 
       {experiences.length === 0 ? (
@@ -398,46 +406,48 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                   </div>
 
                   {/* Actions: Reorder, Edit, Delete */}
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleMove(idx, "up")}
-                      disabled={idx === 0}
-                      aria-label={`Move ${exp.role_title} at ${exp.company} up`}
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleMove(idx, "down")}
-                      disabled={idx === experiences.length - 1}
-                      aria-label={`Move ${exp.role_title} at ${exp.company} down`}
-                    >
-                      <ArrowDown className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => handleOpenEdit(exp, e)}
-                      aria-label={`Edit ${exp.role_title} at ${exp.company}`}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        onDeleteExperience(exp.id);
-                        onAnnouncement?.(`Deleted experience for ${exp.company}`);
-                      }}
-                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50"
-                      aria-label={`Delete ${exp.role_title} at ${exp.company}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {!previewOnly && (
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleMove(idx, "up")}
+                        disabled={idx === 0}
+                        aria-label={`Move ${exp.role_title} at ${exp.company} up`}
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleMove(idx, "down")}
+                        disabled={idx === experiences.length - 1}
+                        aria-label={`Move ${exp.role_title} at ${exp.company} down`}
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => handleOpenEdit(exp, e)}
+                        aria-label={`Edit ${exp.role_title} at ${exp.company}`}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          onDeleteExperience(exp.id);
+                          onAnnouncement?.(`Deleted experience for ${exp.company}`);
+                        }}
+                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50"
+                        aria-label={`Delete ${exp.role_title} at ${exp.company}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bullets (Facts) */}
@@ -446,72 +456,89 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                     Key Achievements & Bullet Points
                   </h4>
                   <ul className="mt-2 space-y-2">
-                    {exp.facts?.map((fact) => (
-                      <li
-                        key={fact.id}
-                        className="flex items-start justify-between gap-3 rounded bg-slate-50 dark:bg-slate-800/60 px-3 py-2 text-sm text-slate-800 dark:text-slate-200"
-                      >
-                        <div className="flex items-start gap-2">
-                          <ShortIdBadge
-                            id={fact.id}
-                            shortId={(fact as { short_id?: string }).short_id}
-                            className="mt-0.5 shrink-0"
-                          />
-                          <span>{fact.statement}</span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            onDeleteFact(fact.id);
-                            onAnnouncement?.(`Deleted bullet point`);
-                          }}
-                          className="h-6 w-6 p-0 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400"
-                          aria-label={`Delete bullet point ${fact.id}`}
+                    {exp.facts?.map((fact) => {
+                      const isHighlighted = Boolean(highlightedFactIds?.includes(fact.id));
+                      return (
+                        <li
+                          key={fact.id}
+                          className={cn(
+                            "flex items-start justify-between gap-3 rounded px-3 py-2 text-sm transition-colors",
+                            isHighlighted
+                              ? "border border-emerald-300 dark:border-emerald-700 bg-emerald-50/90 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 ring-1 ring-emerald-500/20"
+                              : "bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200"
+                          )}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </li>
-                    ))}
+                          <div className="flex items-start gap-2">
+                            <ShortIdBadge
+                              id={fact.id}
+                              shortId={(fact as { short_id?: string }).short_id}
+                              className="mt-0.5 shrink-0"
+                            />
+                            {isHighlighted && (
+                              <span className="mt-0.5 inline-flex shrink-0 items-center rounded-full bg-emerald-100 dark:bg-emerald-900/70 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:text-emerald-200">
+                                New
+                              </span>
+                            )}
+                            <span>{fact.statement}</span>
+                          </div>
+                          {!previewOnly && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                onDeleteFact(fact.id);
+                                onAnnouncement?.(`Deleted bullet point`);
+                              }}
+                              className="h-6 w-6 p-0 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400"
+                              aria-label={`Delete bullet point ${fact.id}`}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
 
                   {/* Add Bullet Form */}
-                  <div className="mt-3 flex items-center gap-2">
-                    <label
-                      htmlFor={`bullet-input-${exp.id}`}
-                      className="sr-only"
-                    >
-                      New bullet point for {exp.company}
-                    </label>
-                    <input
-                      id={`bullet-input-${exp.id}`}
-                      type="text"
-                      value={bulletDrafts[exp.id] || ""}
-                      onChange={(e) =>
-                        setBulletDrafts((prev) => ({
-                          ...prev,
-                          [exp.id]: e.target.value,
-                        }))
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddBulletSubmit(exp.id, exp.company);
+                  {!previewOnly && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <label
+                        htmlFor={`bullet-input-${exp.id}`}
+                        className="sr-only"
+                      >
+                        New bullet point for {exp.company}
+                      </label>
+                      <input
+                        id={`bullet-input-${exp.id}`}
+                        type="text"
+                        value={bulletDrafts[exp.id] || ""}
+                        onChange={(e) =>
+                          setBulletDrafts((prev) => ({
+                            ...prev,
+                            [exp.id]: e.target.value,
+                          }))
                         }
-                      }}
-                      placeholder="Add quantifiable bullet point (markdown supported)..."
-                      className="flex-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => handleAddBulletSubmit(exp.id, exp.company)}
-                      aria-label={`Add bullet to ${exp.company}`}
-                    >
-                      Add Bullet
-                    </Button>
-                  </div>
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddBulletSubmit(exp.id, exp.company);
+                          }
+                        }}
+                        placeholder="Add quantifiable bullet point (markdown supported)..."
+                        className="flex-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handleAddBulletSubmit(exp.id, exp.company)}
+                        aria-label={`Add bullet to ${exp.company}`}
+                      >
+                        Add Bullet
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </li>
             );

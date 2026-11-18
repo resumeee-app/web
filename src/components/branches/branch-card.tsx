@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useInRouterContext } from "react-router-dom";
 import { Check, Clock, Eye, Layers, ShieldCheck, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +40,19 @@ export interface BranchCardProps {
    * Omitted or suppressed for default branch.
    */
   onDelete?: (branch: Branch) => void;
+  /**
+   * Optional accessible heading level for the branch card title. Defaults to "h2".
+   */
+  headingLevel?: "h2" | "h3";
+  /**
+   * When true, renders static non-navigating elements instead of Router Links
+   * (useful in read-only showcases and standalone builds outside Router).
+   */
+  disableNavigation?: boolean;
+  /**
+   * When true, hides bottom action buttons (Open Workbench, Inspect, Delete) for clean showcase previews.
+   */
+  previewOnly?: boolean;
 }
 
 /**
@@ -69,7 +82,13 @@ export const BranchCard: React.FC<BranchCardProps> = ({
   presetName,
   onInspect,
   onDelete,
+  headingLevel = "h2",
+  disableNavigation = false,
+  previewOnly = false,
 }) => {
+  const inRouter = useInRouterContext();
+  const canNavigate = inRouter && !disableNavigation && !previewOnly;
+  const HeadingTag = headingLevel;
   const isDefault = isDefaultBranch(branch);
   const status = getBranchStatus(branch);
   const formattedDate = formatBranchDate(branch.updated_at);
@@ -86,17 +105,21 @@ export const BranchCard: React.FC<BranchCardProps> = ({
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h2
+              <HeadingTag
                 id={`branch-title-${branch.id}`}
                 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100"
               >
-                <Link
-                  to={`/branches/${branch.id}`}
-                  className="rounded-sm hover:text-indigo-600 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                >
-                  {branch.name}
-                </Link>
-              </h2>
+                {canNavigate ? (
+                  <Link
+                    to={`/branches/${branch.id}`}
+                    className="rounded-sm hover:text-indigo-600 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  >
+                    {branch.name}
+                  </Link>
+                ) : (
+                  <span>{branch.name}</span>
+                )}
+              </HeadingTag>
               {isDefault && <DefaultBranchBadge iconSize="md" />}
             </div>
 
@@ -172,55 +195,79 @@ export const BranchCard: React.FC<BranchCardProps> = ({
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800 pt-4">
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link
-              to={`/branches/${branch.id}`}
-              aria-label={`Open workbench for ${branch.name}`}
-            >
-              Open Workbench
-            </Link>
-          </Button>
+      {!previewOnly && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800 pt-4">
+          <div className="flex items-center gap-2">
+            {canNavigate ? (
+              <Button asChild variant="outline" size="sm">
+                <Link
+                  to={`/branches/${branch.id}`}
+                  aria-label={`Open workbench for ${branch.name}`}
+                >
+                  Open Workbench
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                aria-label={`Open workbench for ${branch.name}`}
+              >
+                Open Workbench
+              </Button>
+            )}
 
-          {onInspect ? (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onInspect(branch)}
-              aria-label={`Inspect resume for ${branch.name}`}
-              className="flex items-center gap-1.5"
-            >
-              <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Inspect</span>
-            </Button>
-          ) : (
-            <Button asChild variant="secondary" size="sm">
-              <Link
-                to={`/branches/${branch.id}/preview`}
+            {onInspect ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => onInspect(branch)}
                 aria-label={`Inspect resume for ${branch.name}`}
                 className="flex items-center gap-1.5"
               >
                 <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Inspect</span>
-              </Link>
+              </Button>
+            ) : canNavigate ? (
+              <Button asChild variant="secondary" size="sm">
+                <Link
+                  to={`/branches/${branch.id}/preview`}
+                  aria-label={`Inspect resume for ${branch.name}`}
+                  className="flex items-center gap-1.5"
+                >
+                  <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>Inspect</span>
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                aria-label={`Inspect resume for ${branch.name}`}
+                className="flex items-center gap-1.5"
+              >
+                <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Inspect</span>
+              </Button>
+            )}
+          </div>
+
+          {!isDefault && onDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(branch)}
+              className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-700 dark:hover:text-red-300 focus-visible:ring-red-500"
+              aria-label={`Delete branch ${branch.name}`}
+            >
+              <Trash2 className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+              Delete
             </Button>
           )}
         </div>
-
-        {!isDefault && onDelete && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(branch)}
-            className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-700 dark:hover:text-red-300 focus-visible:ring-red-500"
-            aria-label={`Delete branch ${branch.name}`}
-          >
-            <Trash2 className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
-            Delete
-          </Button>
-        )}
-      </div>
+      )}
     </article>
   );
 };

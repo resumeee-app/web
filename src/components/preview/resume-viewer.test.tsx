@@ -236,4 +236,18 @@ describe("ResumeViewer Component", () => {
       expect(radio.className).toMatch(/focus-visible:ring-indigo-500/);
     }
   });
+
+  it("keeps white paper surface on HTML preview iframe in dark mode so dark-ink templates remain readable", () => {
+    render(
+      <ResumeViewer
+        htmlContent={mockHtml}
+        markdownContent={mockMarkdown}
+        plainTextContent={mockPlainText}
+      />
+    );
+
+    const iframe = screen.getByTitle("Rendered Resume Preview");
+    expect(iframe.className).toContain("bg-white");
+    expect(iframe.className).toContain("dark:bg-white");
+  });
 });
