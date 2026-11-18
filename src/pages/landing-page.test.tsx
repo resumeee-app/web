@@ -199,7 +199,22 @@ describe("LandingPage Component", () => {
       ).toBeInTheDocument();
 
       // Code snippets / tabs
-      expect(within(openSourceSection).getByText(/docker run/i)).toBeInTheDocument();
+      const dockerCmdEl = within(openSourceSection).getByText(/docker run/i);
+      expect(dockerCmdEl).toBeInTheDocument();
+      expect(dockerCmdEl.textContent).not.toContain(" -d ");
+      expect(dockerCmdEl.textContent).toContain("-p 8080:8080 -p 8081:8081");
+
+      // Alternative manual clone & run instructions
+      expect(
+        within(openSourceSection).getByText(/Alternative: Clone & Run Manually/i)
+      ).toBeInTheDocument();
+      expect(
+        within(openSourceSection).getByText(/git clone https:\/\/github\.com\/resumeee-app\/resumeee\.git/i)
+      ).toBeInTheDocument();
+      const manualCopyBtn = within(openSourceSection).getByRole("button", {
+        name: /copy manual setup command/i,
+      });
+      expect(manualCopyBtn).toBeInTheDocument();
 
       // Copy terminal command button
       const copyBtn = within(openSourceSection).getByRole("button", {

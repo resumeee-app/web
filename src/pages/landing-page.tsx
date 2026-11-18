@@ -361,16 +361,23 @@ export const MockBranchCard: React.FC<{ branch: MockTailoredBranch }> = ({ branc
  */
 export const LandingPage: React.FC = () => {
   const [copied, setCopied] = useState(false);
+  const [copiedManual, setCopiedManual] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copyManualTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dockerCommand =
-    "docker run -d -p 8080:8080 -v resumeee-data:/data ghcr.io/resumeee-app/resumeee:latest";
+    "docker run -p 8080:8080 -p 8081:8081 -v resumeee-data:/data ghcr.io/resumeee-app/resumeee:latest";
+  const manualCommand =
+    "git clone https://github.com/resumeee-app/resumeee.git && cd resumeee && ./scripts/clone-all.sh && cp .env.example .env && docker compose up --build";
 
   useEffect(() => {
     return () => {
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
+      }
+      if (copyManualTimeoutRef.current) {
+        clearTimeout(copyManualTimeoutRef.current);
       }
     };
   }, []);
@@ -387,6 +394,21 @@ export const LandingPage: React.FC = () => {
     }
     copyTimeoutRef.current = setTimeout(() => {
       setCopied(false);
+    }, 2000);
+  };
+
+  const handleCopyManualCommand = async () => {
+    try {
+      await navigator.clipboard.writeText(manualCommand);
+    } catch {
+      // Fallback for test or legacy environments
+    }
+    setCopiedManual(true);
+    if (copyManualTimeoutRef.current) {
+      clearTimeout(copyManualTimeoutRef.current);
+    }
+    copyManualTimeoutRef.current = setTimeout(() => {
+      setCopiedManual(false);
     }, 2000);
   };
 
@@ -591,32 +613,85 @@ export const LandingPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Terminal Block */}
-        <div className="rounded-xl border border-slate-800 bg-slate-950/90 overflow-hidden shadow-inner">
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-slate-950">
-            <div className="flex items-center space-x-2">
+        {/* Terminal Block: Prebuilt Docker Image */}
+        <div className="space-y-4">
+          <div className="rounded-xl border border-slate-800 bg-slate-950/90 overflow-hidden shadow-inner">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-slate-950">
+              <span className="font-mono text-xs text-slate-300">
+                Quickstart with Docker (Web UI :8080 &amp; API :8081)
+              </span>
+              <button
+                type="button"
+                onClick={() => void handleCopyCommand()}
+                aria-label="Copy Docker command"
+                className="flex items-center gap-1.5 rounded px-2.5 py-1 font-mono text-xs text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              >
+                {copied ? (
+                  <>
+                    <CheckCheck className="h-3.5 w-3.5 text-emerald-400" aria-hidden="true" />
+                    <span className="text-emerald-400 font-medium">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => void handleCopyCommand()}
-              aria-label="Copy Docker command"
-              className="flex items-center gap-1.5 rounded px-2.5 py-1 font-mono text-xs text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
-            >
-              {copied ? (
-                <>
-                  <CheckCheck className="h-3.5 w-3.5 text-emerald-400" aria-hidden="true" />
-                  <span className="text-emerald-400 font-medium">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>Copy</span>
-                </>
-              )}
-            </button>
+            <div className="p-4 sm:p-5 font-mono text-xs sm:text-sm text-emerald-400 overflow-x-auto whitespace-pre">
+              <code>{dockerCommand}</code>
+            </div>
+            <div className="px-4 py-2.5 border-t border-slate-800/80 bg-slate-950/60 text-xs text-slate-300 flex flex-wrap gap-x-6 gap-y-1">
+              <span>
+                Web UI &amp; proxied API: <code className="text-slate-100">http://localhost:8080</code>
+              </span>
+              <span>
+                Direct REST API: <code className="text-slate-100">http://localhost:8081/api/v1</code>
+              </span>
+              <span>
+                Optional API key: <code className="text-slate-100">-e GEMINI_API_KEY=...</code>
+              </span>
+            </div>
           </div>
-          <div className="p-4 sm:p-5 font-mono text-xs sm:text-sm text-emerald-400 overflow-x-auto whitespace-pre">
-            <code>{dockerCommand}</code>
+
+          {/* Terminal Block: Clone & Run Manually */}
+          <div className="rounded-xl border border-slate-800 bg-slate-950/90 overflow-hidden shadow-inner">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-slate-950">
+              <span className="font-mono text-xs text-slate-300">
+                Alternative: Clone &amp; Run Manually (Web :3000 &amp; API :8080)
+              </span>
+              <button
+                type="button"
+                onClick={() => void handleCopyManualCommand()}
+                aria-label="Copy manual setup command"
+                className="flex items-center gap-1.5 rounded px-2.5 py-1 font-mono text-xs text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              >
+                {copiedManual ? (
+                  <>
+                    <CheckCheck className="h-3.5 w-3.5 text-emerald-400" aria-hidden="true" />
+                    <span className="text-emerald-400 font-medium">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <div className="p-4 sm:p-5 font-mono text-xs sm:text-sm text-sky-300 overflow-x-auto whitespace-pre">
+              <code>{manualCommand}</code>
+            </div>
+            <div className="px-4 py-2.5 border-t border-slate-800/80 bg-slate-950/60 text-xs text-slate-300 flex flex-wrap gap-x-6 gap-y-1">
+              <span>
+                Compose exposes Web UI on <code className="text-slate-100">:3000</code> and API on{" "}
+                <code className="text-slate-100">:8080/api/v1</code>
+              </span>
+              <span>
+                Without Docker: <code className="text-slate-100">PORT=8080 ADMIN_MODE=true go -C server run ./cmd/server</code>
+              </span>
+            </div>
           </div>
         </div>
 
