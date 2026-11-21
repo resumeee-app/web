@@ -152,7 +152,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       )}
 
       {/* Header & Baseline Selector Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
         <div className="flex items-center gap-2">
           <GitCompare className="h-5 w-5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
           <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
@@ -188,7 +188,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       </div>
 
       {/* Headline & Summary Diff Card */}
-      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm">
+      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3.5 sm:p-5 shadow-sm">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-3">
           Headline & Professional Summary
         </h3>
@@ -224,7 +224,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       </section>
 
       {/* Targeted Skills Diff Card */}
-      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm">
+      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3.5 sm:p-5 shadow-sm">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-3">
           Targeted & Highlighted Skills
         </h3>
@@ -253,7 +253,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       </section>
 
       {/* Experience Bullet Points Diff */}
-      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm">
+      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3.5 sm:p-5 shadow-sm">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-4">
           Experience Bullet Points & Impact Comparison
         </h3>

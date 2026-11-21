@@ -243,7 +243,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
     <>
       <section
         aria-labelledby={headingId}
-        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-5"
+        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm space-y-5"
       >
         {/* Header, On-Demand ATS Trigger, and Gap Report Toggle */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -339,7 +339,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
         {/* Unified Three-Score Breakdown */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Score 1: Target Match Score */}
-          <div className="rounded-md border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-4 space-y-2">
+          <div className="rounded-md border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-3 sm:p-4 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Target Match Score
@@ -385,7 +385,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
           </div>
 
           {/* Score 2: Extraction Confidence Score */}
-          <div className="rounded-md border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-4 space-y-2">
+          <div className="rounded-md border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-3 sm:p-4 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Extraction Confidence Score
@@ -424,7 +424,7 @@ export const GapAnalysisCard: React.FC<GapAnalysisCardProps> = ({
           </div>
 
           {/* Score 3: Job Matching Score */}
-          <div className="rounded-md border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-4 space-y-2">
+          <div className="rounded-md border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-3 sm:p-4 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Job Matching Score

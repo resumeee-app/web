@@ -98,7 +98,7 @@ export const BranchCard: React.FC<BranchCardProps> = ({
 
   return (
     <article
-      className="flex flex-col justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-all hover:border-slate-300 dark:hover:border-slate-700"
+      className="flex flex-col justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm transition-all hover:border-slate-300 dark:hover:border-slate-700"
       aria-labelledby={`branch-title-${branch.id}`}
     >
       <div>

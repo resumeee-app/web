@@ -134,7 +134,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
 
       <section
         aria-label="Branch Actions and Overview"
-        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-6"
+        className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm space-y-5 sm:space-y-6"
       >
         {/* Top: Metadata & Context */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 dark:border-slate-800/80 pb-4">
@@ -168,9 +168,9 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
         </div>
 
         {/* RFC-005 Segregated Columns: Content & AI Strategy vs Document Appearance */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
             {/* Column 1: Content & AI Strategy */}
-            <div className="rounded-md border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-4 flex flex-col justify-between space-y-4">
+            <div className="rounded-md border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-3.5 sm:p-4 flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Sliders className="h-4 w-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
@@ -213,13 +213,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                 )}
               </div>
 
-              <div
-                className={
-                  isHighlightedPreviewAction
-                    ? "rounded-lg border border-indigo-300 dark:border-indigo-700 bg-indigo-50/90 dark:bg-indigo-950/70 p-2 space-y-1.5 ring-2 ring-indigo-500/70 dark:ring-indigo-400/70 shadow-sm transition-all"
-                    : "pt-2"
-                }
-              >
+              <div className="pt-2 space-y-2">
                 {isHighlightedPreviewAction && (
                   <p className="flex items-center gap-1.5 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300">
                     <span
@@ -238,7 +232,9 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
                   disabled={isTailoring || disableTailorButton}
                   aria-busy={isTailoring}
                   className={
-                    previewOnly || highlightTailorButton
+                    isHighlightedPreviewAction
+                      ? "pointer-events-auto w-full flex items-center justify-center gap-2 ring-2 ring-indigo-500 dark:ring-indigo-400 ring-offset-2 ring-offset-slate-50 dark:ring-offset-slate-950 shadow-md"
+                      : previewOnly || highlightTailorButton
                       ? "pointer-events-auto w-full flex items-center justify-center gap-2"
                       : "w-full flex items-center justify-center gap-2"
                   }
@@ -272,7 +268,7 @@ export const TailorActionBar: React.FC<TailorActionBarProps> = ({
             </div>
 
             {/* Column 2: Document Appearance */}
-            <div className="rounded-md border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-4 flex flex-col justify-between space-y-4">
+            <div className="rounded-md border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-3.5 sm:p-4 flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Layers className="h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />

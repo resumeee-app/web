@@ -358,7 +358,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
             return (
               <li
                 key={exp.id}
-                className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+                className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 sm:p-5 shadow-sm"
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1">
@@ -468,7 +468,7 @@ export const ExperienceList: React.FC<ExperienceListProps> = ({
                               : "bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200"
                           )}
                         >
-                          <div className="flex items-start gap-2">
+                          <div className="min-w-0 flex-1 flex flex-wrap items-start gap-2">
                             <ShortIdBadge
                               id={fact.id}
                               shortId={(fact as { short_id?: string }).short_id}

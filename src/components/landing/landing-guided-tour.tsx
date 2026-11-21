@@ -60,11 +60,16 @@ export interface LandingGuidedTourProps {
   tourTimingMs?: TourTimingConfig;
 }
 
+const HEADER_HEIGHT_PX = 64;
+const MOBILE_BREAKPOINT_PX = 768;
+
 interface TourStepMeta {
   id: TourStepId;
   title: string;
+  shortTitle: string;
   description: string;
   tryLabel: string;
+  shortTryLabel: string;
   completedLabel: string;
   icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
 }
@@ -73,36 +78,44 @@ const TOUR_STEPS: readonly TourStepMeta[] = [
   {
     id: 1,
     title: "Curate Main Profile",
+    shortTitle: "Profile",
     description:
       "Record work history and quantified bullet facts with deterministic ShortID hashes in one canonical Career Graph.",
     tryLabel: "Try it: Add Verified Fact",
+    shortTryLabel: "Try it: Add Fact",
     completedLabel: "Verified Fact Added (Rev #15)",
     icon: User,
   },
   {
     id: 2,
     title: "Branch for a Role",
+    shortTitle: "Branch",
     description:
       "Branch off your Main Career Profile for each target opportunity with its own job description, AI strategy, and ATS template.",
     tryLabel: "Try it: Create Role Branch",
+    shortTryLabel: "Try it: Create Branch",
     completedLabel: "Spotify Branch Created",
     icon: GitBranch,
   },
   {
     id: 3,
     title: "Tailor & Analyze",
+    shortTitle: "Tailor",
     description:
       "Run AI tailoring anchored strictly to your proven Main Profile facts, then inspect generated Match & ATS scores.",
     tryLabel: "Try it: Tailor Resume",
+    shortTryLabel: "Try it: Tailor Resume",
     completedLabel: "Tailored v1 Ready",
     icon: Sparkles,
   },
   {
     id: 4,
     title: "Diff, Preview & Export",
+    shortTitle: "Preview",
     description:
       "Review every tailored rewrite against your Main Profile, inspect the rendered ATS layout, and export clean artifacts.",
     tryLabel: "Try it: Render ATS Resume & Export",
+    shortTryLabel: "Try it: Preview & Export",
     completedLabel: "Showing Rendered ATS Resume",
     icon: FileCheck2,
   },
@@ -143,7 +156,83 @@ export const LandingGuidedTour: React.FC<LandingGuidedTourProps> = ({
   const [step4ShowPreview, setStep4ShowPreview] = React.useState(false);
   const [liveAnnouncement, setLiveAnnouncement] = React.useState("");
 
+  // Mobile sticky/fixed chrome tracking (active strictly inside tour on < md viewports)
+  const tourSectionRef = React.useRef<HTMLElement | null>(null);
+  const stepperAnchorRef = React.useRef<HTMLDivElement | null>(null);
+  const stepperNavRef = React.useRef<HTMLElement | null>(null);
+  const footerAnchorRef = React.useRef<HTMLDivElement | null>(null);
+  const footerBarRef = React.useRef<HTMLDivElement | null>(null);
+  const [isTopPinned, setIsTopPinned] = React.useState(false);
+  const [isBottomPinned, setIsBottomPinned] = React.useState(false);
+  const [stepperHeight, setStepperHeight] = React.useState(0);
+  const [footerHeight, setFooterHeight] = React.useState(0);
+
   const timersRef = React.useRef<Array<ReturnType<typeof setTimeout>>>([]);
+
+  const updatePinnedChrome = React.useCallback(() => {
+    if (typeof window === "undefined") return;
+    if (window.innerWidth >= MOBILE_BREAKPOINT_PX) {
+      setIsTopPinned(false);
+      setIsBottomPinned(false);
+      return;
+    }
+
+    const tourEl = tourSectionRef.current;
+    const stepperAnchorEl = stepperAnchorRef.current;
+    const footerAnchorEl = footerAnchorRef.current;
+    if (!tourEl || !stepperAnchorEl || !footerAnchorEl) return;
+
+    const viewportHeight =
+      window.innerHeight || document.documentElement.clientHeight;
+    const tourRect = tourEl.getBoundingClientRect();
+    const stepperRect = stepperAnchorEl.getBoundingClientRect();
+    const footerRect = footerAnchorEl.getBoundingClientRect();
+
+    const measuredNavHeight = stepperNavRef.current?.offsetHeight ?? 0;
+    if (measuredNavHeight > 0) {
+      setStepperHeight(measuredNavHeight);
+    }
+    const measuredFooterHeight = footerBarRef.current?.offsetHeight ?? 0;
+    if (measuredFooterHeight > 0) {
+      setFooterHeight(measuredFooterHeight);
+    }
+
+    const navH = measuredNavHeight || 48;
+    const barH = measuredFooterHeight || 52;
+
+    const nextTopPinned =
+      stepperRect.top < HEADER_HEIGHT_PX &&
+      tourRect.bottom > HEADER_HEIGHT_PX + navH + 72;
+
+    const nextBottomPinned =
+      stepperRect.bottom < viewportHeight - (barH + 96) &&
+      footerRect.bottom > viewportHeight;
+
+    setIsTopPinned(nextTopPinned);
+    setIsBottomPinned(nextBottomPinned);
+  }, []);
+
+  React.useEffect(() => {
+    updatePinnedChrome();
+    window.addEventListener("scroll", updatePinnedChrome, { passive: true });
+    window.addEventListener("resize", updatePinnedChrome);
+    return () => {
+      window.removeEventListener("scroll", updatePinnedChrome);
+      window.removeEventListener("resize", updatePinnedChrome);
+    };
+  }, [updatePinnedChrome]);
+
+  React.useEffect(() => {
+    updatePinnedChrome();
+  }, [
+    activeStep,
+    step1FactAdded,
+    step2Created,
+    isCreateModalOpen,
+    step3Phase,
+    step4ShowPreview,
+    updatePinnedChrome,
+  ]);
 
   const clearAllTimers = React.useCallback(() => {
     timersRef.current.forEach((timerId) => clearTimeout(timerId));
@@ -191,6 +280,22 @@ export const LandingGuidedTour: React.FC<LandingGuidedTourProps> = ({
       setStep3Phase("idle");
     }
     setActiveStep(step);
+    if (
+      isTopPinned &&
+      typeof window !== "undefined" &&
+      window.scrollY > 0 &&
+      stepperAnchorRef.current &&
+      typeof window.scrollTo === "function"
+    ) {
+      const targetY =
+        window.scrollY +
+        stepperAnchorRef.current.getBoundingClientRect().top -
+        HEADER_HEIGHT_PX;
+      window.scrollTo({
+        top: Math.max(0, targetY),
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+      });
+    }
   };
 
   const handleStep1Try = () => {
@@ -348,22 +453,25 @@ export const LandingGuidedTour: React.FC<LandingGuidedTourProps> = ({
     }
     return (
       <>
-        <Play className="h-3.5 w-3.5" aria-hidden="true" />
-        <span>{currentMeta.tryLabel}</span>
+        <Play className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <span className="hidden sm:inline truncate">{currentMeta.tryLabel}</span>
+        <span className="sm:hidden truncate">{currentMeta.shortTryLabel}</span>
       </>
     );
   };
 
   return (
     <section
+      ref={tourSectionRef}
       aria-labelledby="guided-tour-heading"
-      className="w-full max-w-5xl mx-auto mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-4 sm:p-5 shadow-md text-left space-y-4"
+      className="w-full max-w-5xl mx-auto mt-4 sm:mt-6 sm:rounded-2xl sm:border sm:border-slate-200 sm:dark:border-slate-800 sm:bg-slate-50/70 sm:dark:bg-slate-900/50 sm:p-5 text-left space-y-4 sm:shadow-sm"
     >
       <span className="sr-only" role="status" aria-live="polite">
         {liveAnnouncement}
       </span>
-      {/* Top Bar: Title + Step Indicator */}
-      <div className="flex flex-col gap-4 border-b border-slate-200/80 dark:border-slate-800 pb-4">
+
+      {/* Top Bar: Title + Responsive Stepper */}
+      <div className="flex flex-col gap-3 sm:gap-4 border-b border-slate-200/80 dark:border-slate-800 pb-3 sm:pb-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2
@@ -381,51 +489,73 @@ export const LandingGuidedTour: React.FC<LandingGuidedTourProps> = ({
           </span>
         </div>
 
-        {/* 4-Step Wizard Navigation */}
-        <nav aria-label="Guided Tour Steps">
-          <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            {TOUR_STEPS.map((step) => {
-              const Icon = step.icon;
-              const isActive = step.id === activeStep;
-              return (
-                <li key={step.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectStep(step.id)}
-                    aria-current={isActive ? "step" : undefined}
-                    className={cn(
-                      "w-full flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                      isActive
-                        ? "border-indigo-600 dark:border-indigo-500 bg-white dark:bg-slate-900 shadow-xs text-slate-900 dark:text-slate-100"
-                        : "border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900"
-                    )}
-                  >
-                    <span
+        {/* 4-Step Wizard Navigation (condensed sticky bar on mobile while scrolling tour) */}
+        <div
+          ref={stepperAnchorRef}
+          style={
+            isTopPinned && stepperHeight > 0
+              ? { minHeight: stepperHeight }
+              : undefined
+          }
+        >
+          <nav
+            ref={stepperNavRef}
+            aria-label="Guided Tour Steps"
+            data-pinned={isTopPinned ? "true" : undefined}
+            className={
+              isTopPinned
+                ? "fixed inset-x-0 top-16 z-30 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur px-3 py-1.5 shadow-sm md:static md:inset-auto md:border-0 md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:p-0 md:shadow-none"
+                : undefined
+            }
+          >
+            <ol className="grid grid-cols-4 gap-1.5 md:gap-2">
+              {TOUR_STEPS.map((step) => {
+                const Icon = step.icon;
+                const isActive = step.id === activeStep;
+                return (
+                  <li key={step.id}>
+                    <button
+                      type="button"
+                      onClick={() => handleSelectStep(step.id)}
+                      aria-label={`Step ${step.id}: ${step.title}`}
+                      aria-current={isActive ? "step" : undefined}
                       className={cn(
-                        "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                        "w-full flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-2.5 rounded-lg border px-1.5 py-1.5 md:px-3 md:py-2.5 text-center md:text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                         isActive
-                          ? "bg-indigo-600 text-white"
-                          : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                          ? "border-indigo-600 dark:border-indigo-500 bg-white dark:bg-slate-900 shadow-xs text-slate-900 dark:text-slate-100"
+                          : "border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900"
                       )}
                     >
-                      {step.id}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <span className="flex items-center gap-1.5 text-xs font-semibold truncate">
-                        <Icon className="h-3.5 w-3.5 shrink-0 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
-                        <span className="truncate">{step.title}</span>
+                      <span
+                        className={cn(
+                          "flex h-5 w-5 md:h-6 md:w-6 shrink-0 items-center justify-center rounded-full text-[11px] md:text-xs font-bold",
+                          isActive
+                            ? "bg-indigo-600 text-white"
+                            : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                        )}
+                      >
+                        {step.id}
                       </span>
-                    </div>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
+                      <div className="min-w-0 w-full md:flex-1">
+                        <span className="md:hidden block text-[11px] font-semibold leading-tight truncate">
+                          {step.shortTitle}
+                        </span>
+                        <span className="hidden md:flex items-center gap-1.5 text-xs font-semibold truncate">
+                          <Icon className="h-3.5 w-3.5 shrink-0 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+                          <span className="truncate">{step.title}</span>
+                        </span>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        </div>
       </div>
 
-      {/* Active Step Goal Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-indigo-200/80 dark:border-indigo-900/60 bg-white dark:bg-slate-900 px-4 py-3 shadow-xs">
+      {/* Flattened Active Step Goal Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-0.5">
         <div className="space-y-0.5">
           <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
             Step {currentMeta.id}: {currentMeta.title}
@@ -443,8 +573,8 @@ export const LandingGuidedTour: React.FC<LandingGuidedTourProps> = ({
         )}
       </div>
 
-      {/* Strictly Locked Preview Viewport (contains inline Step 2 modal inside demo frame) */}
-      <div className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-3 sm:p-4">
+      {/* Flattened Strictly Locked Preview Area (avoids redundant nested bordered frame) */}
+      <div className="relative space-y-2">
         {activeStep === 2 && isCreateModalOpen && (
           <div
             role="progressbar"
@@ -455,7 +585,7 @@ export const LandingGuidedTour: React.FC<LandingGuidedTourProps> = ({
             style={
               { "--tour-timer-duration": `${modalDelay}ms` } as React.CSSProperties
             }
-            className="pointer-events-none absolute inset-x-0 top-0 z-20 h-1 bg-slate-200/80 dark:bg-slate-800/80"
+            className="pointer-events-none relative z-20 h-1 w-full overflow-hidden rounded-full bg-slate-200/90 dark:bg-slate-800/90"
           >
             <div
               key={`step2-timer-${modalStep}`}
@@ -474,13 +604,13 @@ export const LandingGuidedTour: React.FC<LandingGuidedTourProps> = ({
           ariaHidden={activeStep === 2 && isCreateModalOpen}
           className={
             activeStep === 2 && isCreateModalOpen
-              ? "pointer-events-none absolute inset-3 sm:inset-4 overflow-hidden opacity-35"
+              ? "pointer-events-none absolute inset-0 overflow-hidden opacity-35"
               : undefined
           }
         >
         {activeStep === 1 && (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-xs">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-0.5 text-xs">
               <span className="font-semibold text-slate-900 dark:text-slate-100">
                 Jane Doe — Senior Growth Product Manager
               </span>
@@ -520,7 +650,7 @@ export const LandingGuidedTour: React.FC<LandingGuidedTourProps> = ({
               previewOnly
             />
 
-            <div className="flex items-center gap-2 pl-4 py-1">
+            <div className="flex items-center gap-2 pl-2 sm:pl-4 py-1">
               <div className="h-4 w-0.5 bg-indigo-300 dark:bg-indigo-700" />
               <div className="flex items-center gap-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
                 <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
@@ -528,7 +658,7 @@ export const LandingGuidedTour: React.FC<LandingGuidedTourProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-0 sm:pl-4 border-l-2 border-indigo-200 dark:border-indigo-900/60 ml-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 pl-2.5 sm:pl-4 border-l-2 border-indigo-200 dark:border-indigo-900/60 ml-1 sm:ml-2">
               <BranchCard
                 branch={TOUR_PATAGONIA_BRANCH}
                 templateName="Executive Brief"
@@ -636,51 +766,82 @@ export const LandingGuidedTour: React.FC<LandingGuidedTourProps> = ({
         )}
       </div>
 
-      {/* Footer Wizard Navigation & Action Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200/80 dark:border-slate-800 pt-4">
-        <div className="flex items-center justify-between sm:justify-start gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleSelectStep((activeStep - 1) as TourStepId)}
-            disabled={activeStep === 1}
-            aria-label="Previous step"
-            className="gap-1"
-          >
-            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-            <span>Previous</span>
-          </Button>
-
-          <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-            Step {activeStep} of {TOUR_STEPS.length}
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          {isStepCompleted && (
+      {/* Footer Wizard Navigation & Action Controls (fixed to bottom on mobile while scrolling tour) */}
+      <div
+        ref={footerAnchorRef}
+        style={
+          isBottomPinned && footerHeight > 0
+            ? { minHeight: footerHeight }
+            : undefined
+        }
+      >
+        <div
+          ref={footerBarRef}
+          role="group"
+          aria-label="Guided tour step controls"
+          data-pinned={isBottomPinned ? "true" : undefined}
+          className={cn(
+            "flex items-center justify-between gap-2",
+            isBottomPinned
+              ? "fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur px-3 py-2 shadow-[0_-4px_12px_rgba(15,23,42,0.08)] md:static md:inset-auto md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:px-0 md:py-0 md:pt-3.5 md:shadow-none"
+              : "border-t border-slate-200/80 dark:border-slate-800 pt-3.5"
+          )}
+        >
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={handleResetActiveStep}
-              className="gap-1.5"
+              onClick={() => handleSelectStep((activeStep - 1) as TourStepId)}
+              disabled={activeStep === 1}
+              aria-label="Previous step"
+              className="gap-1 px-2.5 sm:px-3"
             >
-              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Reset Demo</span>
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Previous</span>
+              <span className="sm:hidden">Prev</span>
             </Button>
-          )}
 
-          <Button
-            ref={activeStep === 2 ? step2TryButtonRef : undefined}
-            type="button"
-            size="sm"
-            onClick={handlePrimaryAction}
-            disabled={isStepRunning}
-            className="gap-1.5"
-          >
-            {renderPrimaryActionContent()}
-          </Button>
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
+              <span className="hidden sm:inline">Step </span>
+              {activeStep}
+              <span className="sm:hidden">/{TOUR_STEPS.length}</span>
+              <span className="hidden sm:inline"> of {TOUR_STEPS.length}</span>
+            </span>
+          </div>
+
+          <div className="flex items-center justify-end gap-1.5 sm:gap-2 min-w-0">
+            {isStepCompleted && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleResetActiveStep}
+                aria-label="Reset Demo"
+                className="gap-1.5 px-2.5 sm:px-3 shrink-0"
+              >
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                <span className="hidden sm:inline">Reset Demo</span>
+                <span className="sm:hidden">Reset</span>
+              </Button>
+            )}
+
+            <Button
+              ref={activeStep === 2 ? step2TryButtonRef : undefined}
+              type="button"
+              size="sm"
+              onClick={handlePrimaryAction}
+              disabled={isStepRunning}
+              aria-label={
+                !isStepCompleted && !isStepRunning
+                  ? currentMeta.tryLabel
+                  : undefined
+              }
+              className="gap-1.5 min-w-0"
+            >
+              {renderPrimaryActionContent()}
+            </Button>
+          </div>
         </div>
       </div>
     </section>

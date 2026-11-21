@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render, screen, within, waitFor, act } from "@testing-library/react";
+import { render, screen, within, waitFor, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { LandingPage } from "./landing-page";
@@ -523,6 +523,131 @@ describe("LandingPage Component", () => {
       expect(
         within(tourRegion).getByRole("button", { name: /try it: add verified fact/i })
       ).toBeInTheDocument();
+    });
+
+    it("pins condensed stepper and bottom controls on mobile scroll through the tour and avoids nested tour wrappers", async () => {
+      const user = userEvent.setup();
+      const origInnerWidth = window.innerWidth;
+      const origInnerHeight = window.innerHeight;
+
+      Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        writable: true,
+        value: 375,
+      });
+      Object.defineProperty(window, "innerHeight", {
+        configurable: true,
+        writable: true,
+        value: 667,
+      });
+
+      try {
+        renderLandingPage();
+
+        const tourRegion = screen.getByRole("region", { name: /guided tour/i });
+        const stepperNav = within(tourRegion).getByRole("navigation", {
+          name: /guided tour steps/i,
+        });
+        const controlsGroup = within(tourRegion).getByRole("group", {
+          name: /guided tour step controls/i,
+        });
+        const previewRegion = within(tourRegion).getByRole("region", {
+          name: /step 1 preview/i,
+        });
+
+        // Flattened layout: preview wrapper omits extra nested border card
+        expect(previewRegion.parentElement?.className).not.toContain("border ");
+        expect(within(stepperNav).getByText("Profile")).toBeInTheDocument();
+        expect(within(stepperNav).getByText("Branch")).toBeInTheDocument();
+        expect(within(stepperNav).getByText("Tailor")).toBeInTheDocument();
+        expect(within(stepperNav).getByText("Preview")).toBeInTheDocument();
+
+        const makeRect = (top: number, height: number): DOMRect => ({
+          top,
+          bottom: top + height,
+          left: 0,
+          right: 375,
+          width: 375,
+          height,
+          x: 0,
+          y: top,
+          toJSON: () => ({}),
+        });
+
+        const stepperAnchor = stepperNav.parentElement!;
+        const controlsAnchor = controlsGroup.parentElement!;
+        let rectScenario: "above" | "inside" | "past" = "above";
+
+        vi.spyOn(tourRegion, "getBoundingClientRect").mockImplementation(() => {
+          if (rectScenario === "above") return makeRect(460, 800);
+          if (rectScenario === "inside") return makeRect(-120, 960);
+          return makeRect(-820, 960);
+        });
+        vi.spyOn(stepperAnchor, "getBoundingClientRect").mockImplementation(() => {
+          if (rectScenario === "above") return makeRect(540, 48);
+          if (rectScenario === "inside") return makeRect(12, 48);
+          return makeRect(-688, 48);
+        });
+        vi.spyOn(controlsAnchor, "getBoundingClientRect").mockImplementation(() => {
+          if (rectScenario === "above") return makeRect(1208, 52);
+          if (rectScenario === "inside") return makeRect(788, 52);
+          return makeRect(88, 52);
+        });
+
+        // 1. Before entering the tour: neither bar is pinned
+        act(() => {
+          fireEvent.scroll(window);
+        });
+        expect(stepperNav).not.toHaveAttribute("data-pinned", "true");
+        expect(controlsGroup).not.toHaveAttribute("data-pinned", "true");
+
+        // 2. While scrolling through the tour body: BOTH condensed stepper and controls pin cleanly
+        rectScenario = "inside";
+        act(() => {
+          fireEvent.scroll(window);
+        });
+        expect(stepperNav).toHaveAttribute("data-pinned", "true");
+        expect(controlsGroup).toHaveAttribute("data-pinned", "true");
+
+        // Interactive actions work seamlessly while pinned (Step 1 Try it -> Reset / Next)
+        await user.click(
+          within(controlsGroup).getByRole("button", { name: /try it: add verified fact/i })
+        );
+        expect(within(controlsGroup).getByRole("button", { name: /reset demo/i })).toBeEnabled();
+        expect(within(controlsGroup).getByRole("button", { name: /^next$/i })).toBeEnabled();
+
+        // 3. Past the bottom of the tour: BOTH bars unpin and never cover sections below
+        rectScenario = "past";
+        act(() => {
+          fireEvent.scroll(window);
+        });
+        expect(stepperNav).not.toHaveAttribute("data-pinned", "true");
+        expect(controlsGroup).not.toHaveAttribute("data-pinned", "true");
+
+        // 4. Desktop width remains unpinned regardless of scroll offset
+        rectScenario = "inside";
+        Object.defineProperty(window, "innerWidth", {
+          configurable: true,
+          writable: true,
+          value: 1024,
+        });
+        act(() => {
+          fireEvent(window, new Event("resize"));
+        });
+        expect(stepperNav).not.toHaveAttribute("data-pinned", "true");
+        expect(controlsGroup).not.toHaveAttribute("data-pinned", "true");
+      } finally {
+        Object.defineProperty(window, "innerWidth", {
+          configurable: true,
+          writable: true,
+          value: origInnerWidth,
+        });
+        Object.defineProperty(window, "innerHeight", {
+          configurable: true,
+          writable: true,
+          value: origInnerHeight,
+        });
+      }
     });
   });
 
