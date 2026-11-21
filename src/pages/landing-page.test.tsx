@@ -44,6 +44,7 @@ describe("LandingPage Component", () => {
         name: /One resume, many variants/i,
       });
       expect(heading).toBeInTheDocument();
+      expect(heading.textContent).not.toContain(".");
 
       // Value proposition subtitle
       expect(
@@ -56,8 +57,8 @@ describe("LandingPage Component", () => {
       expect(getStartedBtn).toHaveAttribute("href", "#open-source");
       expect(within(heroSection).queryByRole("link", { name: /get started free/i })).not.toBeInTheDocument();
 
-      // Secondary CTA: Run it Locally
-      const githubBtn = within(heroSection).getByRole("link", { name: /run it locally/i });
+      // Secondary CTA: GitHub
+      const githubBtn = within(heroSection).getByRole("link", { name: /^github$/i });
       expect(githubBtn).toBeInTheDocument();
       expect(githubBtn).toHaveAttribute("href", "https://github.com/resumeee-app/resumeee");
       expect(githubBtn).toHaveAttribute("target", "_blank");

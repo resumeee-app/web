@@ -309,9 +309,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ tourTimingMs }) => {
               id="hero-heading"
               className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.15]"
             >
-              <span className="mb-2 leading-[1.2]">One resume, many variants.</span>
+              <span className="mb-2 leading-[1.2]">One resume, many variants</span>
               <br />
-              <span className="text-indigo-600 dark:text-indigo-400">Tailored resumes for the job you want.</span>
+              <span className="text-indigo-600 dark:text-indigo-400">Tailored resumes for the job you want</span>
             </h1>
             <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-700 dark:text-slate-300 leading-relaxed">
               Maintain a single source of career truth and branch tailored variants for every role or need, powered by your preferred AI.
@@ -340,7 +340,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ tourTimingMs }) => {
                 className="flex items-center justify-center gap-2"
               >
                 <Github className="h-4 w-4" aria-hidden="true" />
-                <span>Run It Locally</span>
+                <span>GitHub</span>
                 <ExternalLink className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
               </a>
             </Button>
